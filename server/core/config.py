@@ -4,6 +4,7 @@ from pathlib import Path
 class Settings(BaseSettings):
     FRONTEND_URL: str
     DATABASE_URL: str
+    LOG_LEVEL: str
 
     # Class Variable
     model_config = SettingsConfigDict(
