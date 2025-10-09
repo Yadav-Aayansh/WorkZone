@@ -1,9 +1,9 @@
-from db import Base
+from db import TenantBase
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from utils.datetime import get_indian_time
 
-class Recruiter(Base):
+class Recruiter(TenantBase):
     __tablename__ = "recruiters"
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)

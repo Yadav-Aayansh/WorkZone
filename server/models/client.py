@@ -1,8 +1,8 @@
-from db import Base
+from db import PublicBase
 from sqlalchemy import Column, Integer, String, DateTime
 from utils.datetime import get_indian_time
 
-class Client(Base):
+class Client(PublicBase):
     __tablename__ = "clients"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)

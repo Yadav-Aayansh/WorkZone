@@ -1,5 +1,5 @@
 import enum
-from db import Base
+from db import TenantBase
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, DateTime, Enum
 from utils.datetime import get_indian_time
@@ -10,7 +10,7 @@ class Role(enum.Enum):
     RECRUITER = "recruiter"
     APPLICANT = "applicant"
 
-class User(Base):
+class User(TenantBase):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)

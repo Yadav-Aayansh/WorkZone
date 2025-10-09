@@ -7,7 +7,7 @@ from schemas import ClientBase
 from db import get_tenant_db
 
 def create_client(client_data: ClientBase, db: Session = Depends(get_tenant_db)):
-    new_client = Client(name=client_data.name)
+    new_client = Client(name=client_data.name, email=client_data.email, hashed_password=client_data.password)
     db.add(new_client)
     db.commit()
     return new_client

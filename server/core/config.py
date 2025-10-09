@@ -8,7 +8,7 @@ class Settings(BaseSettings):
 
     # Class Variable
     model_config = SettingsConfigDict(
-        env_file = str(Path(__file__).parent / ".env")
+        env_file = str(Path(__file__).parent.parent / ".env")
     )
 
 
