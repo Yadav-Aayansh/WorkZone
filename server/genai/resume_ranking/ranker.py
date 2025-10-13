@@ -29,6 +29,11 @@ class ResumeRanker:
         self.jd_keywords = []
         self.jd_embedding = None
 
+        if genai:
+            self.llm_model = genai.GenerativeModel('gemini-2.5-flash')
+        else:
+            self.llm_model = None
+
     def _get_embedding(self, text: str):
         """Generates embedding for a given text using Google's model."""
         if not genai or not text.strip():
@@ -43,6 +48,46 @@ class ResumeRanker:
         except Exception as e:
             print(f"Error generating embedding: {e}")
             return None
+
+    def _get_llm_feedback(self, candidate_data: Dict, jd_sections: Dict, resume_sections: Dict, is_shortlisted: bool) -> str:
+        """Constructs a prompt and gets feedback from the Gemini model."""
+        if not self.llm_model:
+            return "Feedback generation disabled: LLM not configured."
+
+        status = "Shortlisted" if is_shortlisted else "Rejected"
+        
+        # --- Prompt Engineering: Clear context and instructions ---
+        prompt = f"""
+        You are a senior technical recruiter providing a concise analysis of a resume for a hiring manager.
+        Your task is to generate a brief, professional feedback summary (2-3 bullet points) for a candidate who has been automatically scored and marked as '{status}'.
+        Write your response directly starting with the feedback with nothing other than the feedback
+
+        **Job Description (Key Information):**
+        - Responsibilities: {jd_sections.get('responsibilities', 'N/A')}
+        - Qualifications: {jd_sections.get('qualifications', 'N/A')}
+
+        **Candidate's Resume (Key Information):**
+        - Experience: {resume_sections.get('experience', 'N/A')}
+        - Skills: {resume_sections.get('skills', 'N/A')}
+
+        **Automated Analysis:**
+        - Keyword Match Score: {candidate_data['details']['keyword_score']:.2f} (out of 1.0)
+        - Experience Similarity Score: {candidate_data['details']['semantic_score']:.2f} (out of 1.0)
+        - Matched Skills: {', '.join(candidate_data['details']['matched_keywords'])}
+
+        **Your Instructions:**
+        Based on all the information above, provide a feedback summary.
+        - If '{status}' is 'Shortlisted', focus on their key strengths and alignment with the role.
+        - If '{status}' is 'Rejected', focus constructively on the primary gaps or misalignments.
+        - Keep the feedback concise and professional. Do not repeat the scores.
+        """
+        
+        try:
+            response = self.llm_model.generate_content(prompt)
+            return response.text.strip()
+        except Exception as e:
+            print(f"Error generating LLM feedback for {candidate_data['resume_id']}: {e}")
+            return "Automated feedback could not be generated for this candidate."
 
     def _prepare_jd(self, jd_sections: Dict[str, str]):
         """
@@ -111,6 +156,8 @@ class ResumeRanker:
             }
         }
 
+    
+
     def rank_resumes(self, resumes: List[Dict[str, str]], jd_sections: Dict[str, str], top_x: int = 10) -> Dict[str, List]:
         """
         Takes a list of resumes, ranks them against a parsed JD, and returns the top X.
@@ -124,6 +171,9 @@ class ResumeRanker:
             A dictionary containing 'shortlisted' and 'rejected' candidates.
         """
         self._prepare_jd(jd_sections)
+
+        # Create a map of resume_id to its full section data for later use
+        resume_sections_map = {res['id']: res['sections'] for res in resumes}
         
         print(f"Scoring {len(resumes)} resumes...")
         scored_resumes = []
@@ -139,11 +189,14 @@ class ResumeRanker:
         shortlisted = scored_resumes[:top_x]
         rejected = scored_resumes[top_x:]
 
+        print("Generating LLM-powered feedback for all candidates...")
+        for candidate in shortlisted:
+            candidate_sections = resume_sections_map[candidate['resume_id']]
+            candidate['feedback'] = self._get_llm_feedback(candidate, jd_sections, candidate_sections, is_shortlisted=True)
+        
         for candidate in rejected:
-            if candidate['details']['keyword_score'] < 0.2: # temp threshold
-                candidate['rejection_reason'] = "Very low match on key skills."
-            else:
-                candidate['rejection_reason'] = "Does not meet overall requirements compared to other candidates."
+            candidate_sections = resume_sections_map[candidate['resume_id']]
+            candidate['feedback'] = self._get_llm_feedback(candidate, jd_sections, candidate_sections, is_shortlisted=False)
         
         return {
             "shortlisted_candidates": shortlisted,
