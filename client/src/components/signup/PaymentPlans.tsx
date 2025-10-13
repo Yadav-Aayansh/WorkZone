@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Sparkles, Zap, Crown } from "lucide-react";
-import { SignupData } from "@/app/signup/page";
+import { SignupData } from "@/app/(auth)/signup/page";
 import { Logo } from "@/components/logo";
 import { initiatePayment, loadRazorpayScript, RazorpayResponse } from "@/lib/razorpay";
 

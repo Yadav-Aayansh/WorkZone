@@ -126,7 +126,7 @@ export default function LoginPage() {
               <Logo />
             </div>
 
-            <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8">
+            <Link href="/client/public" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8">
               <ArrowLeft className="w-4 h-4 mr-1" />
             </Link>
 
