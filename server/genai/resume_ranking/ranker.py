@@ -1,8 +1,21 @@
+import os
 import re
 from typing import Dict, List, Any
+import numpy as np
+import google.generativeai as genai
+from dotenv import load_dotenv
 
 from .keyword_extractor import SpacyKeywordExtractor
 from .section_parser import SectionParser 
+
+load_dotenv("genai/.env")
+
+# Google API key setup
+try:
+    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+except TypeError:
+    print("!!! WARNING: GOOGLE_API_KEY environment variable not set. Semantic scoring will be disabled.")
+    genai = None
 
 class ResumeRanker:
     """
@@ -11,9 +24,25 @@ class ResumeRanker:
     def __init__(self):
         self.keyword_extractor = SpacyKeywordExtractor()
         
-        self.weights = {'keyword': 1.0, 'semantic': 0.0} 
+        self.weights = {'keyword': 0.3, 'semantic': 0.7} 
         
         self.jd_keywords = []
+        self.jd_embedding = None
+
+    def _get_embedding(self, text: str):
+        """Generates embedding for a given text using Google's model."""
+        if not genai or not text.strip():
+            return None
+        try:
+            result = genai.embed_content(
+                model="models/text-embedding-004",
+                content=text,
+                task_type="RETRIEVAL_DOCUMENT" # Optimized for document retrieval
+            )
+            return result['embedding']
+        except Exception as e:
+            print(f"Error generating embedding: {e}")
+            return None
 
     def _prepare_jd(self, jd_sections: Dict[str, str]):
         """
@@ -36,7 +65,10 @@ class ResumeRanker:
 
         self.jd_keywords = self.keyword_extractor.extract(relevant_text)
         print(f"-> Extracted {len(self.jd_keywords)} keywords from relevant JD sections.")
-        print("-" * 30)
+        
+        self.jd_embedding = self._get_embedding(relevant_text)
+        if self.jd_embedding:
+            print("-> Generated JD embedding successfully.")
 
     def _score_single_resume(self, resume_id: str, resume_sections: Dict[str, str]) -> Dict[str, Any]:
         """Calculates all score components for a single resume."""
@@ -55,8 +87,16 @@ class ResumeRanker:
         else:
             keyword_score = 0
 
-        semantic_score = 0.0 
+        # Semantic score
+        semantic_score = 0.0
+        resume_experience_text = resume_sections.get('experience', '')
+        if self.jd_embedding and resume_experience_text:
+            resume_embedding = self._get_embedding(resume_experience_text)
+            if resume_embedding:
+                # Calculate cosine similarity
+                semantic_score = np.dot(self.jd_embedding, resume_embedding)
         
+        # Final weighted score
         final_score = (self.weights['keyword'] * keyword_score) + \
                       (self.weights['semantic'] * semantic_score)
 

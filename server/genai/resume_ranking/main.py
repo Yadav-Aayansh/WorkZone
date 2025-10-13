@@ -56,8 +56,6 @@ def process_and_rank_resumes(
 
 if __name__ == '__main__':
     
-    import os
-    import shutil
     import json
     
     JD_PATH = r"D:\Shreyas\Resumes\JDs\CV_engineer JD.pdf"
@@ -65,6 +63,8 @@ if __name__ == '__main__':
     LOCAL_RESUME_PATHS = [
         r"D:\Shreyas\Resumes\Shreyas_Jani_Resume_Sept2025.pdf",
         r"D:\Shreyas\Resumes\Shreyas_Jani_Resume_June_2025.pdf",
+        r"D:\Shreyas\Resumes\Shreyas - 22f3001229 - IITM BS.pdf",
+        r"D:\Shreyas\Resumes\Shreyas_Jani_CV_11Feb.pdf",
     ]
 
     results = process_and_rank_resumes(
