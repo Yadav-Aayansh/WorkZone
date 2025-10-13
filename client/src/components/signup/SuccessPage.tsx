@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Building2, ArrowRight } from "lucide-react";
-import { SignupData } from "@/app/signup/page";
+import { SignupData } from "@/app/(auth)/signup/page";
 import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { useEffect, useState } from "react";
