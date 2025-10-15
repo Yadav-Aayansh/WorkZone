@@ -13,12 +13,11 @@ from src.genai.resume_ranking.schemas import (
     RankedCandidate,
     RankingReport,
 )
-
-load_dotenv("src/genai/.env")
+from src.core.config import Config
 
 # Google API key setup
 try:
-    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+    genai.configure(api_key=Config.GOOGLE_API_KEY)
 except TypeError:
     print(
         "WARNING: GOOGLE_API_KEY environment variable not set. Semantic scoring will be disabled."
