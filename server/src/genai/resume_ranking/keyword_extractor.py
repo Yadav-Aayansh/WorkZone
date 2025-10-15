@@ -1,7 +1,7 @@
 import spacy
 from typing import List
 
-class SpacyKeywordExtractor(KeywordExtractor):
+class SpacyKeywordExtractor():
     def __init__(self, model="en_core_web_sm"):
         self.nlp = spacy.load(model)
 
@@ -33,12 +33,7 @@ if __name__ == '__main__':
     print("Sample Job Description")
     print(sample_jd)
     
-    print("Keywords from YAKE (Statistical):")
-    yake_extractor = YakeKeywordExtractor()
-    yake_keywords = yake_extractor.extract(sample_jd)
-    print(yake_keywords)
-    
-    print("Keywords from spaCy (Linguistic):")
+    print("Keywords from spaCy:")
     spacy_extractor = SpacyKeywordExtractor()
     spacy_keywords = spacy_extractor.extract(sample_jd)
     filtered_spacy_keywords = [kw for kw in spacy_keywords if len(kw.split()) <= 3 and len(kw) > 2]
