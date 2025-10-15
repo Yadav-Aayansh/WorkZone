@@ -1,33 +1,42 @@
 import os
 import re
-from typing import Dict, List, Any
+from typing import Dict, List, Set
 import numpy as np
 import google.generativeai as genai
 from dotenv import load_dotenv
 
 from src.genai.resume_ranking.keyword_extractor import SpacyKeywordExtractor
-from src.genai.resume_ranking.section_parser import SectionParser 
+from src.genai.resume_ranking.section_parser import SectionParser
+from src.genai.resume_ranking.schemas import (
+    ResumeData,
+    ScoringDetails,
+    RankedCandidate,
+    RankingReport,
+)
 
-load_dotenv("genai/.env")
+load_dotenv("src/genai/.env")
 
 # Google API key setup
 try:
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 except TypeError:
-    print("WARNING: GOOGLE_API_KEY environment variable not set. Semantic scoring will be disabled.")
+    print(
+        "WARNING: GOOGLE_API_KEY environment variable not set. Semantic scoring will be disabled."
+    )
     genai = None
+
 
 class ResumeRanker:
     def __init__(self):
         self.keyword_extractor = SpacyKeywordExtractor()
-        
-        self.weights = {'keyword': 0.3, 'semantic': 0.7} 
-        
+
+        self.weights = {"keyword": 0.3, "semantic": 0.7}
+
         self.jd_keywords = []
         self.jd_embedding = None
 
         if genai:
-            self.llm_model = genai.GenerativeModel('gemini-2.5-flash')
+            self.llm_model = genai.GenerativeModel("gemini-2.5-flash")
         else:
             self.llm_model = None
 
@@ -38,19 +47,25 @@ class ResumeRanker:
             result = genai.embed_content(
                 model="models/text-embedding-004",
                 content=text,
-                task_type="RETRIEVAL_DOCUMENT" # Optimized for document retrieval
+                task_type="RETRIEVAL_DOCUMENT",  # Optimized for document retrieval
             )
-            return result['embedding']
+            return result["embedding"]
         except Exception as e:
             print(f"Error generating embedding: {e}")
             return None
 
-    def _get_llm_feedback(self, candidate_data: Dict, jd_sections: Dict, resume_sections: Dict, is_shortlisted: bool) -> str:
+    def _get_llm_feedback(
+        self,
+        candidate_data: RankedCandidate,
+        jd_sections: Dict[str, str],
+        resume_sections: Dict[str, str],
+        is_shortlisted: bool,
+    ) -> str:
         if not self.llm_model:
             return "Feedback generation disabled: LLM not configured."
 
         status = "Shortlisted" if is_shortlisted else "Rejected"
-        
+
         # --- Prompt Engineering: Clear context and instructions ---
         prompt = f"""
         You are a senior technical recruiter providing a concise analysis of a resume for a hiring manager.
@@ -58,17 +73,17 @@ class ResumeRanker:
         Write your response directly starting with the feedback with nothing other than the feedback
 
         **Job Description (Key Information):**
-        - Responsibilities: {jd_sections.get('responsibilities', 'N/A')}
-        - Qualifications: {jd_sections.get('qualifications', 'N/A')}
+        - Responsibilities: {jd_sections.get("responsibilities", "N/A")}
+        - Qualifications: {jd_sections.get("qualifications", "N/A")}
 
         **Candidate's Resume (Key Information):**
-        - Experience: {resume_sections.get('experience', 'N/A')}
-        - Skills: {resume_sections.get('skills', 'N/A')}
+        - Experience: {resume_sections.get("experience", "N/A")}
+        - Skills: {resume_sections.get("skills", "N/A")}
 
         **Automated Analysis:**
-        - Keyword Match Score: {candidate_data['details']['keyword_score']:.2f} (out of 1.0)
-        - Experience Similarity Score: {candidate_data['details']['semantic_score']:.2f} (out of 1.0)
-        - Matched Skills: {', '.join(candidate_data['details']['matched_keywords'])}
+        - Keyword Match Score: {candidate_data.details.keyword_score:.2f} (out of 1.0)
+        - Experience Similarity Score: {candidate_data.details.semantic_score:.2f} (out of 1.0)
+        - Matched Skills: {", ".join(candidate_data.details.matched_keywords)}
 
         **Your Instructions:**
         Based on all the information above, provide a feedback summary.
@@ -76,44 +91,52 @@ class ResumeRanker:
         - If '{status}' is 'Rejected', focus constructively on the primary gaps or misalignments.
         - Keep the feedback concise and professional. Do not repeat the scores.
         """
-        
+
         try:
             response = self.llm_model.generate_content(prompt)
             return response.text.strip()
         except Exception as e:
-            print(f"Error generating LLM feedback for {candidate_data['resume_id']}: {e}")
+            print(f"Error generating LLM feedback for {candidate_data.resume_id}: {e}")
             return "Automated feedback could not be generated for this candidate."
 
     def _prepare_jd(self, jd_sections: Dict[str, str]):
         print("--- Processing Job Description Sections---")
-        
-        relevant_text = " ".join([
-            jd_sections.get('responsibilities', ''),
-            jd_sections.get('qualifications', ''),
-            jd_sections.get('requirements', ''),
-            jd_sections.get('skills', '')
-        ])
+
+        relevant_text = " ".join(
+            [
+                jd_sections.get("responsibilities", ""),
+                jd_sections.get("qualifications", ""),
+                jd_sections.get("requirements", ""),
+                jd_sections.get("skills", ""),
+            ]
+        )
 
         if not relevant_text.strip():
             relevant_text = " ".join(jd_sections.values())
 
         self.jd_keywords = self.keyword_extractor.extract(relevant_text)
-        print(f"-> Extracted {len(self.jd_keywords)} keywords from relevant JD sections.")
-        
+        print(
+            f"-> Extracted {len(self.jd_keywords)} keywords from relevant JD sections."
+        )
+
         self.jd_embedding = self._get_embedding(relevant_text)
         if self.jd_embedding:
             print("-> Generated JD embedding successfully.")
 
-    def _score_single_resume(self, resume_id: str, resume_sections: Dict[str, str]) -> Dict[str, Any]:
-        
+    def _score_single_resume(self, resume_data: ResumeData) -> RankedCandidate:
+        resume_sections = resume_data.sections
+
         # Keyword Score
-        text_to_search = (resume_sections.get('skills', '') + ' ' + 
-                          resume_sections.get('experience', '')).lower()
-        
-        matched_keywords = set()
+        text_to_search = (
+            resume_sections.get("skills", "")
+            + " "
+            + resume_sections.get("experience", "")
+        ).lower()
+
+        matched_keywords: Set[str] = set()
         if self.jd_keywords:
             for keyword in self.jd_keywords:
-                pattern = r'\b' + re.escape(keyword.lower()) + r'\b'
+                pattern = r"\b" + re.escape(keyword.lower()) + r"\b"
                 if re.search(pattern, text_to_search):
                     matched_keywords.add(keyword)
             keyword_score = len(matched_keywords) / len(self.jd_keywords)
@@ -122,100 +145,92 @@ class ResumeRanker:
 
         # Semantic score
         semantic_score = 0.0
-        resume_experience_text = resume_sections.get('experience', '')
+        resume_experience_text = resume_sections.get("experience", "")
         if self.jd_embedding and resume_experience_text:
             resume_embedding = self._get_embedding(resume_experience_text)
             if resume_embedding:
                 # Calculate cosine similarity
                 semantic_score = np.dot(self.jd_embedding, resume_embedding)
-        
+
         # Final weighted score
-        final_score = (self.weights['keyword'] * keyword_score) + \
-                      (self.weights['semantic'] * semantic_score)
+        final_score = (self.weights["keyword"] * keyword_score) + (
+            self.weights["semantic"] * semantic_score
+        )
 
-        return {
-            'resume_id': resume_id,
-            'final_score': round(final_score, 4),
-            'details': {
-                'keyword_score': round(keyword_score, 4),
-                'matched_keywords': list(matched_keywords),
-                'keyword_match_count': f"{len(matched_keywords)}/{len(self.jd_keywords)}",
-                'semantic_score': semantic_score
-            }
-        }
+        scoring_details = ScoringDetails(
+            keyword_score=keyword_score,
+            semantic_score=semantic_score,
+            matched_keywords=sorted(list(matched_keywords)),
+            keyword_match_count=f"{len(matched_keywords)}/{len(self.jd_keywords)}",
+        )
 
-    
+        return RankedCandidate(
+            resume_id=resume_data.id,
+            final_score=final_score,
+            details=scoring_details,
+        )
 
-    def rank_resumes(self, resumes: List[Dict[str, str]], jd_sections: Dict[str, str], top_x: int = 10) -> Dict[str, List]:
-        """
-        Takes a list of resumes, ranks them against a parsed JD, and returns the top X.
-
-        Args:
-            resumes: A list of resume dictionaries, each with 'id' and 'sections'.
-            jd_sections: The parsed sections of the job description as a dictionary.
-            top_x: The number of top candidates to return.
-
-        Returns:
-            A dictionary containing 'shortlisted' and 'rejected' candidates.
-        """
+    def rank_resumes(
+        self, resumes: List[ResumeData], jd_sections: Dict[str, str], top_x: int = 10
+    ) -> RankingReport:
         self._prepare_jd(jd_sections)
 
         # Create a map of resume_id to its full section data for later use
-        resume_sections_map = {res['id']: res['sections'] for res in resumes}
-        
+        resume_sections_map = {res.id: res.sections for res in resumes}
+
         print(f"Scoring {len(resumes)} resumes...")
-        scored_resumes = []
-        for resume in resumes:
-            # resume is expected to be a dict like {'id': 'resume1.pdf', 'sections': {...}}
-            score_data = self._score_single_resume(resume['id'], resume['sections'])
-            scored_resumes.append(score_data)
-        
-        # Sort candidates by final_score in descending order
-        scored_resumes.sort(key=lambda x: x['final_score'], reverse=True)
-        
+        scored_resumes = [self._score_single_resume(res) for res in resumes]
+        scored_resumes.sort(key=lambda x: x.final_score, reverse=True)
+
         # Split into shortlisted and rejected lists
         shortlisted = scored_resumes[:top_x]
         rejected = scored_resumes[top_x:]
 
         print("Generating LLM-powered feedback for all candidates...")
         for candidate in shortlisted:
-            candidate_sections = resume_sections_map[candidate['resume_id']]
-            candidate['feedback'] = self._get_llm_feedback(candidate, jd_sections, candidate_sections, is_shortlisted=True)
-        
-        for candidate in rejected:
-            candidate_sections = resume_sections_map[candidate['resume_id']]
-            candidate['feedback'] = self._get_llm_feedback(candidate, jd_sections, candidate_sections, is_shortlisted=False)
-        
-        return {
-            "shortlisted_candidates": shortlisted,
-            "rejected_candidates": rejected
-        }
+            candidate_sections = resume_sections_map[candidate.resume_id]
+            candidate.feedback = self._get_llm_feedback(
+                candidate, jd_sections, candidate_sections, is_shortlisted=True
+            )
 
-if __name__ == '__main__':
+        for candidate in rejected:
+            candidate_sections = resume_sections_map[candidate.resume_id]
+            candidate.feedback = self._get_llm_feedback(
+                candidate, jd_sections, candidate_sections, is_shortlisted=False
+            )
+
+        return RankingReport(
+            shortlisted_candidates=shortlisted, rejected_candidates=rejected
+        )
+
+
+if __name__ == "__main__":
     # Sample Data
-    sample_resumes = [
+    resumes = [
         {
-            'id': 'candidate_A_strong.pdf',
-            'sections': {
-                'skills': 'Python, Django, PostgreSQL, RESTful APIs, Docker, AWS',
-                'experience': '5 years developing with Python and Django on AWS.'
-            }
+            "id": "candidate_A_strong.pdf",
+            "sections": {
+                "skills": "Python, Django, PostgreSQL, RESTful APIs, Docker, AWS",
+                "experience": "5 years developing with Python and Django on AWS.",
+            },
         },
         {
-            'id': 'candidate_B_frontend.pdf',
-            'sections': {
-                'skills': 'React, JavaScript, HTML, CSS',
-                'experience': 'Focused on front-end development with React.'
-            }
+            "id": "candidate_B_frontend.pdf",
+            "sections": {
+                "skills": "React, JavaScript, HTML, CSS",
+                "experience": "Focused on front-end development with React.",
+            },
         },
         {
-            'id': 'candidate_C_junior_python.pdf',
-            'sections': {
-                'skills': 'Python, Flask, SQL',
-                'experience': '1 year of experience building small apps with Python.'
-            }
-        }
+            "id": "candidate_C_junior_python.pdf",
+            "sections": {
+                "skills": "Python, Flask, SQL",
+                "experience": "1 year of experience building small apps with Python.",
+            },
+        },
     ]
+
+    sample_resumes: List[ResumeData] = [ResumeData(**data) for data in resumes]
 
     sample_jd_text = """
     We are seeking a Senior Backend Engineer with experience in Python and Django.
@@ -230,7 +245,6 @@ if __name__ == '__main__':
     ranker = ResumeRanker()
     ranking_results = ranker.rank_resumes(sample_resumes, sample_jd_sections, top_x=2)
 
-    import json
     print("\n")
     print("FINAL RANKING REPORT")
-    print(json.dumps(ranking_results, indent=2))
+    print(ranking_results.model_dump_json(indent=2))

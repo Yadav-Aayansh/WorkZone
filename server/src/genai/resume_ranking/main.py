@@ -1,14 +1,15 @@
-from typing import List, Dict
+from typing import List, Any
 
 from src.genai.resume_ranking.text_extractor import extract_text_from_file
 from src.genai.resume_ranking.section_parser import SectionParser
 from src.genai.resume_ranking.ranker import ResumeRanker
+from src.genai.resume_ranking.schemas import ResumeData, RankingReport
 
 def process_and_rank_resumes(
     resume_paths: List[str], 
     jd_path: str, 
     top_x: int = 10
-) -> Dict[str, List]:
+) -> RankingReport | Any:
     """
     Orchestrates the entire resume ranking process.
 
@@ -18,21 +19,23 @@ def process_and_rank_resumes(
         top_x: The number of candidates to shortlist.
 
     Returns:
-        A dictionary with the final ranking report.
+        ranking_results: A RankingReport object
     """
     section_parser = SectionParser()
     ranker = ResumeRanker()
     
-    parsed_resumes = []
+    parsed_resumes: list[ResumeData] = []
     print(f"Parsing {len(resume_paths)} resumes...")
     for path in resume_paths:
         try:
             raw_text = extract_text_from_file(path)
             sections = section_parser.parse(raw_text)
-            parsed_resumes.append({
-                'id': path.split('/')[-1],
-                'sections': sections
-            })
+            parsed_resumes.append(
+                ResumeData(
+                    id = path.split('/')[-1],
+                    sections = sections
+                )
+            )
         except Exception as e:
             print(f"Could not process {path}: {e}")
     
@@ -56,8 +59,6 @@ def process_and_rank_resumes(
 
 if __name__ == '__main__':
     
-    import json
-    
     JD_PATH = r"D:\Shreyas\Resumes\JDs\CV_engineer JD.pdf"
 
     LOCAL_RESUME_PATHS = [
@@ -74,4 +75,4 @@ if __name__ == '__main__':
         )
 
     print("FINAL RANKING REPORT")
-    print(json.dumps(results, indent=2))
+    print(results.model_dump_json(indent=2))
