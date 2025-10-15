@@ -5,8 +5,8 @@ import numpy as np
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-from .keyword_extractor import SpacyKeywordExtractor
-from .section_parser import SectionParser 
+from src.genai.resume_ranking.keyword_extractor import SpacyKeywordExtractor
+from src.genai.resume_ranking.section_parser import SectionParser 
 
 load_dotenv("genai/.env")
 

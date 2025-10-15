@@ -1,8 +1,8 @@
 from typing import List, Dict
 
-from .text_extractor import extract_text_from_file
-from .section_parser import SectionParser
-from .ranker import ResumeRanker
+from src.genai.resume_ranking.text_extractor import extract_text_from_file
+from src.genai.resume_ranking.section_parser import SectionParser
+from src.genai.resume_ranking.ranker import ResumeRanker
 
 def process_and_rank_resumes(
     resume_paths: List[str], 
