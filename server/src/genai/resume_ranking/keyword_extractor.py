@@ -1,31 +1,5 @@
-import yake
 import spacy
-from abc import ABC, abstractmethod
 from typing import List
-
-class KeywordExtractor(ABC):
-    @abstractmethod
-    def extract(self, text: str) -> List[str]:
-        pass
-
-class YakeKeywordExtractor(KeywordExtractor):
-    def __init__(self, language="en", max_ngram_size=3, top_k=20):
-        self.language = language
-        self.max_ngram_size = max_ngram_size
-        self.top_k = top_k
-
-        self.custom_kw_extractor = yake.KeywordExtractor(
-            lan=self.language, 
-            n=self.max_ngram_size, 
-            dedupLim=0.9, 
-            top=self.top_k, 
-            features=None
-        )
-
-    def extract(self, text: str) -> List[str]:
-        keywords_with_scores = self.custom_kw_extractor.extract_keywords(text)
-        return [keyword for keyword, score in keywords_with_scores]
-
 
 class SpacyKeywordExtractor(KeywordExtractor):
     def __init__(self, model="en_core_web_sm"):
