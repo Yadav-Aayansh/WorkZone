@@ -4,17 +4,6 @@ from PIL import Image
 import io
 
 def extract_text_from_file(file_path: str) -> str:
-    """
-    Extracts text from a given file (PDF or Image).
-    For PDFs, it attempts direct text extraction first. If a page yields
-    little text, it falls back to OCR.
-    
-    Args:
-        file_path: The path to the PDF or image file.
-
-    Returns:
-        The extracted text as a single string.
-    """
     if not file_path.lower().endswith('.pdf'):
         raise ValueError("Unsupported file type. Only PDF is supported for now.")
 

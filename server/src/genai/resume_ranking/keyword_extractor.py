@@ -6,14 +6,9 @@ from typing import List
 class KeywordExtractor(ABC):
     @abstractmethod
     def extract(self, text: str) -> List[str]:
-        """Extracts a list of keywords from the given text."""
         pass
 
 class YakeKeywordExtractor(KeywordExtractor):
-    """
-    Extracts keywords using the YAKE (Yet Another Keyword Extractor) algorithm.
-    This method is fast, lightweight, and works well without deep linguistic analysis.
-    """
     def __init__(self, language="en", max_ngram_size=3, top_k=20):
         self.language = language
         self.max_ngram_size = max_ngram_size
@@ -28,21 +23,15 @@ class YakeKeywordExtractor(KeywordExtractor):
         )
 
     def extract(self, text: str) -> List[str]:
-        """Extracts keywords and returns them as a simple list of strings."""
         keywords_with_scores = self.custom_kw_extractor.extract_keywords(text)
         return [keyword for keyword, score in keywords_with_scores]
 
 
 class SpacyKeywordExtractor(KeywordExtractor):
-    """
-    Extracts keywords using spaCy's linguistic features (Part-of-Speech tagging).
-    This method focuses on extracting noun chunks and named entities.
-    """
     def __init__(self, model="en_core_web_sm"):
         self.nlp = spacy.load(model)
 
     def extract(self, text: str) -> List[str]:
-        """Extracts noun chunks and specific entities as keywords."""
         doc = self.nlp(text)
         keywords = set()
         

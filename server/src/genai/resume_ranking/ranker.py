@@ -14,13 +14,10 @@ load_dotenv("genai/.env")
 try:
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 except TypeError:
-    print("!!! WARNING: GOOGLE_API_KEY environment variable not set. Semantic scoring will be disabled.")
+    print("WARNING: GOOGLE_API_KEY environment variable not set. Semantic scoring will be disabled.")
     genai = None
 
 class ResumeRanker:
-    """
-    Ranks a batch of resumes against a single job description.
-    """
     def __init__(self):
         self.keyword_extractor = SpacyKeywordExtractor()
         
@@ -35,7 +32,6 @@ class ResumeRanker:
             self.llm_model = None
 
     def _get_embedding(self, text: str):
-        """Generates embedding for a given text using Google's model."""
         if not genai or not text.strip():
             return None
         try:
@@ -50,7 +46,6 @@ class ResumeRanker:
             return None
 
     def _get_llm_feedback(self, candidate_data: Dict, jd_sections: Dict, resume_sections: Dict, is_shortlisted: bool) -> str:
-        """Constructs a prompt and gets feedback from the Gemini model."""
         if not self.llm_model:
             return "Feedback generation disabled: LLM not configured."
 
@@ -90,12 +85,6 @@ class ResumeRanker:
             return "Automated feedback could not be generated for this candidate."
 
     def _prepare_jd(self, jd_sections: Dict[str, str]):
-        """
-        Processes the parsed JD sections to extract keywords from relevant parts.
-        
-        Args:
-            jd_sections: A dictionary of parsed sections from the job description.
-        """
         print("--- Processing Job Description Sections---")
         
         relevant_text = " ".join([
@@ -116,7 +105,6 @@ class ResumeRanker:
             print("-> Generated JD embedding successfully.")
 
     def _score_single_resume(self, resume_id: str, resume_sections: Dict[str, str]) -> Dict[str, Any]:
-        """Calculates all score components for a single resume."""
         
         # Keyword Score
         text_to_search = (resume_sections.get('skills', '') + ' ' + 

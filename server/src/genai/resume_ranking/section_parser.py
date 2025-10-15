@@ -3,9 +3,6 @@ from typing import Dict, List, Tuple
 
 
 class SectionParser:
-    """
-    Parses raw resume text into distinct sections using a rule-based approach.
-    """
 
     def __init__(self):
         self.SECTION_KEYWORDS = {
@@ -62,7 +59,6 @@ class SectionParser:
         )
 
     def _find_section_headers(self, text_lines: List[str]) -> List[Tuple[int, str]]:
-        """Identifies lines that are likely section headers and maps them to a section name."""
         headers = []
         for i, line in enumerate(text_lines):
             cleaned_line = line.strip().lower()
@@ -93,16 +89,6 @@ class SectionParser:
         return unique_headers
 
     def parse(self, raw_text: str) -> Dict[str, str]:
-        """
-        Takes raw text and splits it into a dictionary of sections.
-
-        Args:
-            raw_text: A single string containing the entire resume text.
-
-        Returns:
-            A dictionary where keys are section names (e.g., 'experience')
-            and values are the text content of that section.
-        """
         text_lines = raw_text.split("\n")
         found_headers = self._find_section_headers(text_lines)
 
@@ -125,7 +111,7 @@ class SectionParser:
 
 
 if __name__ == "__main__":
-    from features.resume_ranking.text_extractor import extract_text_from_file
+    from src.genai.resume_ranking.text_extractor import extract_text_from_file
 
     resume_path = r"D:\Shreyas\Resumes\Shreyas_Jani_Resume_Sept2025.pdf"
     sample_resume_text = extract_text_from_file(resume_path)
