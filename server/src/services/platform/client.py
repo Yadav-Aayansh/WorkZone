@@ -1,5 +1,7 @@
 from src.repository.platform import ClientRepository
-from src.schemas.platform import ClientSignupRequest, ClientOnboarding, ClientLoginRequest
+from src.schemas.platform import (
+    ClientSignupRequest, ClientOnboarding, ClientLoginRequest,
+    CreateOrder, UpdateOrder)
 from src.exceptions.platform import ClientAlreadyExistsError, TenantAlreadyExistError, ClientNotFoundError, InvalidClientCredentialsError
 from src.utils.hashing import hash_password, verify_password
 from src.core.storage import storage_client
@@ -9,6 +11,7 @@ from src.utils.constants import AccountStatus, SubscriptionStatus
 from src.utils.datetime import get_indian_time
 from src.core.security import create_tokens
 from src.core.config import Config
+from datetime import timedelta
 
 class ClientService:
     def __init__(self, client_repo: ClientRepository):
@@ -75,7 +78,22 @@ class ClientService:
         subscription_status = self.get_subscription_status(client)
 
         return {"account_status": account_status, "subscription_status": subscription_status}
-    
+
+    async def activate_subscription(self, id: str, subscription: CreateOrder):
+        plan_started_at = get_indian_time()
+        plan_expires_at = plan_started_at + timedelta(days=subscription.plan.validity*30)
+
+        client = await self.client_repo.update_subscription(
+            id=id,
+            plan=subscription.plan,
+            started_at=plan_started_at,
+            expires_at=plan_expires_at
+        )
+        account_status = self.get_account_status(client)
+        subscription_status = self.get_subscription_status(client)
+
+        return {"account_status": account_status, "subscription_status": subscription_status}
+
     async def login(self, data: ClientLoginRequest):
         client = await self.client_repo.get_client_by_email(data.email)
         if not client:

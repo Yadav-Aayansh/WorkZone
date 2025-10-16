@@ -1,3 +1,4 @@
 from .client import ClientService
+from .order import OrderService
 
-__all__ = ["ClientService"]
+__all__ = ["ClientService", "OrderService"]
