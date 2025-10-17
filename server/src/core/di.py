@@ -23,9 +23,9 @@ def get_order_service(
 
 security_guard = HTTPBearer()
 
-def get_current_user(audience: str, token_type: str = "access", roles: list[str] | None = None):
+def get_current_user(audience: str, roles: list[str] | None = None):
     def dependency(credentials: HTTPAuthorizationCredentials = Depends(security_guard)):
-        payload = decode_token(credentials.credentials, audience, token_type)
+        payload = decode_token(credentials.credentials, audience)
         
         if roles:
             if payload.get("role") not in roles:

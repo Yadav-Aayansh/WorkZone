@@ -25,3 +25,9 @@ class ClientLoginResponse(BaseModel):
 class ClientOnboarding(BaseModel):
     tenant_id: str = Field(..., max_length=50)
     brand_name: str = Field(..., max_length=100)
+
+class TenantAvailabilityRequest(BaseModel):
+    tenant_id: str = Field(..., max_length=50)
+
+class ClientRefreshRequest(BaseModel):
+    refresh_token: str

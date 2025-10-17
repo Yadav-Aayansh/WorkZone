@@ -5,6 +5,7 @@ from src.schemas.platform import (
     ClientOnboarding,CreateOrder, UpdateOrder
 )
 from src.core.config import Config
+from src.exceptions.platform import TenantAlreadyExistsError
 
 client_router = APIRouter(tags=["Client"])
 
@@ -16,11 +17,18 @@ async def onboarding(
     service: ClientService = Depends(get_client_service),
     current_user = Depends(get_current_user(Config.DOMAIN_NAME))
 ):
-    data = ClientOnboarding(tenant_id=tenant_id, brand_name=brand_name)
-    id = current_user.get("sub")
-    response = await service.onboarding(id, data, logo)
-    return response
+    try:
+        data = ClientOnboarding(tenant_id=tenant_id, brand_name=brand_name)
+        id = current_user.get("sub")
+        response = await service.onboarding(id, data, logo)
+        return response
+    except TenantAlreadyExistsError as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
+
+@client_router.get(path="/tenant-availability")
+async def check_tenant_availability(service: ClientService = Depends(get_client_service)):
+    return await service.check_tenant_availability()
 
 @client_router.get(path="/subscription")
 async def create_order(
