@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.platform import Client
 from sqlalchemy import exists, select
+from datetime import datetime
 
 class ClientRepository:
     def __init__(self, db: AsyncSession):
@@ -36,8 +37,6 @@ class ClientRepository:
     async def setup_onboarding(self, id: str, tenant_id: str, brand_name: str, logo: str) -> Client | None:
         try:
             client = await self.get_client_by_id(id)
-            if not client:
-                return None
             client.tenant_id = tenant_id
             client.brand_name = brand_name
             client.logo = logo
@@ -47,6 +46,20 @@ class ClientRepository:
         except Exception:
             await self.db.rollback()
             raise
+
+    async def update_subscription(self, id: str, plan: str, started_at: datetime, expires_at: datetime):
+        try:
+            client = await self.get_client_by_email(id)
+            client.plan_duration = plan
+            client.plan_started_at = started_at
+            client.plan_expires_at = expires_at
+            await self.db.commit()
+            await self.db.refresh(client)
+            return client
+        except Exception:
+            await self.db.rollback()
+            print()
+
 
 
 

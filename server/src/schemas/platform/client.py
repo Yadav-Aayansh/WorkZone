@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
+from src.models.platform import SubscriptionPlan
 
 class ClientSignupRequest(BaseModel):
     name: str = Field(..., min_length=3, max_length=100)
@@ -25,4 +26,8 @@ class ClientOnboarding(BaseModel):
     tenant_id: str = Field(..., max_length=50)
     brand_name: str = Field(..., max_length=100)
 
-# class ClientSubscription(BaseModel):
+class TenantAvailabilityRequest(BaseModel):
+    tenant_id: str = Field(..., max_length=50)
+
+class ClientRefreshRequest(BaseModel):
+    refresh_token: str

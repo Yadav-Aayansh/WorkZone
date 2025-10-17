@@ -18,6 +18,11 @@ class Settings(BaseSettings):
 
     DOMAIN_NAME: str
 
+    # Razorpay
+    RAZORPAY_KEY_ID: str
+    RAZORPAY_KEY_SECRET: str
+    RAZORPAY_WEBHOOK_SECRET: str
+
     # Class Variable
     model_config = SettingsConfigDict(
         env_file = str(Path(__file__).parent.parent.parent / ".env")
