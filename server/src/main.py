@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from src.core.database import init_db
 from src.routes.platform import platform_router
+from src.routes.tenant import tenant_router
 from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
@@ -20,3 +21,4 @@ app.add_middleware(
 )
 
 app.include_router(platform_router)
+app.include_router(tenant_router)

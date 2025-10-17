@@ -14,6 +14,11 @@ class ClientRepository:
     async def get_client_by_email(self, email: str) -> Client | None:
         result = await self.db.execute(select(Client).where(Client.email==email))
         return result.scalar_one_or_none()
+    
+    async def get_tenant_by_domain(self, domain: str) -> str | None:
+        result = await self.db.execute(select(Client).where(Client.domain==domain))
+        client = result.scalar_one_or_none()
+        return client.tenant_id
 
     async def create_client(self, name: str, email: str, password: str) -> Client:
         try:
@@ -34,6 +39,10 @@ class ClientRepository:
         result = await self.db.execute(select(exists().where(Client.tenant_id==tenant_id)))
         return result.scalar()
     
+    async def is_domain_exist(self, domain: str) -> bool:
+        result = await self.db.execute(select(exists().where(Client.domain==domain)))
+        return result.scalar()
+
     async def setup_onboarding(self, id: str, tenant_id: str, brand_name: str, logo: str) -> Client | None:
         try:
             client = await self.get_client_by_id(id)
