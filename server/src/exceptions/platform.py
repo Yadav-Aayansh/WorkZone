@@ -11,3 +11,6 @@ class ClientNotFoundError(NotFoundError):
 
 class InvalidClientCredentialsError(AuthenticationError):
     pass
+
+class TenantNotFoundError(NotFoundError):
+    pass
