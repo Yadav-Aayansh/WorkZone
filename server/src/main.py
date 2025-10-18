@@ -10,7 +10,11 @@ async def lifespan(app: FastAPI):
     await init_db()
     yield
 
-app = FastAPI()
+app = FastAPI(
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json"
+)
 
 app.add_middleware(
     CORSMiddleware,
