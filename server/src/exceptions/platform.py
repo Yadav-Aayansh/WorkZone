@@ -3,11 +3,11 @@ from .base import NotFoundError, ConflictError, ValidationError, AuthenticationE
 class ClientAlreadyExistsError(ConflictError):
     pass
 
+class TenantAlreadyExistsError(ConflictError):
+    pass
+
 class ClientNotFoundError(NotFoundError):
     pass
 
 class InvalidClientCredentialsError(AuthenticationError):
-    pass
-
-class TenantAlreadyExistError(ConflictError):
     pass

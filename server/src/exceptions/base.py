@@ -13,6 +13,12 @@ class ValidationError(AppException):
 class AuthenticationError(AppException):
     pass
 
+class InvalidTokenError(AuthenticationError):
+    pass
+
+class ExpiredTokenError(AuthenticationError):
+    pass
+
 class RoleNotAllowedError(AuthenticationError):
     status_code = 403
 
