@@ -3,13 +3,11 @@ import pytesseract
 from PIL import Image
 import io
 
-def extract_text_from_file(file_path: str) -> str:
-    if not file_path.lower().endswith('.pdf'):
-        raise ValueError("Unsupported file type. Only PDF is supported for now.")
+def extract_text_from_file(file_content: bytes) -> str:
 
     full_text = ""
     try:
-        doc = fitz.open(file_path)
+        doc = fitz.open(stream=file_content, filetype="pdf")
         
         for page_num in range(len(doc)):
             page = doc.load_page(page_num)
@@ -32,7 +30,7 @@ def extract_text_from_file(file_path: str) -> str:
         doc.close()
     
     except Exception as e:
-        print(f"An error occurred while processing {file_path}: {e}")
+        print(f"An error occurred while processing {file_content}: {e}")
         return "" 
 
     return full_text
@@ -41,7 +39,10 @@ if __name__ == '__main__':
     resume_path = r"D:\Shreyas\Resumes\Shreyas_Jani_Resume_Sept2025.pdf" 
     
     try:
-        extracted_text = extract_text_from_file(resume_path)
+        with open(resume_path, 'rb') as f:
+            pdf_bytes = f.read()
+            
+        extracted_text = extract_text_from_file(pdf_bytes)
         print("--- EXTRACTED TEXT ---")
         print(extracted_text)
         print("\n--- EXTRACTION COMPLETE ---")
