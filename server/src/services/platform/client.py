@@ -38,7 +38,7 @@ class ClientService:
         
     async def check_tenant_availability(self, data: TenantAvailabilityRequest):
         is_exist = await self.client_repo.is_tenant_exist(data.tenant_id)
-        return {"available": is_exist}
+        return {"available": not is_exist}
 
     async def register(self, data: ClientSignupRequest):
         is_exist = await self.client_repo.get_client_by_email(data.email)
@@ -139,7 +139,7 @@ class ClientService:
     
 
     async def get_tenant(self, tenant_or_domain: str) -> str:
-        is_tenant_exist = await self.client_repo.is_domain_exist(tenant_or_domain)
+        is_tenant_exist = await self.client_repo.is_tenant_exist(tenant_or_domain)
         if is_tenant_exist:
             return tenant_or_domain
         

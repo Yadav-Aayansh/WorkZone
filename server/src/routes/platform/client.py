@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, UploadFile, HTTPException, Form, File
 from src.services.platform import ClientService, OrderService
 from src.core.di import get_client_service, get_current_user, get_order_service
 from src.schemas.platform import (
-    ClientOnboarding,CreateOrder, UpdateOrder
+    ClientOnboarding,CreateOrder, UpdateOrder, TenantAvailabilityRequest
 )
 from src.core.config import Config
 from src.exceptions.platform import TenantAlreadyExistsError
@@ -27,8 +27,11 @@ async def onboarding(
 
 
 @client_router.get(path="/tenant-availability")
-async def check_tenant_availability(service: ClientService = Depends(get_client_service)):
-    return await service.check_tenant_availability()
+async def check_tenant_availability(
+    data: TenantAvailabilityRequest = Depends(),
+    service: ClientService = Depends(get_client_service)
+):
+    return await service.check_tenant_availability(data)
 
 @client_router.get(path="/subscription")
 async def create_order(
