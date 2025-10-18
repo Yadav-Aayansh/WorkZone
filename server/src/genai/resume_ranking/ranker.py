@@ -1,7 +1,6 @@
 import re
 from typing import Dict, List, Set
 import numpy as np
-import google.generativeai as genai
 
 from src.genai.resume_ranking.keyword_extractor import SpacyKeywordExtractor
 from src.genai.resume_ranking.section_parser import SectionParser
@@ -11,16 +10,8 @@ from src.genai.resume_ranking.schemas import (
     RankedCandidate,
     RankingReport,
 )
-from src.core.config import Config
+from src.genai.llm_client import llm_client
 
-# Google API key setup
-try:
-    genai.configure(api_key=Config.GOOGLE_API_KEY)
-except TypeError:
-    print(
-        "WARNING: GOOGLE_API_KEY environment variable not set. Semantic scoring will be disabled."
-    )
-    genai = None
 
 
 class ResumeRanker:
@@ -32,24 +23,8 @@ class ResumeRanker:
         self.jd_keywords = []
         self.jd_embedding = None
 
-        if genai:
-            self.llm_model = genai.GenerativeModel("gemini-2.5-flash")
-        else:
-            self.llm_model = None
-
     def _get_embedding(self, text: str):
-        if not genai or not text.strip():
-            return None
-        try:
-            result = genai.embed_content(
-                model="models/text-embedding-004",
-                content=text,
-                task_type="RETRIEVAL_DOCUMENT",  # Optimized for document retrieval
-            )
-            return result["embedding"]
-        except Exception as e:
-            print(f"Error generating embedding: {e}")
-            return None
+        return llm_client.generate_embedding(text)
 
     def _get_llm_feedback(
         self,
@@ -58,12 +33,9 @@ class ResumeRanker:
         resume_sections: Dict[str, str],
         is_shortlisted: bool,
     ) -> str:
-        if not self.llm_model:
-            return "Feedback generation disabled: LLM not configured."
 
         status = "Shortlisted" if is_shortlisted else "Rejected"
 
-        # --- Prompt Engineering: Clear context and instructions ---
         prompt = f"""
         You are a senior technical recruiter providing a concise analysis of a resume for a hiring manager.
         Your task is to generate a brief, professional feedback summary (2-3 bullet points) for a candidate who has been automatically scored and marked as '{status}'.
@@ -89,12 +61,7 @@ class ResumeRanker:
         - Keep the feedback concise and professional. Do not repeat the scores.
         """
 
-        try:
-            response = self.llm_model.generate_content(prompt)
-            return response.text.strip()
-        except Exception as e:
-            print(f"Error generating LLM feedback for {candidate_data.resume_id}: {e}")
-            return "Automated feedback could not be generated for this candidate."
+        return llm_client.generate_text(prompt)
 
     def _prepare_jd(self, jd_sections: Dict[str, str]):
         print("--- Processing Job Description Sections---")
