@@ -5,9 +5,12 @@ from src.genai.resume_ranking.section_parser import SectionParser
 from src.genai.resume_ranking.ranker import ResumeRanker
 from src.genai.resume_ranking.schemas import ResumeData, RankingReport
 
+from src.core.storage import storage_client
+
 def process_and_rank_resumes(
-    resume_paths: List[str], 
-    jd_path: str, 
+    resume_blob_names: List[str], 
+    jd_blob_name: str, # PDF stored in GCS
+    jd_direct_text: str, # Direct text
     top_x: int = 10
 ) -> RankingReport | Any:
     """
@@ -25,23 +28,39 @@ def process_and_rank_resumes(
     ranker = ResumeRanker()
     
     parsed_resumes: list[ResumeData] = []
-    print(f"Parsing {len(resume_paths)} resumes...")
-    for path in resume_paths:
+    print(f"Parsing {len(resume_blob_names)} resumes...")
+    for blob_name in resume_blob_names:
         try:
-            raw_text = extract_text_from_file(path)
+            blob = storage_client.bucket.blob(blob_name)
+            if not blob.exists():
+                print(f"Could not find {blob_name} in GCS bucket")
+                continue
+
+            resume_bytes = blob.download_as_bytes()
+            raw_text = extract_text_from_file(resume_bytes)
+
             sections = section_parser.parse(raw_text)
             parsed_resumes.append(
                 ResumeData(
-                    id = path.split('/')[-1],
-                    sections = sections
+                    id=blob_name.split('/')[-1], # Use blob name for ID
+                    sections=sections
                 )
             )
+
         except Exception as e:
-            print(f"Could not process {path}: {e}")
+            print(f"Could not process {blob_name}: {e}")
     
-    jd_text = extract_text_from_file(jd_path)
-    if not jd_text.strip():
-        return {"error": f"Could not extract text from Job Description at {jd_path}."}
+
+    jd_text = ""
+    try:
+        jd_blob = storage_client.bucket.blob(jd_blob_name)
+        jd_bytes = jd_blob.download_as_bytes()
+        jd_text = extract_text_from_file(jd_bytes)
+    except Exception as e:
+        return {"error": f"Could not extract text from JD at {jd_blob_name}: {e}"}
+
+    # Full JD is the combination of pdf content and direct text
+    jd_text += jd_direct_text
 
     jd_sections = section_parser.parse(jd_text)
     print("-> JD parsed into sections successfully.")
@@ -56,23 +75,3 @@ def process_and_rank_resumes(
     )
     
     return ranking_results
-
-if __name__ == '__main__':
-    
-    JD_PATH = r"D:\Shreyas\Resumes\JDs\CV_engineer JD.pdf"
-
-    LOCAL_RESUME_PATHS = [
-        r"D:\Shreyas\Resumes\Shreyas_Jani_Resume_Sept2025.pdf",
-        r"D:\Shreyas\Resumes\Shreyas_Jani_Resume_June_2025.pdf",
-        r"D:\Shreyas\Resumes\Shreyas - 22f3001229 - IITM BS.pdf",
-        r"D:\Shreyas\Resumes\Shreyas_Jani_CV_11Feb.pdf",
-    ]
-
-    results = process_and_rank_resumes(
-            resume_paths=LOCAL_RESUME_PATHS,
-            jd_path=JD_PATH, 
-            top_x=2
-        )
-
-    print("FINAL RANKING REPORT")
-    print(results.model_dump_json(indent=2))
