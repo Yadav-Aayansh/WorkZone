@@ -11,6 +11,9 @@ import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "@/components/logo";
+import { authAPI, APIError } from "@/lib/api";
+import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -22,6 +25,9 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>("");
+  const { login, redirectAfterAuth } = useAuth();
+  const { showToast } = useToast();
 
   const {
     register,
@@ -33,9 +39,45 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
-    console.log(data);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsLoading(false);
+    setError("");
+    
+    try {
+      const response = await authAPI.login({
+        email: data.email,
+        password: data.password,
+      });
+      
+      // Store tokens and update auth state
+      await login(response);
+      
+      showToast({
+        type: 'success',
+        title: 'Welcome back!',
+        message: 'Successfully logged in.',
+      });
+      
+      // Redirect based on account status
+      redirectAfterAuth(response.account_status);
+    } catch (err) {
+      if (err instanceof APIError) {
+        setError(err.message);
+        showToast({
+          type: 'error',
+          title: 'Login failed',
+          message: err.message,
+        });
+      } else {
+        const errorMessage = "An unexpected error occurred. Please try again.";
+        setError(errorMessage);
+        showToast({
+          type: 'error',
+          title: 'Login failed',
+          message: errorMessage,
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -139,6 +181,12 @@ export default function LoginPage() {
                 </Link>
               </p>
             </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>

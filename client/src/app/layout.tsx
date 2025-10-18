@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { AuthProvider } from "@/providers/auth-provider";
+import { ToastProvider } from "@/providers/toast-provider";
+import { AuthTokenManager } from "@/components/auth/AuthTokenManager";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -92,7 +95,14 @@ export default function RootLayout({
           // enableSystem
           // disableTransitionOnChange
         >
-          {children}
+            <ToastProvider>
+
+          <AuthProvider>
+              <AuthTokenManager />
+              {children}
+          </AuthProvider>
+            </ToastProvider>
+
         </ThemeProvider>
       </body>
     </html>

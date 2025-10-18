@@ -12,13 +12,16 @@ import { useState, useRef } from "react";
 import { SignupData } from "@/app/(auth)/signup/page";
 import { Logo } from "@/components/logo";
 import Image from "next/image";
+import { authAPI, APIError } from "@/lib/api";
+import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 
 const workspaceSchema = z.object({
-  companyName: z.string().min(2, "Company name must be at least 2 characters"),
+  companyName: z.string().min(3, "Company name must be at least 3 characters").max(100, "Company name must be less than 100 characters"),
   tenantId: z
     .string()
     .min(3, "Tenant ID must be at least 3 characters")
-    .max(20, "Tenant ID must be less than 20 characters")
+    .max(50, "Tenant ID must be less than 50 characters")
     .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed"),
 });
 
@@ -40,7 +43,11 @@ export default function WorkspaceOnboarding({
   const [isDragging, setIsDragging] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isAuthenticated, updateStatus } = useAuth();
+  const { showToast } = useToast();
 
   const {
     register,
@@ -80,9 +87,16 @@ export default function WorkspaceOnboarding({
     }
     
     setCheckingAvailability(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setIsAvailable(!id.startsWith("test"));
-    setCheckingAvailability(false);
+    try {
+      // TODO: Implement actual tenant availability check when endpoint is available
+      // For now, simulate the check
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      setIsAvailable(!id.startsWith("test"));
+    } catch {
+      setIsAvailable(null);
+    } finally {
+      setCheckingAvailability(false);
+    }
   };
 
   const handleTenantIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,8 +123,63 @@ export default function WorkspaceOnboarding({
     handleFileChange(file);
   };
 
-  const onSubmit = (data: WorkspaceFormData) => {
-    onNext({ ...data, logo });
+  const onSubmit = async (data: WorkspaceFormData) => {
+    if (!logo) {
+      setError("Please upload a logo for your workspace.");
+      return;
+    }
+    
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      if (!isAuthenticated) {
+        setError("Please sign up first to set up your workspace.");
+        showToast({
+          type: 'error',
+          title: 'Authentication required',
+          message: 'Please sign up first to continue.',
+        });
+        return;
+      }
+      
+      const response = await authAPI.onboarding({
+        tenant_id: data.tenantId,
+        brand_name: data.companyName,
+        logo: logo,
+      });
+      
+      // Update account status
+      updateStatus(response.account_status, response.subscription_status);
+      
+      showToast({
+        type: 'success',
+        title: 'Workspace setup complete!',
+        message: `Welcome to ${data.companyName}. Let\'s choose your plan.`,
+      });
+      
+      // Pass data to next step
+      onNext({ ...data, logo });
+    } catch (err) {
+      if (err instanceof APIError) {
+        setError(err.message);
+        showToast({
+          type: 'error',
+          title: 'Workspace setup failed',
+          message: err.message,
+        });
+      } else {
+        const errorMessage = "An unexpected error occurred. Please try again.";
+        setError(errorMessage);
+        showToast({
+          type: 'error',
+          title: 'Workspace setup failed',
+          message: errorMessage,
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -202,6 +271,12 @@ export default function WorkspaceOnboarding({
                 Step 2 of 3
               </p>
             </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
@@ -297,11 +372,11 @@ export default function WorkspaceOnboarding({
 
               <Button
                 type="submit"
-                disabled={checkingAvailability || isAvailable === false}
-                className="w-full h-10 text-sm font-medium bg-foreground text-background hover:bg-foreground/90 rounded-full"
+                disabled={checkingAvailability || isAvailable === false || isLoading || !logo}
+                className="w-full h-10 text-sm font-medium bg-foreground text-background hover:bg-foreground/90 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Continue
-                <ArrowRight className="ml-2 w-4 h-4" />
+                {isLoading ? "Setting up workspace..." : "Continue"}
+                {!isLoading && <ArrowRight className="ml-2 w-4 h-4" />}
               </Button>
             </form>
           </motion.div>

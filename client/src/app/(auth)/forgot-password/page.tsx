@@ -33,11 +33,18 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
     setIsLoading(true);
-    console.log(data);
+    
+    // TODO: Implement forgot password API call when backend endpoint is available
+    console.log("Forgot password request for:", data.email);
+    
     await new Promise((resolve) => setTimeout(resolve, 1500));
     setIsLoading(false);
-    // Redirect to verification page
-    router.push(`/verify-code?email=${encodeURIComponent(data.email)}`);
+    
+    // For now, just show an alert that this feature is coming soon
+    alert("Password reset functionality is coming soon. Please contact support for assistance.");
+    
+    // Redirect to verification page (when backend is ready)
+    // router.push(`/verify-code?email=${encodeURIComponent(data.email)}`);
   };
 
   return (
