@@ -60,7 +60,7 @@ def process_and_rank_resumes(
         return {"error": f"Could not extract text from JD at {jd_blob_name}: {e}"}
 
     # Full JD is the combination of pdf content and direct text
-    jd_text += jd_direct_text
+    jd_text += ("\n" + jd_direct_text)
 
     jd_sections = section_parser.parse(jd_text)
     print("-> JD parsed into sections successfully.")
