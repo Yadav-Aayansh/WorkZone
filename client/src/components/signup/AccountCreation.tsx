@@ -10,19 +10,19 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { SignupData } from "@/app/signup/page";
+import { SignupData } from "@/app/(auth)/signup/page";
 import { Logo } from "@/components/logo";
+import { authAPI, APIError } from "@/lib/api";
+import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 
 const accountSchema = z
   .object({
-    fullName: z.string().min(2, "Name must be at least 2 characters"),
-    email: z.string().email("Invalid email address"),
+    fullName: z.string().min(3, "Name must be at least 3 characters").max(100, "Name must be less than 100 characters"),
+    email: z.string().email("Invalid email address").max(255, "Email must be less than 255 characters"),
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
+      .min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -42,6 +42,10 @@ export default function AccountCreation({
   initialData,
 }: AccountCreationProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>("");
+  const { login } = useAuth();
+  const { showToast } = useToast();
 
   const {
     register,
@@ -57,8 +61,48 @@ export default function AccountCreation({
     },
   });
 
-  const onSubmit = (data: AccountFormData) => {
-    onNext(data);
+  const onSubmit = async (data: AccountFormData) => {
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      const response = await authAPI.signup({
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+      });
+      
+      // Store tokens and update auth state
+      login(response);
+      
+      showToast({
+        type: 'success',
+        title: 'Account created successfully!',
+        message: 'Let\'s set up your workspace next.',
+      });
+      
+      // Pass data to next step
+      onNext(data);
+    } catch (err) {
+      if (err instanceof APIError) {
+        setError(err.message);
+        showToast({
+          type: 'error',
+          title: 'Signup failed',
+          message: err.message,
+        });
+      } else {
+        const errorMessage = "An unexpected error occurred. Please try again.";
+        setError(errorMessage);
+        showToast({
+          type: 'error',
+          title: 'Signup failed',
+          message: errorMessage,
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -200,6 +244,12 @@ export default function AccountCreation({
               </p>
             </div>
 
+            {error && (
+              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <Label htmlFor="fullName" className="text-xs font-medium text-muted-foreground">
@@ -307,9 +357,10 @@ export default function AccountCreation({
 
               <Button
                 type="submit"
-                className="w-full h-10 text-sm font-medium bg-foreground text-background hover:bg-foreground/90 rounded-full"
+                disabled={isLoading}
+                className="w-full h-10 text-sm font-medium bg-foreground text-background hover:bg-foreground/90 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Account
+                {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
 
