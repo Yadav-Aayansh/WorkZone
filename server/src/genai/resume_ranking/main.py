@@ -3,7 +3,7 @@ from typing import List, Any
 from src.genai.resume_ranking.text_extractor import extract_text_from_file
 from src.genai.resume_ranking.section_parser import SectionParser
 from src.genai.resume_ranking.ranker import ResumeRanker
-from src.genai.resume_ranking.schemas import ResumeData, RankingReport
+from server.src.genai.schemas.resume_ranking_schemas import ResumeData, RankingReport
 
 from src.core.storage import storage_client
 
