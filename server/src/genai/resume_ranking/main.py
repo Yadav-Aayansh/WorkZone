@@ -75,26 +75,3 @@ def process_and_rank_resumes(
     )
     
     return ranking_results
-
-
-if __name__ == '__main__':
-    
-    # These are now paths within your GCS bucket
-    GCS_JD_BLOB_NAME = "CV_engineer JD.pdf"
-
-    GCS_RESUME_BLOB_NAMES = [
-        "Shreyas_Jani_Resume_Sept2025.pdf",
-        "Shreyas_Jani_Resume_June_2025.pdf",
-        "Shreyas - 22f3001229 - IITM BS.pdf",
-        "Shreyas_Jani_CV_11Feb.pdf",
-    ]
-
-    results = process_and_rank_resumes(
-        resume_blob_names=GCS_RESUME_BLOB_NAMES,
-        jd_blob_name=GCS_JD_BLOB_NAME, 
-        jd_direct_text="",
-        top_x=2
-    )
-
-    print("FINAL RANKING REPORT")
-    print(results.model_dump_json(indent=2))

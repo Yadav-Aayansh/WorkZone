@@ -34,19 +34,3 @@ def extract_text_from_file(file_content: bytes) -> str:
         return "" 
 
     return full_text
-
-if __name__ == '__main__':
-    resume_path = r"D:\Shreyas\Resumes\Shreyas_Jani_Resume_Sept2025.pdf" 
-    
-    try:
-        with open(resume_path, 'rb') as f:
-            pdf_bytes = f.read()
-            
-        extracted_text = extract_text_from_file(pdf_bytes)
-        print("--- EXTRACTED TEXT ---")
-        print(extracted_text)
-        print("\n--- EXTRACTION COMPLETE ---")
-    except FileNotFoundError:
-        print(f"Error: The file '{resume_path}' was not found. Please place a sample PDF in the same directory to test.")
-    except ValueError as ve:
-        print(ve)

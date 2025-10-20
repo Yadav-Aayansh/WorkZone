@@ -108,17 +108,3 @@ class SectionParser:
             sections[section_name] = section_content
 
         return sections
-
-
-if __name__ == "__main__":
-    from src.genai.resume_ranking.text_extractor import extract_text_from_file
-
-    resume_path = r"D:\Shreyas\Resumes\Shreyas_Jani_Resume_Sept2025.pdf"
-    sample_resume_text = extract_text_from_file(resume_path)
-
-    parser = SectionParser()
-    parsed_sections = parser.parse(sample_resume_text)
-
-    import json
-
-    print(json.dumps(parsed_sections, indent=2))

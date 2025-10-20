@@ -17,24 +17,3 @@ class SpacyKeywordExtractor():
                 keywords.add(token.text.lower())
 
         return list(keywords)
-
-
-if __name__ == '__main__':
-    sample_jd = """
-    We are seeking a Senior Backend Engineer to join our dynamic team.
-    The ideal candidate will have 5+ years of experience with Python and Django.
-    Responsibilities include designing and implementing RESTful APIs, working with
-    PostgreSQL databases, and deploying services on AWS. Experience with Docker
-    and CI/CD pipelines is a huge plus. You will collaborate with our front-end
-    team, who use React, to deliver scalable solutions. Knowledge of machine
-    learning principles is desirable but not required.
-    """
-
-    print("Sample Job Description")
-    print(sample_jd)
-    
-    print("Keywords from spaCy:")
-    spacy_extractor = SpacyKeywordExtractor()
-    spacy_keywords = spacy_extractor.extract(sample_jd)
-    filtered_spacy_keywords = [kw for kw in spacy_keywords if len(kw.split()) <= 3 and len(kw) > 2]
-    print(sorted(filtered_spacy_keywords))
