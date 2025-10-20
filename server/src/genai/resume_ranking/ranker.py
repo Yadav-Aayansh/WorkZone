@@ -4,7 +4,7 @@ import numpy as np
 
 from src.genai.resume_ranking.keyword_extractor import SpacyKeywordExtractor
 from src.genai.resume_ranking.section_parser import SectionParser
-from server.src.genai.schemas.resume_ranking_schemas import (
+from src.genai.schemas.resume_ranking_schemas import (
     ResumeData,
     ScoringDetails,
     RankedCandidate,
