@@ -1,8 +1,3 @@
-"""
-Text Cleaning Module
-Prepares text for natural speech synthesis
-"""
-
 import re
 
 

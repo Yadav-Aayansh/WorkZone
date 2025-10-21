@@ -1,20 +1,16 @@
-"""
-Question Generator Module
-Generates personalized interview questions based on JD and resume
-"""
-
 import json
-from typing import List, Dict, Optional
-from llm_client import call_llm
-from text_cleaner import clean_text_for_speech
+from typing import List, Optional
+from src.genai.llm_client import llm_client
+from src.genai.hr_interview.text_cleaner import clean_text_for_speech
+from src.genai.schemas.hr_interview_schemas import InterviewQuestion
 
 
 def generate_interview_questions(
     jd: str,
     resume: str,
     num_questions: int = 3
-) -> List[Dict[str, str]]:
-  
+) -> List[InterviewQuestion]:
+    
     prompt = f"""You are an expert technical recruiter. Generate {num_questions} concise, direct interview questions.
 
 Job Description:
@@ -45,17 +41,19 @@ Return ONLY a JSON array:
     ]
     
     try:
-        response = call_llm(messages, temperature=0.7)
+        response = llm_client.call_llm(messages, temperature=0.7)
         
         # Extract JSON from response
         start = response.find('[')
         end = response.rfind(']') + 1
         json_str = response[start:end]
-        questions = json.loads(json_str)
+        questions_data = json.loads(json_str)
         
-        # Clean questions for speech
-        for q in questions:
-            q['question'] = clean_text_for_speech(q['question'])
+        # Convert to Pydantic models and clean for speech
+        questions = []
+        for q_data in questions_data:
+            q_data['question'] = clean_text_for_speech(q_data['question'])
+            questions.append(InterviewQuestion(**q_data))
         
         return questions
     
@@ -63,21 +61,21 @@ Return ONLY a JSON array:
         print(f"Question generation error: {e}")
         # Fallback questions
         return [
-            {
-                "type": "introduction",
-                "question": "Tell me about your background and experience.",
-                "focus_area": "general"
-            },
-            {
-                "type": "technical",
-                "question": "What are your key technical skills for this role?",
-                "focus_area": "skills"
-            },
-            {
-                "type": "behavioral",
-                "question": "Describe how you handle challenging situations at work.",
-                "focus_area": "soft_skills"
-            }
+            InterviewQuestion(
+                type="introduction",
+                question="Tell me about your background and experience.",
+                focus_area="general"
+            ),
+            InterviewQuestion(
+                type="technical",
+                question="What are your key technical skills for this role?",
+                focus_area="skills"
+            ),
+            InterviewQuestion(
+                type="behavioral",
+                question="Describe how you handle challenging situations at work.",
+                focus_area="soft_skills"
+            )
         ]
 
 
@@ -86,7 +84,7 @@ def generate_followup_question(
     answer: str,
     jd: str
 ) -> Optional[str]:
-    
+   
     # Skip follow-up for very short answers
     if len(answer.split()) < 10:
         return None
@@ -112,7 +110,7 @@ Return ONLY the question, nothing else."""
     ]
     
     try:
-        followup = call_llm(messages, temperature=0.6)
+        followup = llm_client.call_llm(messages, temperature=0.6)
         followup = clean_text_for_speech(followup)
         return followup.strip() if followup else None
     except:
@@ -122,7 +120,7 @@ Return ONLY the question, nothing else."""
 # Testing the module
 
 if __name__ == "__main__":
-    print("Testing Question Generator Module")
+    print("Testing Question Generator Module (Pydantic)")
     print("=" * 60)
     
     # Test data
@@ -143,10 +141,11 @@ if __name__ == "__main__":
     print("-" * 60)
     try:
         questions = generate_interview_questions(test_jd, test_resume, num_questions=3)
-        print(f"✓ Generated {len(questions)} questions:\n")
+        print(f"✓ Generated {len(questions)} questions (Pydantic validated):\n")
         for i, q in enumerate(questions, 1):
-            print(f"{i}. [{q['type']}] {q['question']}")
-            print(f"   Focus: {q['focus_area']}\n")
+            print(f"{i}. [{q.type}] {q.question}")
+            print(f"   Focus: {q.focus_area}")
+            print(f"   Type: {type(q).__name__}\n")
     except Exception as e:
         print(f"✗ Error: {e}")
     

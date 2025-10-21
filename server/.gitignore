@@ -1,17 +1,36 @@
-# Python-generated files
+# Python
 __pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+*.py[cod]
+*.pyo
+*.pyd
+*.so
 
 # Virtual environments
-.venv
+.venv/
+venv/
+env/
 
-# Environment variables
+# IDEs and editors
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment & Secrets
 .env
+*.json
+credentials/
+service_account.json
 
-# Logs
-logs/
+# Logs / temp files
 *.log
+*.tmp
+tmp/
+
+# uv / build
+dist/
+build/
+*.egg-info/
+*.lock

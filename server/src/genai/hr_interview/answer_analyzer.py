@@ -1,19 +1,14 @@
-"""
-Answer Analyzer Module
-Analyzes quality of candidate's interview answers
-"""
-
 import json
-from typing import Dict
-from llm_client import call_llm
+from src.genai.llm_client import llm_client
+from src.genai.schemas.hr_interview_schemas import AnswerAnalysis
 
 
 def analyze_answer_quality(
     question: str,
     answer: str,
     focus_area: str
-) -> Dict:
-    
+) -> AnswerAnalysis:
+  
     prompt = f"""You are a STRICT interviewer evaluating answers. Rate this answer honestly from 1-10.
 
 Question: {question}
@@ -44,32 +39,28 @@ Return JSON:
     ]
     
     try:
-        response = call_llm(messages, temperature=0.2)
+        response = llm_client.call_llm(messages, temperature=0.2)
         start = response.find('{')
         end = response.rfind('}') + 1
-        analysis = json.loads(response[start:end])
+        analysis_data = json.loads(response[start:end])
         
-        # Ensure score is within valid range
-        score = max(1, min(10, analysis.get('score', 5)))
+        # Validate and convert to Pydantic model
+        analysis = AnswerAnalysis(**analysis_data)
         
-        return {
-            "score": score,
-            "strength": analysis.get('strength', 'N/A'),
-            "weakness": analysis.get('weakness', 'Could provide more detail')
-        }
+        return analysis
     except Exception as e:
         print(f"Analysis error: {e}")
-        return {
-            "score": 5,
-            "strength": "Answer provided",
-            "weakness": "Unable to evaluate properly"
-        }
+        return AnswerAnalysis(
+            score=5,
+            strength="Answer provided",
+            weakness="Unable to evaluate properly"
+        )
 
 
 # Testing the module
 
 if __name__ == "__main__":
-    print("Testing Answer Analyzer Module")
+    print("Testing Answer Analyzer Module (Pydantic)")
     print("=" * 60)
     
     # Test cases with different quality answers
@@ -108,12 +99,13 @@ if __name__ == "__main__":
                 test['focus_area']
             )
             
-            print(f"Score: {result['score']}/10")
-            print(f"Strength: {result['strength']}")
-            print(f"Weakness: {result['weakness']}")
+            print(f"Score: {result.score}/10")
+            print(f"Strength: {result.strength}")
+            print(f"Weakness: {result.weakness}")
+            print(f"Type: {type(result).__name__}")
             
             # Validate score is in expected range
-            if test['expected_range'][0] <= result['score'] <= test['expected_range'][1]:
+            if test['expected_range'][0] <= result.score <= test['expected_range'][1]:
                 print("✓ Score in expected range")
             else:
                 print(f"⚠ Score outside expected range {test['expected_range']}")
