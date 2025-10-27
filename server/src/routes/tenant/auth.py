@@ -1,12 +1,23 @@
-# from fastapi import APIRouter, Depends
-# from src.schemas.platform import UserBase
-# from sqlalchemy.orm import Session
-# from src.core.database import get_tenant_db, create_tenant_schema, get_public_db
-# from src.repository.tenant.user import create_user
+from fastapi import APIRouter, Depends, HTTPException
+from src.schemas.platform import AcceptInviteRequest, AcceptInviteResponse
+from src.core.di import get_tenant_auth_service
+from src.services.tenant import TenantAuthService
+from src.exceptions.base import ConflictError, NotFoundError, ValidationError
 
-# signup_router = APIRouter(prefix="/api", tags=["Auth"])
+auth_router = APIRouter(prefix="/auth", tags=["Tenant Auth"])
 
-# @signup_router.post(path="/signup", status_code=201)
-# def signup(user_data: UserBase, db: Session = Depends(get_tenant_db)):
-#     user = create_user(user_data, db)
-#     return user
+@auth_router.post(path="/accept-invite", response_model=AcceptInviteResponse, status_code=201)
+async def accept_invitation(
+    data: AcceptInviteRequest,
+    service: TenantAuthService = Depends(get_tenant_auth_service)
+):
+    try:
+        response = await service.accept_invitation(data)
+        return response
+    except ConflictError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+

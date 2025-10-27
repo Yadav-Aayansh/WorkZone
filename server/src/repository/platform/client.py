@@ -56,20 +56,3 @@ class ClientRepository:
             await self.db.rollback()
             raise
 
-    async def update_subscription(self, id: str, plan: str, started_at: datetime, expires_at: datetime):
-        try:
-            client = await self.get_client_by_email(id)
-            client.plan_duration = plan
-            client.plan_started_at = started_at
-            client.plan_expires_at = expires_at
-            await self.db.commit()
-            await self.db.refresh(client)
-            return client
-        except Exception:
-            await self.db.rollback()
-            print()
-
-
-
-
-

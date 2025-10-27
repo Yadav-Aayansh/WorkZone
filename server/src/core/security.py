@@ -30,12 +30,21 @@ def create_tokens(payload: dict) -> dict:
 
 def decode_token(token: str, exp_aud: str, exp_type: str = "access") -> dict:
     try:
-        payload = jwt.decode(
-            token=token,
-            key=Config.JWT_SECRET_KEY,
-            algorithms=[Config.JWT_ALGORITHM],
-            audience=exp_aud
-        )
+        # Skip audience validation if exp_aud is "*"
+        if exp_aud == "*":
+            payload = jwt.decode(
+                token=token,
+                key=Config.JWT_SECRET_KEY,
+                algorithms=[Config.JWT_ALGORITHM],
+                options={"verify_aud": False}
+            )
+        else:
+            payload = jwt.decode(
+                token=token,
+                key=Config.JWT_SECRET_KEY,
+                algorithms=[Config.JWT_ALGORITHM],
+                audience=exp_aud
+            )
         if payload.get("type") != exp_type:
             raise InvalidTokenError("Invalid token!")
         return payload

@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, UploadFile, HTTPException, Form, File
-from src.services.platform import ClientService, OrderService
-from src.core.di import get_client_service, get_current_user, get_order_service
+from src.services.platform import ClientService, OrderService, InvitationService
+from src.core.di import get_client_service, get_current_user, get_order_service, get_invitation_service
 from src.schemas.platform import (
-    ClientOnboarding,CreateOrder, UpdateOrder, TenantAvailabilityRequest
+    ClientOnboarding,CreateOrder, UpdateOrder, TenantAvailabilityRequest,
+    InviteRequest, InviteResponse
 )
 from src.core.config import Config
 from src.exceptions.platform import TenantAlreadyExistsError
+from src.exceptions.base import ConflictError, ValidationError
 
 client_router = APIRouter(tags=["Client"])
 
@@ -46,3 +48,18 @@ async def update_order(
     service: OrderService = Depends(get_order_service)
 ):
     return await service.update_order(data)
+
+@client_router.post(path="/invite", response_model=InviteResponse, status_code=201)
+async def invite_user(
+    data: InviteRequest,
+    service: InvitationService = Depends(get_invitation_service),
+    current_user = Depends(get_current_user(Config.DOMAIN_NAME))
+):
+    try:
+        client_id = current_user.get("sub")
+        response = await service.create_invitation(client_id, data)
+        return response
+    except ConflictError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))

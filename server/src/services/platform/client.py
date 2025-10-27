@@ -86,16 +86,17 @@ class ClientService:
 
         return {"account_status": account_status, "subscription_status": subscription_status}
 
-    async def activate_subscription(self, id: str, subscription: CreateOrder):
+    async def update_subscription(self, id: str, subscription: CreateOrder):
         plan_started_at = get_indian_time()
         plan_expires_at = plan_started_at + timedelta(days=subscription.plan.validity*30)
 
-        client = await self.client_repo.update_subscription(
-            id=id,
-            plan=subscription.plan,
-            started_at=plan_started_at,
-            expires_at=plan_expires_at
-        )
+        client = await self.client_repo.get_client_by_id(id)
+        client.plan_duration = subscription.plan
+        client.plan_started_at = plan_started_at
+        client.plan_expires_at = plan_expires_at
+        await self.client_repo.db.commit()
+        await self.client_repo.db.refresh(client)
+        
         account_status = self.get_account_status(client)
         subscription_status = self.get_subscription_status(client)
 
