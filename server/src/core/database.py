@@ -1,8 +1,9 @@
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import text, MetaData
+from sqlalchemy import text, MetaData, create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.schema import CreateSchema
 from .config import Config
+from typing import AsyncGenerator
 
 class PublicBase(DeclarativeBase):
     metadata = MetaData(schema="public")
@@ -10,7 +11,9 @@ class PublicBase(DeclarativeBase):
 class TenantBase(DeclarativeBase):
     pass
 
-async_engine = create_async_engine(url=Config.DATABASE_URL, echo=True)
+from src.models.tenant import *
+
+async_engine = create_async_engine(url=Config.ASYNC_DATABASE_URL, echo=True)
 AsyncSessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=async_engine)
 
 async def init_db() -> None:
@@ -19,28 +22,22 @@ async def init_db() -> None:
         
         await conn.run_sync(PublicBase.metadata.create_all)
 
-async def get_public_db() -> AsyncSession:
-    async for sesion in get_tenant_db("public"):
+async def get_public_db() -> AsyncGenerator[AsyncSession, None]:
+    async for sesion in get_schema("public"):
         yield sesion 
 
-async def get_tenant_db(tenant_id: str) -> AsyncSession:
+async def get_schema(tenant_id: str) -> AsyncGenerator[AsyncSession, None]:
+    if not tenant_id.isalnum():
+        raise ValueError("Invalid tenant ID")
     async with AsyncSessionLocal() as session:
-        try:
-            await session.execute(text(f"SET search_path TO {tenant_id}"))
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
+        await session.execute(text(f"SET search_path TO {tenant_id}"))
+        yield session
 
-async def create_tenant_schema(tenant_id: str):
-    async with async_engine.begin() as conn:
-        await conn.execute(CreateSchema(tenant_id, if_not_exists=True))
-        
-        def create_tables(sync_conn):
-            sync_conn.execution_options(schema_translate_map={None: tenant_id})
-            TenantBase.metadata.create_all(bind=sync_conn)
 
-        await conn.run_sync(create_tables)
+sync_engine = create_engine(url=Config.SYNC_DATABASE_URL, echo=True)
+
+def create_tenant_schema(tenant_id: str):
+    with sync_engine.begin() as conn:
+        conn.execute(CreateSchema(tenant_id, if_not_exists=True))
+        conn.execute(text(f"SET search_path TO {tenant_id}"))
+        TenantBase.metadata.create_all(bind=conn)

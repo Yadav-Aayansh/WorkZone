@@ -11,6 +11,8 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(
+    title="WorkZone",
+    description="APIs for WorkZone.tech",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json"
