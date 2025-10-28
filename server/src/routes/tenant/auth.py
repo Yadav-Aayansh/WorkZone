@@ -1,12 +1,30 @@
-# from fastapi import APIRouter, Depends
-# from src.schemas.platform import UserBase
-# from sqlalchemy.orm import Session
-# from src.core.database import get_tenant_db, create_tenant_schema, get_public_db
-# from src.repository.tenant.user import create_user
+from fastapi import APIRouter, Depends, HTTPException
+from src.schemas.tenant import UserSignupRequest, UserSignupInvitedRequest
+from src.core.di import get_user_service
+from src.services.tenant import UserService
+from src.exceptions.tenant import InvitationRequiredError, UserAlreadyExistsError
 
-# signup_router = APIRouter(prefix="/api", tags=["Auth"])
+auth_router = APIRouter(prefix="/api", tags=["Tenant Auth"])
 
-# @signup_router.post(path="/signup", status_code=201)
-# def signup(user_data: UserBase, db: Session = Depends(get_tenant_db)):
-#     user = create_user(user_data, db)
-#     return user
+@auth_router.post(path="/signup", status_code=201)
+async def signup(
+    data: UserSignupRequest,
+    service: UserService = Depends(get_user_service)
+):
+    try:
+        return await service.register(data)
+    except UserAlreadyExistsError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except InvitationRequiredError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+
+@auth_router.post(path="/signup/invited", status_code=201)
+async def signup(
+    data: UserSignupInvitedRequest,
+    service: UserService = Depends(get_user_service)
+):
+    try:
+        return await service.register_invited(data)
+    except UserAlreadyExistsError as e:
+        raise HTTPException(status_code=403, detail=str(e))

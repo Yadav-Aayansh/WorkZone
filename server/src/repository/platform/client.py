@@ -3,6 +3,7 @@ from src.models.platform import Client
 from sqlalchemy import exists, select
 from datetime import datetime
 
+
 class ClientRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -14,6 +15,10 @@ class ClientRepository:
     async def get_client_by_email(self, email: str) -> Client | None:
         result = await self.db.execute(select(Client).where(Client.email==email))
         return result.scalar_one_or_none()
+    
+    async def get_tenant_by_id(self, id: str) -> str:
+        result = await self.db.execute(select(Client).where(Client.id==id))
+        return result.scalar_one_or_none().tenant_id
     
     async def get_tenant_by_domain(self, domain: str) -> str | None:
         result = await self.db.execute(select(Client).where(Client.domain==domain))
@@ -68,7 +73,6 @@ class ClientRepository:
         except Exception:
             await self.db.rollback()
             print()
-
 
 
 

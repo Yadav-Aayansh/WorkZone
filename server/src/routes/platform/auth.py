@@ -14,7 +14,7 @@ from src.exceptions.base import (
 )
 from src.core.config import Config
 
-auth_router = APIRouter(prefix="/auth", tags=["Auth"])
+auth_router = APIRouter(prefix="/auth", tags=["Client Auth"])
 
 @auth_router.post(path="/signup", status_code=201, response_model=ClientSignupResponse)
 async def registration(data: ClientSignupRequest, service: ClientService = Depends(get_client_service)):

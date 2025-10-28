@@ -2,7 +2,7 @@ import uuid
 from jose import jwt, ExpiredSignatureError, JWTError
 from datetime import datetime, timezone, timedelta
 from .config import Config
-from src.exceptions.base import ExpiredTokenError, InvalidTokenError
+from fastapi import HTTPException
     
 def create_access_token(payload: dict, expires_minutes: int = 15) -> str:
     iat = datetime.now(timezone.utc)
@@ -37,10 +37,11 @@ def decode_token(token: str, exp_aud: str, exp_type: str = "access") -> dict:
             audience=exp_aud
         )
         if payload.get("type") != exp_type:
-            raise InvalidTokenError("Invalid token!")
+            raise HTTPException(status_code=401, detail="Invalid token!")
         return payload
     except ExpiredSignatureError:
-        raise ExpiredTokenError("Expired token!")
+        raise HTTPException(status_code=401, detail="Expired token!")
     except JWTError:
-        raise InvalidTokenError("Invalid token!")
+        raise HTTPException(status_code=401, detail="Invalid token!")
+        
     
