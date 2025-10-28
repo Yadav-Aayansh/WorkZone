@@ -44,6 +44,37 @@ export interface RefreshTokenRequest {
 export interface RefreshTokenResponse {
   access_token: string;
   refresh_token: string;
+  account_status: string;
+  subscription_status: string;
+}
+
+export interface CreateOrderRequest {
+  plan: '3_months' | '6_months' | '12_months';
+}
+
+export interface CreateOrderResponse {
+  id: string;
+  entity: string;
+  amount: number;
+  amount_paid: number;
+  amount_due: number;
+  currency: string;
+  receipt: string | null;
+  status: string;
+  attempts: number;
+  notes: any[];
+  created_at: number;
+}
+
+export interface UpdateOrderRequest {
+  order_id: string;
+  payment_id: string;
+  signature: string;
+}
+
+export interface UpdateOrderResponse {
+  account_status: string;
+  subscription_status: string;
 }
 
 export class APIError extends Error {
@@ -135,6 +166,12 @@ async function refreshAccessToken(): Promise<string> {
     
     const data: RefreshTokenResponse = await response.json();
     setStoredTokens(data.access_token, data.refresh_token);
+    
+    // Also update status in localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('account_status', data.account_status);
+      localStorage.setItem('subscription_status', data.subscription_status);
+    }
     
     return data.access_token;
   } catch (error) {
@@ -255,7 +292,7 @@ export const authAPI = {
           headers['Authorization'] = `Bearer ${currentAccessToken}`;
         }
         
-        const response = await fetch(`${BASE_URL}/api/platform/auth/onboarding`, {
+        const response = await fetch(`${BASE_URL}/api/platform/onboarding`, {
           method: 'POST',
           headers,
           body: formData,
@@ -307,19 +344,16 @@ export const authAPI = {
   },
 
   async refreshToken(): Promise<RefreshTokenResponse> {
-    // TODO: Implement when backend refresh endpoint is available
-    throw new APIError(404, 'Refresh token endpoint not implemented yet', null, true);
+    const { refreshToken } = getStoredTokens();
     
-    // const { refreshToken } = getStoredTokens();
-    // 
-    // if (!refreshToken) {
-    //   throw new APIError(401, 'No refresh token available', null, true);
-    // }
-    // 
-    // return apiRequest<RefreshTokenResponse>(`${BASE_URL}/api/platform/auth/refresh`, {
-    //   method: 'POST',
-    //   body: JSON.stringify({ refresh_token: refreshToken }),
-    // }, 1, false);
+    if (!refreshToken) {
+      throw new APIError(401, 'No refresh token available', null, true);
+    }
+    
+    return apiRequest<RefreshTokenResponse>(`${BASE_URL}/api/platform/auth/refresh`, {
+      method: 'POST',
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    }, 1, false);
   },
 
   async logout(): Promise<void> {
@@ -348,6 +382,28 @@ export const authAPI = {
 
   clearTokens() {
     clearStoredTokens();
+  }
+};
+
+export const subscriptionAPI = {
+  async createOrder(data: CreateOrderRequest): Promise<CreateOrderResponse> {
+    // GET request with query parameters
+    const queryParams = new URLSearchParams({ plan: data.plan });
+    return apiRequest<CreateOrderResponse>(
+      `${BASE_URL}/api/platform/subscription?${queryParams.toString()}`, 
+      {
+        method: 'GET',
+      }, 
+      2, 
+      true
+    );
+  },
+
+  async updateOrder(data: UpdateOrderRequest): Promise<UpdateOrderResponse> {
+    return apiRequest<UpdateOrderResponse>(`${BASE_URL}/api/platform/subscription`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, 2, true);
   }
 };
 

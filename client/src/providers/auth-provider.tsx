@@ -1,9 +1,14 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { authAPI } from '@/lib/api';
-import { useRouter } from 'next/navigation';
-import { useToast } from '@/providers/toast-provider';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import { authAPI } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export interface AuthState {
   isAuthenticated: boolean;
@@ -40,20 +45,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading: true,
     isInitialized: false,
   });
-  
+
   const router = useRouter();
-// Initialize auth state and attempt token refresh
+  // Initialize auth state and attempt token refresh
   useEffect(() => {
     let mounted = true;
-    
+
     const initializeAuth = async () => {
       try {
-        if (typeof window === 'undefined') return;
-        
+        if (typeof window === "undefined") return;
+
         const tokens = authAPI.getTokens();
-        const accountStatus = localStorage.getItem('account_status');
-        const subscriptionStatus = localStorage.getItem('subscription_status');
-        
+        const accountStatus = localStorage.getItem("account_status");
+        const subscriptionStatus = localStorage.getItem("subscription_status");
+
         if (!tokens.accessToken) {
           // No tokens found
           if (mounted) {
@@ -69,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           return;
         }
-        
+
         // For now, just trust the stored tokens since refresh endpoint doesn't exist yet
         if (mounted) {
           setAuthState({
@@ -83,10 +88,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
-        
+        console.error("Auth initialization error:", error);
+
         if (mounted) {
-          setAuthState(prev => ({
+          setAuthState((prev) => ({
             ...prev,
             isLoading: false,
             isInitialized: true,
@@ -94,44 +99,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     };
-    
+
     initializeAuth();
-    
+
     return () => {
       mounted = false;
     };
   }, []);
 
-  const login = useCallback(async (tokens: {
-    access_token: string;
-    refresh_token: string;
-    account_status: string;
-    subscription_status: string;
-  }) => {
-    // Store tokens
-    localStorage.setItem('access_token', tokens.access_token);
-    localStorage.setItem('refresh_token', tokens.refresh_token);
-    localStorage.setItem('account_status', tokens.account_status);
-    localStorage.setItem('subscription_status', tokens.subscription_status);
-    
-    setAuthState({
-      isAuthenticated: true,
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token,
-      accountStatus: tokens.account_status,
-      subscriptionStatus: tokens.subscription_status,
-      isLoading: false,
-      isInitialized: true,
-    });
-  }, []);
+  const login = useCallback(
+    async (tokens: {
+      access_token: string;
+      refresh_token: string;
+      account_status: string;
+      subscription_status: string;
+    }) => {
+      // Store tokens
+      localStorage.setItem("access_token", tokens.access_token);
+      localStorage.setItem("refresh_token", tokens.refresh_token);
+      localStorage.setItem("account_status", tokens.account_status);
+      localStorage.setItem("subscription_status", tokens.subscription_status);
+
+      setAuthState({
+        isAuthenticated: true,
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        accountStatus: tokens.account_status,
+        subscriptionStatus: tokens.subscription_status,
+        isLoading: false,
+        isInitialized: true,
+      });
+    },
+    []
+  );
 
   const logout = useCallback(async () => {
     try {
       await authAPI.logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     }
-    
+
     setAuthState({
       isAuthenticated: false,
       accessToken: null,
@@ -141,57 +149,74 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading: false,
       isInitialized: true,
     });
-    
+
     // Redirect to login page
-    router.push('/login');
+    router.push("/login");
   }, [router]);
 
-  const updateStatus = useCallback((accountStatus: string, subscriptionStatus: string) => {
-    localStorage.setItem('account_status', accountStatus);
-    localStorage.setItem('subscription_status', subscriptionStatus);
-    
-    setAuthState(prev => ({
-      ...prev,
-      accountStatus,
-      subscriptionStatus,
-    }));
-  }, []);
-  
+  const updateStatus = useCallback(
+    (accountStatus: string, subscriptionStatus: string) => {
+      localStorage.setItem("account_status", accountStatus);
+      localStorage.setItem("subscription_status", subscriptionStatus);
+
+      setAuthState((prev) => ({
+        ...prev,
+        accountStatus,
+        subscriptionStatus,
+      }));
+    },
+    []
+  );
+
   const refreshAuth = useCallback(async (): Promise<boolean> => {
     try {
-      // TODO: Implement when refresh endpoint is available on backend
-      // const refreshResponse = await authAPI.refreshToken();
-      // setAuthState(prev => ({
-      //   ...prev,
-      //   accessToken: refreshResponse.access_token,
-      //   refreshToken: refreshResponse.refresh_token,
-      // }));
-      
-      // For now, just return true if we have tokens
-      const tokens = authAPI.getTokens();
-      return !!tokens.accessToken;
+      const refreshResponse = await authAPI.refreshToken();
+
+      // Update tokens and status in localStorage
+      localStorage.setItem("access_token", refreshResponse.access_token);
+      localStorage.setItem("refresh_token", refreshResponse.refresh_token);
+      localStorage.setItem("account_status", refreshResponse.account_status);
+      localStorage.setItem(
+        "subscription_status",
+        refreshResponse.subscription_status
+      );
+
+      setAuthState((prev) => ({
+        ...prev,
+        accessToken: refreshResponse.access_token,
+        refreshToken: refreshResponse.refresh_token,
+        accountStatus: refreshResponse.account_status,
+        subscriptionStatus: refreshResponse.subscription_status,
+      }));
+
+      return true;
     } catch (error) {
+      console.error("Token refresh failed:", error);
       await logout();
       return false;
     }
   }, [logout]);
-  
-  const redirectAfterAuth = useCallback((accountStatus: string) => {
-    switch (accountStatus) {
-      case 'ONBOARDING':
-        router.push('/signup');
-        break;
-      case 'SUBSCRIPTION':
-        router.push('/subscription');
-        break;
-      case 'ACTIVE':
-        router.push('/dashboard');
-        break;
-      default:
-        router.push('/dashboard');
-        break;
-    }
-  }, [router]);
+
+  const redirectAfterAuth = useCallback(
+    (accountStatus: string) => {
+      switch (accountStatus?.toLowerCase()) {
+        case "onboarding":
+          router.push("/signup");
+          break;
+        case "subscription":
+          // Redirect directly to payment step (step 3) in signup
+          router.push("/signup?step=3");
+          break;
+        case "active":
+          router.push("/dashboard");
+          break;
+        default:
+          router.push("/dashboard");
+          break;
+      }
+    },
+    [router]
+  );
 
   return (
     <AuthContext.Provider
@@ -212,7 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
