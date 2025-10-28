@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, ArrowLeft, Upload, X, Building2, Loader2, Check } from "lucide-react";
 import { useState, useRef } from "react";
-import { SignupData } from "@/app/(auth)/signup/page";
+import { SignupData } from "@/app/(platform)/(auth)/signup/page";
 import { Logo } from "@/components/logo";
 import Image from "next/image";
 import { authAPI, APIError } from "@/lib/api";

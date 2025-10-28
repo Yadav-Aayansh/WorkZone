@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Building2, ArrowRight } from "lucide-react";
-import { SignupData } from "@/app/(auth)/signup/page";
+import { SignupData } from "@/app/(platform)/(auth)/signup/page";
 import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -18,7 +18,7 @@ export default function SuccessPage({ signupData }: SuccessPageProps) {
 
   useEffect(() => {
     setMounted(true);
-    
+
     const duration = 2 * 1000;
     const animationEnd = Date.now() + duration;
 
@@ -33,7 +33,7 @@ export default function SuccessPage({ signupData }: SuccessPageProps) {
       }
 
       const particleCount = 30 * (timeLeft / duration);
-      
+
       confetti({
         particleCount,
         startVelocity: 30,
@@ -58,10 +58,10 @@ export default function SuccessPage({ signupData }: SuccessPageProps) {
   if (!mounted) return null;
 
   const planNames = {
-    "3-month": "Starter (3 Months)",
-    "6-month": "Growth (6 Months)",
-    "12-month": "Enterprise (12 Months)",
-  };
+    "3_months": "Starter (3 Months)",
+    "6_months": "Growth (6 Months)",
+    "12_months": "Enterprise (12 Months)",
+  } as const;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5 flex items-center justify-center p-8">
@@ -134,7 +134,9 @@ export default function SuccessPage({ signupData }: SuccessPageProps) {
               <div className="bg-background/50 rounded-xl p-3">
                 <p className="text-xs text-muted-foreground mb-1">Plan</p>
                 <p className="font-semibold text-sm">
-                  {signupData.plan ? planNames[signupData.plan] : "Not selected"}
+                  {signupData.plan
+                    ? planNames[signupData.plan]
+                    : "Not selected"}
                 </p>
               </div>
             </div>

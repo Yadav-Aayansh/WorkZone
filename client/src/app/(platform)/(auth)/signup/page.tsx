@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import AccountCreation from "@/components/signup/AccountCreation";
-import WorkspaceOnboarding from "@/components/signup/WorkspaceOnboarding";
-import PaymentPlans from "@/components/signup/PaymentPlans";
-import SuccessPage from "@/components/signup/SuccessPage";
+import AccountCreation from "@/components/(platform)/signup/AccountCreation";
+import WorkspaceOnboarding from "@/components/(platform)/signup/WorkspaceOnboarding";
+import PaymentPlans from "@/components/(platform)/signup/PaymentPlans";
+import SuccessPage from "@/components/(platform)/signup/SuccessPage";
 
 export interface SignupData {
   fullName: string;
@@ -15,12 +16,14 @@ export interface SignupData {
   companyName: string;
   logo: File | null;
   tenantId: string;
-  plan: "3-month" | "6-month" | "12-month" | null;
+  plan: "3_months" | "6_months" | "12_months" | null;
   paymentId?: string;
 }
 
 export default function SignupPage() {
-  const [step, setStep] = useState(1);
+  const searchParams = useSearchParams();
+  const initialStep = parseInt(searchParams.get("step") || "1", 10);
+  const [step, setStep] = useState(initialStep);
   const [signupData, setSignupData] = useState<SignupData>({
     fullName: "",
     email: "",
@@ -31,6 +34,14 @@ export default function SignupPage() {
     tenantId: "",
     plan: null,
   });
+
+  // Update step when URL parameter changes
+  useEffect(() => {
+    const stepParam = parseInt(searchParams.get("step") || "1", 10);
+    if (stepParam >= 1 && stepParam <= 4) {
+      setStep(stepParam);
+    }
+  }, [searchParams]);
 
   const handleNext = (data: Partial<SignupData>) => {
     setSignupData((prev) => ({ ...prev, ...data }));

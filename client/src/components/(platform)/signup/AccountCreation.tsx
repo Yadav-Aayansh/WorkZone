@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { SignupData } from "@/app/(auth)/signup/page";
+import { SignupData } from "@/app/(platform)/(auth)/signup/page";
 import { Logo } from "@/components/logo";
 import { authAPI, APIError } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
@@ -230,7 +230,7 @@ export default function AccountCreation({
             </div>
 
             {/* Back Button */}
-            <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
+            <Link href="/client/public" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
               <ArrowLeft className="w-4 h-4 mr-1" />
             </Link>
 

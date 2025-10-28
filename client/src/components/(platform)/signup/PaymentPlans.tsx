@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Sparkles, Zap, Crown } from "lucide-react";
-import { SignupData } from "@/app/(auth)/signup/page";
+import { SignupData } from "@/app/(platform)/(auth)/signup/page";
 import { Logo } from "@/components/logo";
-import { initiatePayment, loadRazorpayScript, RazorpayResponse } from "@/lib/razorpay";
+import { loadRazorpayScript } from "@/lib/razorpay";
+import { subscriptionAPI, CreateOrderRequest } from "@/lib/api";
+import { useAuth } from "@/providers/auth-provider";
 
 interface PaymentPlansProps {
   onNext: (data: Partial<SignupData>) => void;
@@ -15,7 +17,7 @@ interface PaymentPlansProps {
 }
 
 interface Plan {
-  id: "3-month" | "6-month" | "12-month";
+  id: "3_months" | "6_months" | "12_months";
   name: string;
   duration: string;
   price: number;
@@ -28,31 +30,31 @@ interface Plan {
 
 const plans: Plan[] = [
   {
-    id: "3-month",
+    id: "3_months",
     name: "Starter",
     duration: "3 Months",
-    price: 4999,
+    price: 29999,
     icon: <Sparkles className="w-5 h-5" />,
     features: ["Up to 50 employees", "Basic HR features", "Email support"],
   },
   {
-    id: "6-month",
+    id: "6_months",
     name: "Growth",
     duration: "6 Months",
-    price: 8999,
-    originalPrice: 9999,
-    discount: "SAVE 10%",
+    price: 49999,
+    originalPrice: 59999,
+    discount: "SAVE 17%",
     recommended: true,
     icon: <Zap className="w-5 h-5" />,
     features: ["Up to 200 employees", "All HR features", "Priority support"],
   },
   {
-    id: "12-month",
+    id: "12_months",
     name: "Enterprise",
     duration: "12 Months",
-    price: 15999,
-    originalPrice: 19999,
-    discount: "SAVE 20%",
+    price: 99999,
+    originalPrice: 119999,
+    discount: "SAVE 17%",
     icon: <Crown className="w-5 h-5" />,
     features: ["Unlimited employees", "Enterprise features", "24/7 support"],
   },
@@ -63,11 +65,12 @@ export default function PaymentPlans({
   onBack,
   initialData,
 }: PaymentPlansProps) {
-  const [selectedPlan, setSelectedPlan] = useState<"3-month" | "6-month" | "12-month" | null>(
-    initialData.plan
-  );
+  const [selectedPlan, setSelectedPlan] = useState<
+    "3_months" | "6_months" | "12_months" | null
+  >(initialData.plan);
   const [isProcessing, setIsProcessing] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const { updateStatus } = useAuth();
 
   useEffect(() => {
     // Preload Razorpay script
@@ -87,19 +90,32 @@ export default function PaymentPlans({
 
     const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     if (!razorpayKey) {
-      alert("Payment gateway is not configured. Please add your Razorpay API keys.");
+      alert(
+        "Payment gateway is not configured. Please add your Razorpay API keys."
+      );
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      const options = {
+      // Step 1: Create order via backend API
+      const createOrderData: CreateOrderRequest = {
+        plan: selectedPlan,
+      };
+
+      const orderResponse = await subscriptionAPI.createOrder(createOrderData);
+
+      console.log("Order created:", orderResponse);
+
+      // Step 2: Initiate Razorpay payment with the backend order
+      const razorpayOptions = {
         key: razorpayKey,
-        amount: plan.price * 100, // Razorpay accepts amount in paise (₹1 = 100 paise)
-        currency: "INR",
-        name: "HR Management System",
+        amount: orderResponse.amount, // Amount from backend (already in paise)
+        currency: orderResponse.currency,
+        name: "WorkZone HR Management",
         description: `${plan.name} Plan - ${plan.duration}`,
+        order_id: orderResponse.id, // Razorpay order ID from backend
         prefill: {
           name: initialData.fullName || "User",
           email: initialData.email || "",
@@ -107,13 +123,49 @@ export default function PaymentPlans({
         theme: {
           color: "#8b5cf6", // Purple theme color
         },
-        handler: (response: RazorpayResponse) => {
-          console.log("Payment successful:", response);
-          // Payment successful
-          onNext({ 
-            plan: selectedPlan,
-            paymentId: response.razorpay_payment_id 
-          });
+        handler: async (response: any) => {
+          console.log("=== PAYMENT SUCCESSFUL ===");
+          console.log("Razorpay Response:", response);
+
+          try {
+            // Step 3: Verify payment with backend
+            const updateOrderData = {
+              order_id: response.razorpay_order_id,
+              payment_id: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+            };
+
+            console.log("Sending to backend:", updateOrderData);
+
+            const verificationResponse = await subscriptionAPI.updateOrder(
+              updateOrderData
+            );
+            console.log("Payment verified by backend:", verificationResponse);
+
+            // Update auth status with the response from backend
+            if (
+              verificationResponse.account_status &&
+              verificationResponse.subscription_status
+            ) {
+              updateStatus(
+                verificationResponse.account_status,
+                verificationResponse.subscription_status
+              );
+            }
+
+            // Payment successful and verified
+            onNext({
+              plan: selectedPlan,
+              paymentId: response.razorpay_payment_id,
+            });
+          } catch (error: any) {
+            console.error("Payment verification error:", error);
+            alert(
+              "Payment verification failed. Please contact support with your payment ID: " +
+                response.razorpay_payment_id
+            );
+            setIsProcessing(false);
+          }
         },
         modal: {
           ondismiss: () => {
@@ -123,10 +175,19 @@ export default function PaymentPlans({
         },
       };
 
-      await initiatePayment(options);
-    } catch (error) {
+      // Load and open Razorpay
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        throw new Error("Razorpay SDK failed to load");
+      }
+
+      const razorpay = new (window as any).Razorpay(razorpayOptions);
+      razorpay.open();
+    } catch (error: any) {
       console.error("Payment error:", error);
-      alert("Failed to initiate payment. Please try again.");
+      const errorMessage =
+        error?.message || "Failed to initiate payment. Please try again.";
+      alert(errorMessage);
       setIsProcessing(false);
     }
   };
@@ -143,7 +204,10 @@ export default function PaymentPlans({
           <Logo />
         </div>
 
-        <button onClick={onBack} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+        >
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back
         </button>
@@ -181,14 +245,24 @@ export default function PaymentPlans({
               )}
 
               <div className="text-center mb-4">
-                <div className={`inline-flex p-3 rounded-xl mb-3 ${selectedPlan === plan.id ? "bg-primary text-white" : "bg-muted"}`}>
+                <div
+                  className={`inline-flex p-3 rounded-xl mb-3 ${
+                    selectedPlan === plan.id
+                      ? "bg-primary text-white"
+                      : "bg-muted"
+                  }`}
+                >
                   {plan.icon}
                 </div>
                 <h3 className="font-bold text-base mb-1">{plan.name}</h3>
-                <p className="text-xs text-muted-foreground mb-3">{plan.duration}</p>
-                
+                <p className="text-xs text-muted-foreground mb-3">
+                  {plan.duration}
+                </p>
+
                 <div className="mb-3">
-                  <div className="text-2xl font-bold">₹{plan.price.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">
+                    ₹{plan.price.toLocaleString()}
+                  </div>
                   {plan.originalPrice && (
                     <div className="flex items-center justify-center gap-2 mt-1">
                       <span className="text-xs text-muted-foreground line-through">
@@ -207,7 +281,13 @@ export default function PaymentPlans({
               <div className="space-y-2 mb-4">
                 {plan.features.map((feature, i) => (
                   <div key={i} className="flex items-start gap-2">
-                    <Check className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${selectedPlan === plan.id ? "text-primary" : "text-muted-foreground"}`} />
+                    <Check
+                      className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${
+                        selectedPlan === plan.id
+                          ? "text-primary"
+                          : "text-muted-foreground"
+                      }`}
+                    />
                     <span className="text-xs leading-relaxed">{feature}</span>
                   </div>
                 ))}
@@ -232,11 +312,15 @@ export default function PaymentPlans({
             disabled={!selectedPlan || isProcessing || !razorpayLoaded}
             className="w-full h-11 text-sm font-medium bg-foreground text-background hover:bg-foreground/90 rounded-full"
           >
-            {isProcessing 
-              ? "Opening Payment Gateway..." 
-              : !razorpayLoaded 
+            {isProcessing
+              ? "Opening Payment Gateway..."
+              : !razorpayLoaded
               ? "Loading Payment Gateway..."
-              : `Pay ₹${plans.find(p => p.id === selectedPlan)?.price.toLocaleString() || 0}`}
+              : `Pay ₹${
+                  plans
+                    .find((p) => p.id === selectedPlan)
+                    ?.price.toLocaleString() || 0
+                }`}
           </Button>
 
           <p className="mt-4 text-xs text-center text-muted-foreground">
