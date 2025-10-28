@@ -1,6 +1,6 @@
 "use client";
 
-import { useTokenRefresh } from '@/hooks/useAuth';
+import { useTokenRefresh } from '@/lib/hooks/useAuth';
 
 export function AuthTokenManager() {
   useTokenRefresh();
