@@ -10,7 +10,7 @@ from src.exceptions.tenant import (
     UserNotFoundError
 )
 
-auth_router = APIRouter(prefix="/api", tags=["Tenant Auth"])
+auth_router = APIRouter(prefix="/auth", tags=["Tenant Auth"])
 
 @auth_router.post(path="/signup", status_code=201)
 async def signup(
