@@ -15,6 +15,10 @@ class UserRepository:
         result = await self.db.execute(select(User).where(User.email==email))
         return result.scalar_one_or_none()
     
+    async def get_user_by_id(self, id: str) -> User | None:
+        result = await self.db.execute(select(User).where(User.id==id))
+        return result.scalar_one_or_none()
+    
     async def create_user(self, name: str, email: str, password: str, role: Role) -> User:
         new_user = User(
             name=name,

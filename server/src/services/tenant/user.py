@@ -2,14 +2,20 @@ from src.repository.tenant import (
     UserRepository, RecruiterRepository, ManagerRepository,
     EmployeeRepository, ApplicantRepository
 )
-from src.schemas.tenant import UserSignupRequest, UserSignupInvitedRequest
+from src.schemas.tenant import (
+    UserSignupRequest, UserSignupInvitedRequest, UserLoginRequest, 
+    UserRefreshRequest
+)
 from src.models.tenant import User
-from src.exceptions.tenant import UserAlreadyExistsError, InvitationRequiredError
+from src.exceptions.tenant import (
+    UserAlreadyExistsError, InvitationRequiredError, UserNotFoundError,
+    InvalidUserCredentialsError
+)
 from src.utils.hashing import hash_password, verify_password
 from src.core.security import create_tokens, decode_token
 from src.core.config import Config
 from src.models.tenant import Role
-from src.core.contex import tenant_context
+from src.core.context import tenant_context
 
 class UserService:
     def __init__(
@@ -34,7 +40,7 @@ class UserService:
         return await self._create_user(data.name, data.email, data.password, data.role)
 
 
-    async def register_invited(self, data: UserSignupInvitedRequest):
+    async def register_invited(self, data: UserSignupInvitedRequest) -> dict:
         tenant_id = tenant_context.get()
         user_data = decode_token(data.token, f"{tenant_id}.{Config.DOMAIN_NAME}")
 
@@ -71,15 +77,33 @@ class UserService:
         )
         
         await self._create_role_profile(user.id, role)
-        
+    
+        return create_tokens(self._build_token_payload(user))
+
+    def _build_token_payload(self, user: User) -> dict:
         tenant_id = tenant_context.get()
-        return create_tokens({
+        return {
             "sub": str(user.id),
             "email": user.email,
             "role": user.role.value,
             "aud": f"{tenant_id}.{Config.DOMAIN_NAME}"
-        })
+        }
+        
+    async def login(self, data: UserLoginRequest) -> dict:
+        user = await self.user_repo.get_user_by_email(data.email)
+        if not user:
+            raise UserNotFoundError("Account does not exist!")
+        
+        if not verify_password(data.password, user.password):
+            raise InvalidUserCredentialsError("Incorrect email or password!")
 
-
-
-
+        return create_tokens(self._build_token_payload(user))
+    
+    async def refresh(self, data: UserRefreshRequest) -> dict:
+        tenant_id = tenant_context.get()
+        current_user = decode_token(data.refresh_token, f"{tenant_id}.{Config.DOMAIN_NAME}", "refresh")
+        user = await self.user_repo.get_user_by_id(current_user.get("sub"))
+        if not user:
+            raise UserNotFoundError("Account does not exist!")
+        
+        return create_tokens(self._build_token_payload(user))

@@ -28,6 +28,7 @@ class WorkspaceService:
         
         client = await self.client_repo.get_client_by_id(id)
         token = create_access_token({
+            "name": data.name,
             "email": data.email,
             "role": data.role.value,
             "aud": f"{tenant_id}.{Config.DOMAIN_NAME}"

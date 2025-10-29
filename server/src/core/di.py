@@ -13,7 +13,7 @@ from src.exceptions.base import RoleNotAllowedError
 from .security import decode_token
 from src.utils.misc import get_tenant_id_or_domain
 from src.exceptions.platform import TenantNotFoundError
-from .contex import tenant_context
+from .context import tenant_context
 
 def get_client_service(db: AsyncSession = Depends(get_public_db)):
     repo = ClientRepository(db)

@@ -9,9 +9,6 @@ from src.exceptions.platform import (
     InvalidClientCredentialsError, ClientAlreadyExistsError,
     ClientNotFoundError
 )
-from src.exceptions.base import (
-    InvalidTokenError, ExpiredTokenError
-)
 from src.core.config import Config
 
 auth_router = APIRouter(prefix="/auth", tags=["Client Auth"])
@@ -41,7 +38,5 @@ async def refresh(
     service: ClientService = Depends(get_client_service)):
     try:
         return await service.refresh(data)
-    except ExpiredTokenError as e:
-        raise HTTPException(status_code=401, detail="Expired token!")
-    except InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail="Invalid token!")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -29,9 +29,15 @@ async def get_public_db() -> AsyncGenerator[AsyncSession, None]:
 async def get_schema(tenant_id: str) -> AsyncGenerator[AsyncSession, None]:
     if not tenant_id.isalnum():
         raise ValueError("Invalid tenant ID")
+    
     async with AsyncSessionLocal() as session:
-        await session.execute(text(f"SET search_path TO {tenant_id}"))
-        yield session
+        try:
+            await session.execute(text(f"SET search_path TO {tenant_id}"))
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
 
 
 sync_engine = create_engine(url=Config.SYNC_DATABASE_URL, echo=True)

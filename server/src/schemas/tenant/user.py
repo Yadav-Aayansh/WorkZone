@@ -14,3 +14,14 @@ class UserSignupInvitedRequest(BaseModel):
 class UserSignupResponse(BaseModel):
     access_token: str
     refresh_token: str
+
+class UserLoginRequest(BaseModel):
+    email: EmailStr = Field(..., max_length=255)
+    password: str = Field(..., min_length=8)
+
+class UserLoginResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+
+class UserRefreshRequest(BaseModel):
+    refresh_token: str
