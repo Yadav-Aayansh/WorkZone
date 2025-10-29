@@ -1,34 +1,25 @@
-# Use slim Python base
-FROM python:3.13-slim AS base
+FROM python:3.11-slim
 
-# Prevent Python from buffering stdout/stderr
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1
-
-# Create work directory
 WORKDIR /app
 
-# Install system deps (for psycopg2, bcrypt, etc.)
+# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
+    gcc \
+    libc6-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
 
-# Install uv package manager
-RUN pip install uv
+# Install uv and dependencies - force Python 3.11
+RUN pip install --no-cache-dir uv && \
+    uv sync --no-dev --python 3.11
 
-# Install Python dependencies
-RUN uv sync --frozen
-
-# Copy app source
+# Copy application code
 COPY . .
 
 # Expose port
 EXPOSE 8000
 
-# Run with uvicorn
-CMD ["uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run FastAPI
+CMD ["uv", "run", "--python", "3.11", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
