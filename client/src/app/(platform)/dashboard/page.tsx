@@ -26,7 +26,7 @@ export default function DashboardPage() {
   };
 
   const handleContinueSubscription = () => {
-    // Redirect directly to payment step (step 3) in signup flow
+    // Redirect directly to the payment step (step 3) in the signup flow
     router.push("/signup?step=3");
   };
 
@@ -149,7 +149,7 @@ export default function DashboardPage() {
                 </h2>
 
                 <p className="text-gray-600 text-lg">
-                  Let's get your HR management system fully set up.
+                  Let&#39;s get your HR management system fully set up.
                 </p>
               </div>
 
@@ -237,7 +237,7 @@ export default function DashboardPage() {
               {/* Next Steps Section */}
               <div className="bg-white rounded-xl border shadow-sm p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  What's Next?
+                  What&apos;s Next?
                 </h3>
 
                 {accountStatus?.toLowerCase() === "onboarding" && (
@@ -324,7 +324,7 @@ export default function DashboardPage() {
                           Get Started
                         </h4>
                         <p className="text-sm text-gray-700 mb-3">
-                          Let's set up your company profile and get you started
+                          Let&apos;s set up your company profile and get you started
                           with WorkZone.
                         </p>
                         <Button onClick={handleContinueOnboarding}>

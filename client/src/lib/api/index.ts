@@ -51,7 +51,7 @@ export type {
 } from './tenant';
 
 // Backwards compatibility - import for creating combined API
-import { platformAuthAPI, platformOnboardingAPI, platformSubscriptionAPI, platformClientAPI } from './platform';
+import { platformAuthAPI, platformOnboardingAPI, platformSubscriptionAPI } from './platform';
 
 // Create a combined authAPI that includes onboarding for backwards compatibility
 export const authAPI = {

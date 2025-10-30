@@ -79,6 +79,7 @@ export function useAuthenticatedRequest() {
           } else {
             throw new Error('Token refresh failed');
           }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (refreshError) {
           if (showErrorToast) {
             showToast({
