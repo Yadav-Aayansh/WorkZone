@@ -7,7 +7,15 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, ArrowLeft, Upload, X, Building2, Loader2, Check } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowLeft,
+  Upload,
+  X,
+  Building2,
+  Loader2,
+  Check,
+} from "lucide-react";
 import { useState, useRef } from "react";
 import { SignupData } from "@/app/(platform)/(auth)/signup/page";
 import { Logo } from "@/components/logo";
@@ -17,12 +25,18 @@ import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 
 const workspaceSchema = z.object({
-  companyName: z.string().min(3, "Company name must be at least 3 characters").max(100, "Company name must be less than 100 characters"),
+  companyName: z
+    .string()
+    .min(3, "Company name must be at least 3 characters")
+    .max(100, "Company name must be less than 100 characters"),
   tenantId: z
     .string()
     .min(3, "Tenant ID must be at least 3 characters")
     .max(50, "Tenant ID must be less than 50 characters")
-    .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed"),
+    .regex(
+      /^[a-z0-9-]+$/,
+      "Only lowercase letters, numbers, and hyphens allowed"
+    ),
 });
 
 type WorkspaceFormData = z.infer<typeof workspaceSchema>;
@@ -69,7 +83,7 @@ export default function WorkspaceOnboarding({
   const handleCompanyNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setValue("companyName", value);
-    
+
     if (!tenantId) {
       const generatedId = value
         .toLowerCase()
@@ -85,14 +99,14 @@ export default function WorkspaceOnboarding({
       setIsAvailable(null);
       return;
     }
-    
+
     setCheckingAvailability(true);
     try {
-      // TODO: Implement actual tenant availability check when endpoint is available
-      // For now, simulate the check
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setIsAvailable(!id.startsWith("test"));
-    } catch {
+      const { platformClientAPI } = await import("@/lib/api");
+      const response = await platformClientAPI.checkTenantAvailability(id);
+      setIsAvailable(response.available);
+    } catch (err) {
+      console.error("Error checking tenant availability:", err);
       setIsAvailable(null);
     } finally {
       setCheckingAvailability(false);
@@ -128,52 +142,52 @@ export default function WorkspaceOnboarding({
       setError("Please upload a logo for your workspace.");
       return;
     }
-    
+
     setIsLoading(true);
     setError("");
-    
+
     try {
       if (!isAuthenticated) {
         setError("Please sign up first to set up your workspace.");
         showToast({
-          type: 'error',
-          title: 'Authentication required',
-          message: 'Please sign up first to continue.',
+          type: "error",
+          title: "Authentication required",
+          message: "Please sign up first to continue.",
         });
         return;
       }
-      
+
       const response = await authAPI.onboarding({
         tenant_id: data.tenantId,
         brand_name: data.companyName,
         logo: logo,
       });
-      
+
       // Update account status
       updateStatus(response.account_status, response.subscription_status);
-      
+
       showToast({
-        type: 'success',
-        title: 'Workspace setup complete!',
+        type: "success",
+        title: "Workspace setup complete!",
         message: `Welcome to ${data.companyName}. Let\'s choose your plan.`,
       });
-      
+
       // Pass data to next step
       onNext({ ...data, logo });
     } catch (err) {
       if (err instanceof APIError) {
         setError(err.message);
         showToast({
-          type: 'error',
-          title: 'Workspace setup failed',
+          type: "error",
+          title: "Workspace setup failed",
           message: err.message,
         });
       } else {
         const errorMessage = "An unexpected error occurred. Please try again.";
         setError(errorMessage);
         showToast({
-          type: 'error',
-          title: 'Workspace setup failed',
+          type: "error",
+          title: "Workspace setup failed",
           message: errorMessage,
         });
       }
@@ -193,7 +207,7 @@ export default function WorkspaceOnboarding({
         {/* Left Side - Workspace Preview */}
         <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-accent via-primary to-accent/90">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.1),transparent_50%)]" />
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -203,21 +217,29 @@ export default function WorkspaceOnboarding({
             <div className="mb-8">
               <Logo className="w-32" />
             </div>
-            
+
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}
               className="w-full max-w-sm bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20"
             >
-              <h3 className="text-sm font-medium text-white/70 mb-4 text-center">Workspace Preview</h3>
-              
+              <h3 className="text-sm font-medium text-white/70 mb-4 text-center">
+                Workspace Preview
+              </h3>
+
               {/* Preview Card */}
               <div className="bg-white rounded-2xl p-6 shadow-xl">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center overflow-hidden">
                     {logoPreview ? (
-                      <Image src={logoPreview} alt="Logo" width={64} height={64} className="object-contain w-full h-full" />
+                      <Image
+                        src={logoPreview}
+                        alt="Logo"
+                        width={64}
+                        height={64}
+                        className="object-contain w-full h-full"
+                      />
                     ) : (
                       <Building2 className="w-8 h-8 text-white" />
                     )}
@@ -231,7 +253,7 @@ export default function WorkspaceOnboarding({
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="h-2 bg-primary/20 rounded-full w-full" />
                   <div className="h-2 bg-primary/20 rounded-full w-3/4" />
@@ -260,16 +282,17 @@ export default function WorkspaceOnboarding({
               <Logo />
             </div>
 
-            <button onClick={onBack} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
+            <button
+              onClick={onBack}
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+            >
               <ArrowLeft className="w-4 h-4 mr-1" />
               Back
             </button>
 
             <div className="mb-8">
               <h2 className="text-2xl font-bold mb-2">Set up your Workspace</h2>
-              <p className="text-sm text-muted-foreground">
-                Step 2 of 3
-              </p>
+              <p className="text-sm text-muted-foreground">Step 2 of 3</p>
             </div>
 
             {error && (
@@ -280,7 +303,10 @@ export default function WorkspaceOnboarding({
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
-                <Label htmlFor="companyName" className="text-xs font-medium text-muted-foreground">
+                <Label
+                  htmlFor="companyName"
+                  className="text-xs font-medium text-muted-foreground"
+                >
                   Brand / Company Name
                 </Label>
                 <Input
@@ -303,7 +329,10 @@ export default function WorkspaceOnboarding({
                 </Label>
                 <div
                   onDrop={handleDrop}
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
                   onDragLeave={() => setIsDragging(false)}
                   className={`border-2 border-dashed rounded-xl p-4 text-center transition-colors ${
                     isDragging ? "border-primary bg-primary/5" : "border-border"
@@ -312,13 +341,22 @@ export default function WorkspaceOnboarding({
                   {logoPreview ? (
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-lg overflow-hidden border bg-background">
-                        <Image src={logoPreview} alt="Logo" width={48} height={48} className="object-contain w-full h-full" />
+                        <Image
+                          src={logoPreview}
+                          alt="Logo"
+                          width={48}
+                          height={48}
+                          className="object-contain w-full h-full"
+                        />
                       </div>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => { setLogo(null); setLogoPreview(""); }}
+                        onClick={() => {
+                          setLogo(null);
+                          setLogoPreview("");
+                        }}
                         className="text-xs"
                       >
                         Remove
@@ -341,13 +379,18 @@ export default function WorkspaceOnboarding({
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  onChange={(e) => e.target.files?.[0] && handleFileChange(e.target.files[0])}
+                  onChange={(e) =>
+                    e.target.files?.[0] && handleFileChange(e.target.files[0])
+                  }
                   className="hidden"
                 />
               </div>
 
               <div>
-                <Label htmlFor="tenantId" className="text-xs font-medium text-muted-foreground">
+                <Label
+                  htmlFor="tenantId"
+                  className="text-xs font-medium text-muted-foreground"
+                >
                   Tenant ID
                 </Label>
                 <div className="mt-1 flex items-center gap-2">
@@ -358,21 +401,34 @@ export default function WorkspaceOnboarding({
                     placeholder="acme-corp"
                     className="h-10 text-sm"
                   />
-                  {checkingAvailability && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
-                  {!checkingAvailability && isAvailable === true && <Check className="w-4 h-4 text-green-500" />}
-                  {!checkingAvailability && isAvailable === false && <X className="w-4 h-4 text-destructive" />}
+                  {checkingAvailability && (
+                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                  )}
+                  {!checkingAvailability && isAvailable === true && (
+                    <Check className="w-4 h-4 text-green-500" />
+                  )}
+                  {!checkingAvailability && isAvailable === false && (
+                    <X className="w-4 h-4 text-destructive" />
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   {tenantId || "yourcompany"}.workzone.tech
                 </p>
                 {errors.tenantId && (
-                  <p className="text-xs text-destructive mt-1">{errors.tenantId.message}</p>
+                  <p className="text-xs text-destructive mt-1">
+                    {errors.tenantId.message}
+                  </p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                disabled={checkingAvailability || isAvailable === false || isLoading || !logo}
+                disabled={
+                  checkingAvailability ||
+                  isAvailable === false ||
+                  isLoading ||
+                  !logo
+                }
                 className="w-full h-10 text-sm font-medium bg-foreground text-background hover:bg-foreground/90 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Setting up workspace..." : "Continue"}

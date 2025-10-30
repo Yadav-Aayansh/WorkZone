@@ -7,7 +7,7 @@ import React, {
   useState,
   useCallback,
 } from "react";
-import { authAPI } from "@/lib/api";
+import { platformAuthAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 export interface AuthState {
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         if (typeof window === "undefined") return;
 
-        const tokens = authAPI.getTokens();
+        const tokens = platformAuthAPI.getTokens();
         const accountStatus = localStorage.getItem("account_status");
         const subscriptionStatus = localStorage.getItem("subscription_status");
 
@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      await authAPI.logout();
+      await platformAuthAPI.logout();
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -170,7 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshAuth = useCallback(async (): Promise<boolean> => {
     try {
-      const refreshResponse = await authAPI.refreshToken();
+      const refreshResponse = await platformAuthAPI.refreshToken();
 
       // Update tokens and status in localStorage
       localStorage.setItem("access_token", refreshResponse.access_token);
