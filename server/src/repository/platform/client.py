@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.platform import Client
 from sqlalchemy import exists, select
 from datetime import datetime
+from src.core.logger import logger
 
 
 class ClientRepository:
@@ -36,8 +37,9 @@ class ClientRepository:
             await self.db.commit()
             await self.db.refresh(new_client)
             return new_client
-        except Exception:
+        except Exception as e:
             await self.db.rollback()
+            logger.info(f"Error updating subscription: {e}")
             raise
 
     async def is_tenant_exist(self, tenant_id: str) -> bool:
@@ -63,7 +65,7 @@ class ClientRepository:
 
     async def update_subscription(self, id: str, plan: str, started_at: datetime, expires_at: datetime):
         try:
-            client = await self.get_client_by_email(id)
+            client = await self.get_client_by_id(id)
             client.plan_duration = plan
             client.plan_started_at = started_at
             client.plan_expires_at = expires_at
@@ -72,7 +74,7 @@ class ClientRepository:
             return client
         except Exception:
             await self.db.rollback()
-            print()
+            raise
 
     async def get_config(self, tenant_id) -> dict:
         result = await self.db.execute(

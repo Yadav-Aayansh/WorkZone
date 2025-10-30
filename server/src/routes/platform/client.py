@@ -37,10 +37,12 @@ async def check_tenant_availability(
 
 @client_router.get(path="/subscription")
 async def create_order(
-    data: CreateOrder,
-    service: OrderService = Depends(get_order_service)
-):
-    return await service.create_order(data)
+    data: CreateOrder = Depends(),
+    service: OrderService = Depends(get_order_service),
+    current_user = Depends(get_current_user(Config.DOMAIN_NAME))
+):  
+    client_id = current_user.get("sub")
+    return await service.create_order(client_id, data)
 
 @client_router.post(path="/subscription")
 async def update_order(

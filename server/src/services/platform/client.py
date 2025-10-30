@@ -1,7 +1,7 @@
 from src.repository.platform import ClientRepository
 from src.schemas.platform import (
     ClientSignupRequest, ClientOnboarding, ClientLoginRequest,
-    CreateOrder, TenantAvailabilityRequest, ClientRefreshRequest)
+    TenantAvailabilityRequest, ClientRefreshRequest)
 from src.exceptions.platform import (
     ClientAlreadyExistsError, TenantAlreadyExistsError, ClientNotFoundError,
     InvalidClientCredentialsError, TenantNotFoundError
@@ -9,7 +9,7 @@ from src.exceptions.platform import (
 from src.utils.hashing import hash_password, verify_password
 from src.core.storage import storage_client
 from fastapi import UploadFile
-from src.models.platform import Client
+from src.models.platform import Client, SubscriptionPlan
 from src.utils.constants import AccountStatus, SubscriptionStatus
 from src.utils.datetime import get_indian_time
 from src.core.security import create_tokens, decode_token
@@ -89,13 +89,13 @@ class ClientService:
 
         return {"account_status": account_status, "subscription_status": subscription_status}
 
-    async def activate_subscription(self, id: str, subscription: CreateOrder):
+    async def activate_subscription(self, id: str, plan: SubscriptionPlan):
         plan_started_at = get_indian_time()
-        plan_expires_at = plan_started_at + timedelta(days=subscription.plan.validity*30)
+        plan_expires_at = plan_started_at + timedelta(days=plan.validity*30)
 
         client = await self.client_repo.update_subscription(
             id=id,
-            plan=subscription.plan,
+            plan=plan,
             started_at=plan_started_at,
             expires_at=plan_expires_at
         )
