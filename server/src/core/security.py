@@ -30,7 +30,6 @@ def create_tokens(payload: dict) -> dict:
 
 def decode_token(token: str, exp_aud: str, exp_type: str = "access") -> dict:
     try:
-        print(exp_aud)
         payload = jwt.decode(
             token=token,
             key=Config.JWT_SECRET_KEY,
@@ -42,6 +41,7 @@ def decode_token(token: str, exp_aud: str, exp_type: str = "access") -> dict:
         return payload
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Expired token!")
-    except JWTError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token!{e}")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token!")
+        
     

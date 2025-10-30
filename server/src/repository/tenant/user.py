@@ -1,13 +1,36 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.models.tenant import User
+from sqlalchemy import select, exists
+from src.models.tenant import Role
+
+class UserRepository:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def is_email_exist(self, email: str) -> bool:
+        result = await self.db.execute(select(exists().where(User.email==email)))
+        return result.scalar()
+
+    async def get_user_by_email(self, email: str) -> User | None:
+        result = await self.db.execute(select(User).where(User.email==email))
+        return result.scalar_one_or_none()
+    
+    async def get_user_by_id(self, id: str) -> User | None:
+        result = await self.db.execute(select(User).where(User.id==id))
+        return result.scalar_one_or_none()
+    
+    async def create_user(self, name: str, email: str, password: str, role: Role) -> User:
+        new_user = User(
+            name=name,
+            email=email,
+            password=password,
+            role=role
+        )
+
+        self.db.add(new_user)
+        await self.db.flush()
+        return new_user
+    
 
 
-from fastapi import Depends
-from sqlalchemy.orm import Session
-from server.src.models.tenant import User
-from src.schemas import UserBase
-from src.core.database import get_tenant_db
-
-def create_user(user_data: UserBase, db: Session = Depends(get_tenant_db)):
-    new_user = User(name=user_data.name)
-    db.add(new_user)
-    db.commit()
-    return new_user
+        
