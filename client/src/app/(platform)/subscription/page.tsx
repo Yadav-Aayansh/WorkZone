@@ -89,7 +89,7 @@ export default function SubscriptionPage() {
                   </h3>
                   <p className="text-sm text-gray-600 mb-4">
                     Finish your account setup by selecting a subscription plan
-                    that fits your organization's needs.
+                    that fits your organization&#39;s needs.
                   </p>
                   <Button onClick={handleContinueToSignup} className="w-full">
                     Continue to Plan Selection
@@ -98,7 +98,7 @@ export default function SubscriptionPage() {
 
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <h3 className="font-medium text-blue-900 mb-2">
-                    What You'll Get
+                    What You&#39;ll Get
                   </h3>
                   <ul className="text-sm text-blue-800 space-y-1">
                     <li>• Complete HR management system</li>

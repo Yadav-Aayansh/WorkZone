@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { RequireAuth } from "@/components/auth/ProtectedRoute";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Building2, CreditCard, CheckCircle } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  CreditCard,
+  CheckCircle,
+  UserPlus,
+} from "lucide-react";
 
 export default function DashboardPage() {
   const { logout, accountStatus, subscriptionStatus } = useAuth();
@@ -20,8 +26,12 @@ export default function DashboardPage() {
   };
 
   const handleContinueSubscription = () => {
-    // Redirect directly to payment step (step 3) in signup flow
+    // Redirect directly to the payment step (step 3) in the signup flow
     router.push("/signup?step=3");
+  };
+
+  const handleInviteEmployee = () => {
+    router.push("/invite");
   };
 
   const getStatusColor = (status: string | null) => {
@@ -139,7 +149,7 @@ export default function DashboardPage() {
                 </h2>
 
                 <p className="text-gray-600 text-lg">
-                  Let's get your HR management system fully set up.
+                  Let&#39;s get your HR management system fully set up.
                 </p>
               </div>
 
@@ -227,7 +237,7 @@ export default function DashboardPage() {
               {/* Next Steps Section */}
               <div className="bg-white rounded-xl border shadow-sm p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  What's Next?
+                  What&apos;s Next?
                 </h3>
 
                 {accountStatus?.toLowerCase() === "onboarding" && (
@@ -282,7 +292,7 @@ export default function DashboardPage() {
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                      <div>
+                      <div className="flex-1">
                         <h4 className="font-medium text-green-900 mb-1">
                           Setup Complete!
                         </h4>
@@ -290,10 +300,13 @@ export default function DashboardPage() {
                           Your WorkZone account is fully configured. You can now
                           start managing your workforce.
                         </p>
-                        <div className="flex gap-3">
-                          <Button className="bg-green-600 hover:bg-green-700">
-                            Start Managing
-                            <ArrowRight className="w-4 h-4 ml-2" />
+                        <div className="flex gap-3 flex-wrap">
+                          <Button
+                            onClick={handleInviteEmployee}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Invite Employee
                           </Button>
                           <Button variant="outline">View Features</Button>
                         </div>
@@ -311,7 +324,7 @@ export default function DashboardPage() {
                           Get Started
                         </h4>
                         <p className="text-sm text-gray-700 mb-3">
-                          Let's set up your company profile and get you started
+                          Let&apos;s set up your company profile and get you started
                           with WorkZone.
                         </p>
                         <Button onClick={handleContinueOnboarding}>

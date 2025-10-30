@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { AuthProvider } from "@/providers/auth-provider";
+import { TenantProvider } from "@/providers/tenant-provider";
+import { TenantAuthProvider } from "@/providers/tenant-auth-provider";
 import { ToastProvider } from "@/providers/toast-provider";
 import { AuthTokenManager } from "@/components/auth/AuthTokenManager";
 
@@ -91,18 +93,21 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="dark"
           // enableSystem
           // disableTransitionOnChange
         >
-            <ToastProvider>
-
-          <AuthProvider>
+          <ToastProvider>
+            {/* Platform Auth Provider - for company/client authentication */}
+            <AuthProvider>
               <AuthTokenManager />
-              {children}
-          </AuthProvider>
-            </ToastProvider>
 
+              {/* Tenant Providers - for subdomain-based tenant features */}
+              <TenantProvider>
+                <TenantAuthProvider>{children}</TenantAuthProvider>
+              </TenantProvider>
+            </AuthProvider>
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>

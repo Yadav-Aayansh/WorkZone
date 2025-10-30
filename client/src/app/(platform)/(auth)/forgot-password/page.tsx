@@ -21,6 +21,7 @@ type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const router = useRouter();
 
   const {
@@ -142,7 +143,7 @@ export default function ForgotPasswordPage() {
             <div className="mb-8">
               <h2 className="text-3xl font-bold mb-3">Forgot Password</h2>
               <p className="text-sm text-muted-foreground">
-                We'll send a verification code to your email address
+                We&#39;ll send a verification code to your email address
               </p>
             </div>
 

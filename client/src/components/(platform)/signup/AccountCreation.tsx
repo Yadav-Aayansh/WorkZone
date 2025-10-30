@@ -18,11 +18,15 @@ import { useToast } from "@/providers/toast-provider";
 
 const accountSchema = z
   .object({
-    fullName: z.string().min(3, "Name must be at least 3 characters").max(100, "Name must be less than 100 characters"),
-    email: z.string().email("Invalid email address").max(255, "Email must be less than 255 characters"),
-    password: z
+    fullName: z
       .string()
-      .min(8, "Password must be at least 8 characters"),
+      .min(3, "Name must be at least 3 characters")
+      .max(100, "Name must be less than 100 characters"),
+    email: z
+      .string()
+      .email("Invalid email address")
+      .max(255, "Email must be less than 255 characters"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -64,39 +68,39 @@ export default function AccountCreation({
   const onSubmit = async (data: AccountFormData) => {
     setIsLoading(true);
     setError("");
-    
+
     try {
       const response = await authAPI.signup({
         name: data.fullName,
         email: data.email,
         password: data.password,
       });
-      
+
       // Store tokens and update auth state
       login(response);
-      
+
       showToast({
-        type: 'success',
-        title: 'Account created successfully!',
-        message: 'Let\'s set up your workspace next.',
+        type: "success",
+        title: "Account created successfully!",
+        message: "Let's set up your workspace next.",
       });
-      
+
       // Pass data to next step
       onNext(data);
     } catch (err) {
       if (err instanceof APIError) {
         setError(err.message);
         showToast({
-          type: 'error',
-          title: 'Signup failed',
+          type: "error",
+          title: "Signup failed",
           message: err.message,
         });
       } else {
         const errorMessage = "An unexpected error occurred. Please try again.";
         setError(errorMessage);
         showToast({
-          type: 'error',
-          title: 'Signup failed',
+          type: "error",
+          title: "Signup failed",
           message: errorMessage,
         });
       }
@@ -116,7 +120,7 @@ export default function AccountCreation({
         {/* Left Side - Branding */}
         <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-accent to-primary/90">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -126,13 +130,14 @@ export default function AccountCreation({
             <div className="mb-8">
               <Logo className="w-32" />
             </div>
-            
+
             <h1 className="text-4xl font-bold mb-4">
               Transform Your HR Operations
             </h1>
-            
+
             <p className="text-lg text-white/90 mb-8 leading-relaxed">
-              Streamline hiring, onboarding, and workforce management in one powerful platform
+              Streamline hiring, onboarding, and workforce management in one
+              powerful platform
             </p>
 
             <div className="space-y-4">
@@ -143,13 +148,26 @@ export default function AccountCreation({
                 className="flex items-start gap-3"
               >
                 <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                    />
                   </svg>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Employee Management</h3>
-                  <p className="text-sm text-white/80">Centralized database for all employee information and documents</p>
+                  <p className="text-sm text-white/80">
+                    Centralized database for all employee information and
+                    documents
+                  </p>
                 </div>
               </motion.div>
 
@@ -160,13 +178,26 @@ export default function AccountCreation({
                 className="flex items-start gap-3"
               >
                 <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Attendance & Leave</h3>
-                  <p className="text-sm text-white/80">Automated tracking with real-time approvals and notifications</p>
+                  <p className="text-sm text-white/80">
+                    Automated tracking with real-time approvals and
+                    notifications
+                  </p>
                 </div>
               </motion.div>
 
@@ -177,13 +208,25 @@ export default function AccountCreation({
                 className="flex items-start gap-3"
               >
                 <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
                   </svg>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Performance Analytics</h3>
-                  <p className="text-sm text-white/80">Data-driven insights to improve workforce productivity</p>
+                  <p className="text-sm text-white/80">
+                    Data-driven insights to improve workforce productivity
+                  </p>
                 </div>
               </motion.div>
             </div>
@@ -230,7 +273,10 @@ export default function AccountCreation({
             </div>
 
             {/* Back Button */}
-            <Link href="/client/public" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
+            <Link
+              href="/client/public"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+            >
               <ArrowLeft className="w-4 h-4 mr-1" />
             </Link>
 
@@ -238,7 +284,10 @@ export default function AccountCreation({
               <h2 className="text-2xl font-bold mb-2">Create an Account</h2>
               <p className="text-sm text-muted-foreground">
                 Already have an account?{" "}
-                <Link href="/login" className="text-primary hover:underline font-medium">
+                <Link
+                  href="/login"
+                  className="text-primary hover:underline font-medium"
+                >
                   Log in
                 </Link>
               </p>
@@ -252,7 +301,10 @@ export default function AccountCreation({
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <Label htmlFor="fullName" className="text-xs font-medium text-muted-foreground">
+                <Label
+                  htmlFor="fullName"
+                  className="text-xs font-medium text-muted-foreground"
+                >
                   Name
                 </Label>
                 <Input
@@ -269,7 +321,10 @@ export default function AccountCreation({
               </div>
 
               <div>
-                <Label htmlFor="email" className="text-xs font-medium text-muted-foreground">
+                <Label
+                  htmlFor="email"
+                  className="text-xs font-medium text-muted-foreground"
+                >
                   Work Email Address
                 </Label>
                 <Input
@@ -288,7 +343,10 @@ export default function AccountCreation({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="password" className="text-xs font-medium text-muted-foreground">
+                  <Label
+                    htmlFor="password"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
                     Password
                   </Label>
                   <div className="relative mt-1">
@@ -304,7 +362,11 @@ export default function AccountCreation({
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
-                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      {showPassword ? (
+                        <EyeOff className="w-3.5 h-3.5" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5" />
+                      )}
                     </button>
                   </div>
                   {errors.password && (
@@ -314,7 +376,10 @@ export default function AccountCreation({
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="confirmPassword" className="text-xs font-medium text-muted-foreground">
+                  <Label
+                    htmlFor="confirmPassword"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
                     Confirm Password
                   </Label>
                   <div className="relative mt-1">
@@ -330,7 +395,11 @@ export default function AccountCreation({
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
-                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      {showPassword ? (
+                        <EyeOff className="w-3.5 h-3.5" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5" />
+                      )}
                     </button>
                   </div>
                   {errors.confirmPassword && (
@@ -349,7 +418,10 @@ export default function AccountCreation({
                 />
                 <label htmlFor="terms" className="text-muted-foreground">
                   I agree to the{" "}
-                  <Link href="/terms" className="text-foreground hover:underline">
+                  <Link
+                    href="/terms"
+                    className="text-foreground hover:underline"
+                  >
                     Terms & Condition
                   </Link>
                 </label>

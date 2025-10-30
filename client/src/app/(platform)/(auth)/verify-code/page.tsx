@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Logo } from "@/components/logo";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -13,7 +13,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 
-export default function VerifyCodePage() {
+function VerifyCodeContent() {
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(24);
@@ -31,7 +31,7 @@ export default function VerifyCodePage() {
 
   const handleVerify = async () => {
     if (code.length !== 4) return;
-    
+
     setIsLoading(true);
     console.log("Verifying code:", code);
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -48,7 +48,9 @@ export default function VerifyCodePage() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   return (
@@ -62,7 +64,7 @@ export default function VerifyCodePage() {
         {/* Left Side - Image */}
         <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-purple-950 via-accent/90 to-purple-950">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(200,100,255,0.3),transparent_70%)]" />
-          
+
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -72,13 +74,12 @@ export default function VerifyCodePage() {
             <div className="mb-8">
               <Logo className="w-32" />
             </div>
-            
-            <h1 className="text-4xl font-bold mb-4">
-              Secure Verification
-            </h1>
-            
+
+            <h1 className="text-4xl font-bold mb-4">Secure Verification</h1>
+
             <p className="text-lg text-white/90 mb-8 leading-relaxed">
-              Enter the verification code sent to your email to confirm your identity
+              Enter the verification code sent to your email to confirm your
+              identity
             </p>
 
             <div className="space-y-4">
@@ -89,11 +90,23 @@ export default function VerifyCodePage() {
                 className="flex items-center gap-3"
               >
                 <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                    />
                   </svg>
                 </div>
-                <p className="text-sm text-white/90">One-time code valid for 10 minutes</p>
+                <p className="text-sm text-white/90">
+                  One-time code valid for 10 minutes
+                </p>
               </motion.div>
 
               <motion.div
@@ -103,11 +116,23 @@ export default function VerifyCodePage() {
                 className="flex items-center gap-3"
               >
                 <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
                   </svg>
                 </div>
-                <p className="text-sm text-white/90">Multi-factor authentication</p>
+                <p className="text-sm text-white/90">
+                  Multi-factor authentication
+                </p>
               </motion.div>
 
               <motion.div
@@ -117,8 +142,18 @@ export default function VerifyCodePage() {
                 className="flex items-center gap-3"
               >
                 <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                    />
                   </svg>
                 </div>
                 <p className="text-sm text-white/90">Protected against fraud</p>
@@ -139,7 +174,10 @@ export default function VerifyCodePage() {
               <Logo />
             </div>
 
-            <Link href="/forgot-password" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8">
+            <Link
+              href="/forgot-password"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8"
+            >
               <ArrowLeft className="w-4 h-4 mr-1" />
             </Link>
 
@@ -162,20 +200,20 @@ export default function VerifyCodePage() {
                   className="gap-3"
                 >
                   <InputOTPGroup className="gap-3">
-                    <InputOTPSlot 
-                      index={0} 
+                    <InputOTPSlot
+                      index={0}
                       className="w-16 h-16 text-2xl rounded-2xl border-2"
                     />
-                    <InputOTPSlot 
-                      index={1} 
+                    <InputOTPSlot
+                      index={1}
                       className="w-16 h-16 text-2xl rounded-2xl border-2"
                     />
-                    <InputOTPSlot 
-                      index={2} 
+                    <InputOTPSlot
+                      index={2}
                       className="w-16 h-16 text-2xl rounded-2xl border-2"
                     />
-                    <InputOTPSlot 
-                      index={3} 
+                    <InputOTPSlot
+                      index={3}
                       className="w-16 h-16 text-2xl rounded-2xl border-2"
                     />
                   </InputOTPGroup>
@@ -210,5 +248,19 @@ export default function VerifyCodePage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function VerifyCodePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-900 via-accent/80 to-purple-900">
+          <div className="text-white">Loading...</div>
+        </div>
+      }
+    >
+      <VerifyCodeContent />
+    </Suspense>
   );
 }

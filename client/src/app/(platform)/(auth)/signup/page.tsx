@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import AccountCreation from "@/components/(platform)/signup/AccountCreation";
@@ -20,7 +20,7 @@ export interface SignupData {
   paymentId?: string;
 }
 
-export default function SignupPage() {
+function SignupContent() {
   const searchParams = useSearchParams();
   const initialStep = parseInt(searchParams.get("step") || "1", 10);
   const [step, setStep] = useState(initialStep);
@@ -111,5 +111,19 @@ export default function SignupPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full flex items-center justify-center bg-background">
+          <div className="text-muted-foreground">Loading...</div>
+        </div>
+      }
+    >
+      <SignupContent />
+    </Suspense>
   );
 }
