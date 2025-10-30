@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_EMAIL: str
     GCS_BUCKET_NAME: str
 
+    # Google API key for LLM and embedding model
+    GOOGLE_API_KEY: str
+
     # JWT
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str
