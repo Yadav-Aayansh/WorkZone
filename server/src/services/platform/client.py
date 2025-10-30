@@ -16,6 +16,7 @@ from src.core.security import create_tokens, decode_token
 from src.core.config import Config
 from datetime import timedelta
 from src.tasks.tenant import create_tenant_schema_task
+from src.core.logger import logger
 
 class ClientService:
     def __init__(self, client_repo: ClientRepository):
@@ -150,6 +151,16 @@ class ClientService:
             return await self.client_repo.get_tenant_by_domain(is_tenant_exist)
         
         raise TenantNotFoundError("Tenant does not exist!")
+    
+    async def get_tenant_config(self, tenant_id: str) -> dict:
+        is_tenant_exist = await self.client_repo.is_tenant_exist(tenant_id)
+        if not is_tenant_exist:
+            raise TenantNotFoundError("Tenant does not exist!")
+        config = await self.client_repo.get_config(tenant_id)
+        logger.info(f"Tenant Config: {config}")
+        config["logo"] = storage_client.get_url(config["logo"])
+        logger.info(f"Tenant Config: {config}")
+        return config
             
 
 

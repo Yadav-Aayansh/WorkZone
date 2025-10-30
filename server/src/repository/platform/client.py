@@ -74,6 +74,12 @@ class ClientRepository:
             await self.db.rollback()
             print()
 
+    async def get_config(self, tenant_id) -> dict:
+        result = await self.db.execute(
+            select(Client.brand_name, Client.logo, Client.domain)
+            .where(Client.tenant_id==tenant_id)
+        )
+        return dict(result.one()._mapping)
 
 
 
