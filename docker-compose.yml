@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: workzone-server
+    env_file:
+      - ./infra/server.env
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000
+    restart: always
+    expose:
+      - "8000"
+    networks:
+      - workzone-net
+
+  celery:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: workzone-celery
+    env_file:
+      - ./infra/server.env
+    command: celery -A src.core.celery worker --loglevel=info
+    restart: always
+    depends_on:
+      - server
+    networks:
+      - workzone-net
+
+  caddy:
+    build:
+      context: ./infra/caddy
+      dockerfile: Dockerfile
+    container_name: workzone-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "2019:2019"
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - server
+    networks:
+      - workzone-net
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  workzone-net:
+    driver: bridge

@@ -1,6 +1,7 @@
 class AppException(Exception):
     pass
 
+# AppError
 class NotFoundError(AppException):
     pass
 
@@ -13,12 +14,24 @@ class ValidationError(AppException):
 class AuthenticationError(AppException):
     pass
 
-class RoleNotAllowedError(AuthenticationError):
-    status_code = 403
+class PaymentError(AppException):
+    pass
 
 class FileError(AppException):
     pass
 
+# AuthenticationError
+class InvalidTokenError(AuthenticationError):
+    pass
+
+class ExpiredTokenError(AuthenticationError):
+    pass
+
+class RoleNotAllowedError(AuthenticationError):
+    pass
+
+
+# FileError
 class FileSizeExceededError(FileError):
     pass
 

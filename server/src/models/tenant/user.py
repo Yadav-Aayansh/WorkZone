@@ -1,4 +1,6 @@
 import enum
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
 from src.core.database import TenantBase
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, DateTime, Enum
@@ -12,10 +14,10 @@ class Role(enum.Enum):
 
 class User(TenantBase):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100), nullable=False)
     email = Column(String(255), nullable=False, unique=True, index=True)
-    hashed_password = Column(String(255), nullable=False)
+    password = Column(String(255), nullable=False)
     role = Column(Enum(Role), nullable=False)
     created_at = Column(DateTime(timezone=True), default=get_indian_time, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=get_indian_time, onupdate=get_indian_time, nullable=False)

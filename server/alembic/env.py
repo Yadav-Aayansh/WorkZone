@@ -22,7 +22,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # ─── Set SQLAlchemy URL from your config.py ───────────────────────────
-config.set_main_option("sqlalchemy.url", Config.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", Config.ASYNC_DATABASE_URL)
 
 # ─── Offline Migrations ───────────────────────────────────────────────
 def run_migrations_offline():

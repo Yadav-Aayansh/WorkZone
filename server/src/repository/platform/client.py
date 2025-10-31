@@ -1,6 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.platform import Client
 from sqlalchemy import exists, select
+from datetime import datetime
+from src.core.logger import logger
+
 
 class ClientRepository:
     def __init__(self, db: AsyncSession):
@@ -13,6 +16,15 @@ class ClientRepository:
     async def get_client_by_email(self, email: str) -> Client | None:
         result = await self.db.execute(select(Client).where(Client.email==email))
         return result.scalar_one_or_none()
+    
+    async def get_tenant_by_id(self, id: str) -> str:
+        result = await self.db.execute(select(Client).where(Client.id==id))
+        return result.scalar_one_or_none().tenant_id
+    
+    async def get_tenant_by_domain(self, domain: str) -> str | None:
+        result = await self.db.execute(select(Client).where(Client.domain==domain))
+        client = result.scalar_one_or_none()
+        return client.tenant_id
 
     async def create_client(self, name: str, email: str, password: str) -> Client:
         try:
@@ -25,19 +37,22 @@ class ClientRepository:
             await self.db.commit()
             await self.db.refresh(new_client)
             return new_client
-        except Exception:
+        except Exception as e:
             await self.db.rollback()
+            logger.info(f"Error updating subscription: {e}")
             raise
 
     async def is_tenant_exist(self, tenant_id: str) -> bool:
         result = await self.db.execute(select(exists().where(Client.tenant_id==tenant_id)))
         return result.scalar()
     
+    async def is_domain_exist(self, domain: str) -> bool:
+        result = await self.db.execute(select(exists().where(Client.domain==domain)))
+        return result.scalar()
+
     async def setup_onboarding(self, id: str, tenant_id: str, brand_name: str, logo: str) -> Client | None:
         try:
             client = await self.get_client_by_id(id)
-            if not client:
-                return None
             client.tenant_id = tenant_id
             client.brand_name = brand_name
             client.logo = logo
@@ -48,6 +63,25 @@ class ClientRepository:
             await self.db.rollback()
             raise
 
+    async def update_subscription(self, id: str, plan: str, started_at: datetime, expires_at: datetime):
+        try:
+            client = await self.get_client_by_id(id)
+            client.plan_duration = plan
+            client.plan_started_at = started_at
+            client.plan_expires_at = expires_at
+            await self.db.commit()
+            await self.db.refresh(client)
+            return client
+        except Exception:
+            await self.db.rollback()
+            raise
+
+    async def get_config(self, tenant_id) -> dict:
+        result = await self.db.execute(
+            select(Client.brand_name, Client.logo, Client.domain)
+            .where(Client.tenant_id==tenant_id)
+        )
+        return dict(result.one()._mapping)
 
 
 

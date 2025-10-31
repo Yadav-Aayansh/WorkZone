@@ -1,6 +1,9 @@
-from .base import NotFoundError, ConflictError, ValidationError, AuthenticationError
+from .base import NotFoundError, ConflictError, ValidationError, AuthenticationError, PaymentError
 
 class ClientAlreadyExistsError(ConflictError):
+    pass
+
+class TenantAlreadyExistsError(ConflictError):
     pass
 
 class ClientNotFoundError(NotFoundError):
@@ -9,5 +12,8 @@ class ClientNotFoundError(NotFoundError):
 class InvalidClientCredentialsError(AuthenticationError):
     pass
 
-class TenantAlreadyExistError(ConflictError):
+class TenantNotFoundError(NotFoundError):
+    pass
+
+class InvalidPaymentSignature(PaymentError):
     pass
