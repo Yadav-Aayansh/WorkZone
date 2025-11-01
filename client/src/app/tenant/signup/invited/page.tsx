@@ -41,6 +41,11 @@ function TenantInvitedSignupContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDecoding, setIsDecoding] = useState(true);
 
+  // Token paste feature states (must be at top level)
+  const [pastedLink, setPastedLink] = useState("");
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState("");
+
   // Extract invitation token from URL
   useEffect(() => {
     const token = searchParams.get("token");
@@ -151,7 +156,55 @@ function TenantInvitedSignupContent() {
     );
   }
 
-  // Show error if no token
+  const handlePasteAndRedirect = () => {
+    setExtracting(true);
+    setExtractError("");
+
+    try {
+      // Try to extract token from the pasted link
+      let token = "";
+
+      // Check if it's a full URL
+      if (pastedLink.includes("http") || pastedLink.includes("://")) {
+        try {
+          const url = new URL(pastedLink);
+          token = url.searchParams.get("token") || "";
+        } catch (urlError) {
+          // If URL parsing fails, try regex
+          const tokenMatch = pastedLink.match(/[?&]token=([^&]+)/);
+          token = tokenMatch ? tokenMatch[1] : "";
+        }
+      } else if (pastedLink.includes("token=")) {
+        // If it's just a query string or partial URL
+        const tokenMatch = pastedLink.match(/token=([^&\s]+)/);
+        token = tokenMatch ? tokenMatch[1] : "";
+      } else {
+        // Assume the pasted text is the token itself
+        token = pastedLink.trim();
+      }
+
+      if (!token) {
+        setExtractError(
+          "Could not extract token from the provided link. Please check and try again."
+        );
+        setExtracting(false);
+        return;
+      }
+
+      // Redirect to the same page with the extracted token
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set("token", token);
+      window.location.href = currentUrl.toString();
+    } catch (err) {
+      console.error("Error extracting token:", err);
+      setExtractError(
+        "Failed to process the invitation link. Please try again."
+      );
+      setExtracting(false);
+    }
+  };
+
+  // Show error if no token - with token paste feature
   if (!invitationToken) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background p-4">
@@ -169,9 +222,57 @@ function TenantInvitedSignupContent() {
                   "No invitation token found. Please use the link from your invitation email."}
               </AlertDescription>
             </Alert>
+
+            {/* Token paste feature */}
+            <div className="space-y-3 pt-4 border-t">
+              <div className="space-y-2">
+                <Label htmlFor="pastedLink" className="text-sm font-medium">
+                  Paste your invitation link here
+                </Label>
+                <Input
+                  id="pastedLink"
+                  type="text"
+                  placeholder="https://example.workzone.tech/signup/invited?token=..."
+                  value={pastedLink}
+                  onChange={(e) => {
+                    setPastedLink(e.target.value);
+                    setExtractError("");
+                  }}
+                  disabled={extracting}
+                  className="font-mono text-xs"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Paste the complete invitation link from your email
+                </p>
+              </div>
+
+              {extractError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-xs">
+                    {extractError}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <Button
+                onClick={handlePasteAndRedirect}
+                disabled={!pastedLink.trim() || extracting}
+                className="w-full"
+              >
+                {extracting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  "Continue with Invitation"
+                )}
+              </Button>
+            </div>
           </CardContent>
           <CardFooter>
-            <Button asChild className="w-full">
+            <Button asChild variant="outline" className="w-full">
               <Link href="/login">Go to Login</Link>
             </Button>
           </CardFooter>
