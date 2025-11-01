@@ -23,6 +23,7 @@ import {
 import { useToast } from "@/providers/toast-provider";
 import { Logo } from "@/components/logo";
 import { RequireAuth } from "@/components/auth/ProtectedRoute";
+import { platformClientAPI, PlatformAPIError } from "@/lib/api";
 
 export default function InviteEmployeePage() {
   const router = useRouter();
@@ -50,33 +51,11 @@ export default function InviteEmployeePage() {
     setIsSubmitting(true);
 
     try {
-      // Check if the backend endpoint exists
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/platform/invite`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            name: formData.name || undefined,
-            role: formData.role,
-          }),
-        }
-      );
-
-      if (response.status === 404) {
-        throw new Error(
-          "The invite feature endpoint is not yet implemented in the backend. Please ask the backend team to add POST /api/platform/invite endpoint."
-        );
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || "Failed to send invitation");
-      }
+      await platformClientAPI.inviteUser({
+        email: formData.email,
+        name: formData.name,
+        role: formData.role,
+      });
 
       setSuccess(true);
       showToast({
@@ -97,16 +76,22 @@ export default function InviteEmployeePage() {
         router.push("/dashboard");
       }, 2000);
     } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Failed to send invitation. Please try again.";
-      setError(errorMessage);
-      showToast({
-        type: "error",
-        title: "Invitation failed",
-        message: errorMessage,
-      });
+      if (err instanceof PlatformAPIError) {
+        setError(err.message);
+        showToast({
+          type: "error",
+          title: "Invitation failed",
+          message: err.message,
+        });
+      } else {
+        const errorMessage = "Failed to send invitation. Please try again.";
+        setError(errorMessage);
+        showToast({
+          type: "error",
+          title: "Invitation failed",
+          message: errorMessage,
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
