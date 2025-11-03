@@ -17,7 +17,7 @@ async def onboarding(
     brand_name: str = Form(...),
     logo: UploadFile = File(...),
     service: ClientService = Depends(get_client_service),
-    current_user = Depends(get_current_user(Config.DOMAIN_NAME))
+    current_user = Depends(get_current_user())
 ):
     try:
         data = ClientOnboarding(tenant_id=tenant_id, brand_name=brand_name)
@@ -39,7 +39,7 @@ async def check_tenant_availability(
 async def create_order(
     data: CreateOrder = Depends(),
     service: OrderService = Depends(get_order_service),
-    current_user = Depends(get_current_user(Config.DOMAIN_NAME))
+    current_user = Depends(get_current_user)
 ):  
     client_id = current_user.get("sub")
     return await service.create_order(client_id, data)
@@ -55,7 +55,7 @@ async def update_order(
 async def invite(
     data: InviteRequest,
     service: WorkspaceService = Depends(get_workspace_service),
-    current_user = Depends(get_current_user(Config.DOMAIN_NAME)),
+    current_user = Depends(get_current_user()),
 ):
     try:
         id = current_user.get("sub")
