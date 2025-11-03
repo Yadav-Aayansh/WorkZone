@@ -1,0 +1,213 @@
+{
+  "currentMonth": {
+    "month": "November 2025",
+    "totalWorkingDays": 22,
+    "presentDays": 18,
+    "absentDays": 0,
+    "leaveDays": 2,
+    "halfDays": 1,
+    "lateDays": 3,
+    "onTimeDays": 15,
+    "totalHours": 162.5,
+    "averageHoursPerDay": 9.0,
+    "attendancePercentage": 95.5
+  },
+  "todayStatus": {
+    "date": "2025-11-03",
+    "isCheckedIn": true,
+    "checkInTime": "09:15:00",
+    "checkOutTime": null,
+    "totalHours": 0,
+    "status": "checked_in",
+    "remarks": ""
+  },
+  "records": [
+    {
+      "date": "2025-11-01",
+      "checkInTime": "09:05:00",
+      "checkOutTime": "18:20:00",
+      "breakDuration": 60,
+      "totalHours": 8.25,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-31",
+      "checkInTime": "09:30:00",
+      "checkOutTime": "18:45:00",
+      "breakDuration": 60,
+      "totalHours": 8.25,
+      "status": "late",
+      "remarks": "Late by 30 minutes"
+    },
+    {
+      "date": "2025-10-30",
+      "checkInTime": "09:00:00",
+      "checkOutTime": "18:15:00",
+      "breakDuration": 60,
+      "totalHours": 8.25,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-29",
+      "checkInTime": "09:10:00",
+      "checkOutTime": "18:30:00",
+      "breakDuration": 60,
+      "totalHours": 8.33,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-28",
+      "checkInTime": "09:00:00",
+      "checkOutTime": "18:00:00",
+      "breakDuration": 60,
+      "totalHours": 8.0,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-25",
+      "checkInTime": "09:20:00",
+      "checkOutTime": "18:35:00",
+      "breakDuration": 60,
+      "totalHours": 8.25,
+      "status": "late",
+      "remarks": "Late by 20 minutes"
+    },
+    {
+      "date": "2025-10-24",
+      "checkInTime": "09:00:00",
+      "checkOutTime": "13:00:00",
+      "breakDuration": 30,
+      "totalHours": 3.5,
+      "status": "half_day",
+      "remarks": "Half day leave"
+    },
+    {
+      "date": "2025-10-23",
+      "checkInTime": "09:05:00",
+      "checkOutTime": "18:20:00",
+      "breakDuration": 60,
+      "totalHours": 8.25,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-22",
+      "checkInTime": "09:00:00",
+      "checkOutTime": "18:10:00",
+      "breakDuration": 60,
+      "totalHours": 8.17,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-21",
+      "checkInTime": null,
+      "checkOutTime": null,
+      "breakDuration": 0,
+      "totalHours": 0,
+      "status": "leave",
+      "remarks": "Casual leave"
+    },
+    {
+      "date": "2025-10-18",
+      "checkInTime": null,
+      "checkOutTime": null,
+      "breakDuration": 0,
+      "totalHours": 0,
+      "status": "leave",
+      "remarks": "Sick leave"
+    },
+    {
+      "date": "2025-10-17",
+      "checkInTime": "09:00:00",
+      "checkOutTime": "18:15:00",
+      "breakDuration": 60,
+      "totalHours": 8.25,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-16",
+      "checkInTime": "09:15:00",
+      "checkOutTime": "18:30:00",
+      "breakDuration": 60,
+      "totalHours": 8.25,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-15",
+      "checkInTime": "09:00:00",
+      "checkOutTime": "18:00:00",
+      "breakDuration": 60,
+      "totalHours": 8.0,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-14",
+      "checkInTime": "09:10:00",
+      "checkOutTime": "18:25:00",
+      "breakDuration": 60,
+      "totalHours": 8.25,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-11",
+      "checkInTime": "09:25:00",
+      "checkOutTime": "18:40:00",
+      "breakDuration": 60,
+      "totalHours": 8.25,
+      "status": "late",
+      "remarks": "Late by 25 minutes"
+    },
+    {
+      "date": "2025-10-10",
+      "checkInTime": "09:00:00",
+      "checkOutTime": "18:15:00",
+      "breakDuration": 60,
+      "totalHours": 8.25,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-09",
+      "checkInTime": "09:05:00",
+      "checkOutTime": "18:20:00",
+      "breakDuration": 60,
+      "totalHours": 8.25,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-08",
+      "checkInTime": "09:00:00",
+      "checkOutTime": "18:10:00",
+      "breakDuration": 60,
+      "totalHours": 8.17,
+      "status": "present",
+      "remarks": "On time"
+    },
+    {
+      "date": "2025-10-07",
+      "checkInTime": "09:00:00",
+      "checkOutTime": "18:00:00",
+      "breakDuration": 60,
+      "totalHours": 8.0,
+      "status": "present",
+      "remarks": "On time"
+    }
+  ],
+  "weeklyTrend": [
+    { "day": "Mon", "hours": 8.5 },
+    { "day": "Tue", "hours": 9.0 },
+    { "day": "Wed", "hours": 8.25 },
+    { "day": "Thu", "hours": 9.5 },
+    { "day": "Fri", "hours": 8.0 }
+  ]
+}

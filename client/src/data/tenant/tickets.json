@@ -1,0 +1,100 @@
+[
+  {
+    "id": "ticket-001",
+    "title": "Laptop running slow - Need performance optimization",
+    "category": "it",
+    "priority": "medium",
+    "status": "in_progress",
+    "description": "My laptop has been running extremely slow for the past week. Applications take a long time to open and system frequently freezes. Need IT team to check and optimize performance.",
+    "createdDate": "2025-11-02T10:30:00Z",
+    "updatedDate": "2025-11-02T14:20:00Z",
+    "assignedTo": "IT Support Team",
+    "assignedToId": "team-it-001",
+    "comments": [
+      {
+        "by": "IT Support",
+        "date": "2025-11-02T14:20:00Z",
+        "message": "We've received your ticket. Our technician will visit your desk tomorrow at 3 PM to diagnose the issue."
+      }
+    ]
+  },
+  {
+    "id": "ticket-002",
+    "title": "Access request to Marketing shared drive",
+    "category": "access",
+    "priority": "high",
+    "status": "open",
+    "description": "I need access to the Marketing shared drive for the Q4 campaign project. Currently getting 'Access Denied' error when trying to open the folder.",
+    "createdDate": "2025-11-03T09:15:00Z",
+    "updatedDate": "2025-11-03T09:15:00Z",
+    "assignedTo": null,
+    "assignedToId": null,
+    "comments": []
+  },
+  {
+    "id": "ticket-003",
+    "title": "Payslip for September not reflecting bonus",
+    "category": "payroll",
+    "priority": "high",
+    "status": "resolved",
+    "description": "My September payslip doesn't show the quarterly bonus that was announced. Please check and update the payslip.",
+    "createdDate": "2025-10-05T11:00:00Z",
+    "updatedDate": "2025-10-06T16:30:00Z",
+    "assignedTo": "Payroll Team",
+    "assignedToId": "team-payroll-001",
+    "comments": [
+      {
+        "by": "Payroll Team",
+        "date": "2025-10-05T15:30:00Z",
+        "message": "We're checking with finance team. Bonus was processed but might reflect in October salary."
+      },
+      {
+        "by": "Payroll Team",
+        "date": "2025-10-06T16:30:00Z",
+        "message": "Confirmed - bonus will be credited in October salary along with arrears. Updated payslip will be available by Oct 10th."
+      }
+    ]
+  },
+  {
+    "id": "ticket-004",
+    "title": "Request for standing desk in workspace",
+    "category": "facilities",
+    "priority": "low",
+    "status": "open",
+    "description": "I would like to request a standing desk setup for my workstation. I have back issues and doctor has recommended alternating between sitting and standing while working.",
+    "createdDate": "2025-10-28T14:45:00Z",
+    "updatedDate": "2025-10-28T14:45:00Z",
+    "assignedTo": "Facilities Team",
+    "assignedToId": "team-facilities-001",
+    "comments": []
+  },
+  {
+    "id": "ticket-005",
+    "title": "VPN connection issues from home",
+    "category": "it",
+    "priority": "high",
+    "status": "resolved",
+    "description": "Unable to connect to company VPN from home. Getting 'Connection timeout' error. Tried restarting router but issue persists.",
+    "createdDate": "2025-10-20T09:30:00Z",
+    "updatedDate": "2025-10-20T11:45:00Z",
+    "assignedTo": "IT Support Team",
+    "assignedToId": "team-it-001",
+    "comments": [
+      {
+        "by": "IT Support",
+        "date": "2025-10-20T10:15:00Z",
+        "message": "Please try updating your VPN client to the latest version from the IT portal."
+      },
+      {
+        "by": "Priya Sharma",
+        "date": "2025-10-20T11:30:00Z",
+        "message": "Updated the client and it's working now. Thanks!"
+      },
+      {
+        "by": "IT Support",
+        "date": "2025-10-20T11:45:00Z",
+        "message": "Great! Closing this ticket. Feel free to reopen if issue persists."
+      }
+    ]
+  }
+]

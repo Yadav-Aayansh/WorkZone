@@ -1,0 +1,152 @@
+[
+  {
+    "id": "payslip-001",
+    "month": "October 2025",
+    "payDate": "2025-11-01",
+    "status": "paid",
+    "earnings": {
+      "basicSalary": 50000,
+      "hra": 20000,
+      "conveyanceAllowance": 1600,
+      "specialAllowance": 15000,
+      "performanceBonus": 10000,
+      "total": 96600
+    },
+    "deductions": {
+      "providentFund": 6000,
+      "professionalTax": 200,
+      "incomeTax": 8500,
+      "total": 14700
+    },
+    "netSalary": 81900,
+    "workingDays": 22,
+    "presentDays": 20,
+    "leaveDays": 2,
+    "lop": 0
+  },
+  {
+    "id": "payslip-002",
+    "month": "September 2025",
+    "payDate": "2025-10-01",
+    "status": "paid",
+    "earnings": {
+      "basicSalary": 50000,
+      "hra": 20000,
+      "conveyanceAllowance": 1600,
+      "specialAllowance": 15000,
+      "performanceBonus": 0,
+      "total": 86600
+    },
+    "deductions": {
+      "providentFund": 6000,
+      "professionalTax": 200,
+      "incomeTax": 7500,
+      "total": 13700
+    },
+    "netSalary": 72900,
+    "workingDays": 22,
+    "presentDays": 19,
+    "leaveDays": 3,
+    "lop": 0
+  },
+  {
+    "id": "payslip-003",
+    "month": "August 2025",
+    "payDate": "2025-09-01",
+    "status": "paid",
+    "earnings": {
+      "basicSalary": 50000,
+      "hra": 20000,
+      "conveyanceAllowance": 1600,
+      "specialAllowance": 15000,
+      "performanceBonus": 0,
+      "total": 86600
+    },
+    "deductions": {
+      "providentFund": 6000,
+      "professionalTax": 200,
+      "incomeTax": 7500,
+      "total": 13700
+    },
+    "netSalary": 72900,
+    "workingDays": 23,
+    "presentDays": 23,
+    "leaveDays": 0,
+    "lop": 0
+  },
+  {
+    "id": "payslip-004",
+    "month": "July 2025",
+    "payDate": "2025-08-01",
+    "status": "paid",
+    "earnings": {
+      "basicSalary": 50000,
+      "hra": 20000,
+      "conveyanceAllowance": 1600,
+      "specialAllowance": 15000,
+      "performanceBonus": 15000,
+      "total": 101600
+    },
+    "deductions": {
+      "providentFund": 6000,
+      "professionalTax": 200,
+      "incomeTax": 9000,
+      "total": 15200
+    },
+    "netSalary": 86400,
+    "workingDays": 23,
+    "presentDays": 22,
+    "leaveDays": 1,
+    "lop": 0
+  },
+  {
+    "id": "payslip-005",
+    "month": "June 2025",
+    "payDate": "2025-07-01",
+    "status": "paid",
+    "earnings": {
+      "basicSalary": 50000,
+      "hra": 20000,
+      "conveyanceAllowance": 1600,
+      "specialAllowance": 15000,
+      "performanceBonus": 0,
+      "total": 86600
+    },
+    "deductions": {
+      "providentFund": 6000,
+      "professionalTax": 200,
+      "incomeTax": 7500,
+      "total": 13700
+    },
+    "netSalary": 72900,
+    "workingDays": 21,
+    "presentDays": 21,
+    "leaveDays": 0,
+    "lop": 0
+  },
+  {
+    "id": "payslip-006",
+    "month": "May 2025",
+    "payDate": "2025-06-01",
+    "status": "paid",
+    "earnings": {
+      "basicSalary": 50000,
+      "hra": 20000,
+      "conveyanceAllowance": 1600,
+      "specialAllowance": 15000,
+      "performanceBonus": 0,
+      "total": 86600
+    },
+    "deductions": {
+      "providentFund": 6000,
+      "professionalTax": 200,
+      "incomeTax": 7500,
+      "total": 13700
+    },
+    "netSalary": 72900,
+    "workingDays": 22,
+    "presentDays": 21,
+    "leaveDays": 1,
+    "lop": 0
+  }
+]

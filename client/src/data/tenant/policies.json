@@ -1,0 +1,112 @@
+[
+  {
+    "id": "pol-001",
+    "title": "Work From Home Policy",
+    "category": "workplace",
+    "description": "Guidelines for remote work arrangements and WFH approval process",
+    "effectiveDate": "2025-01-01",
+    "lastUpdated": "2025-10-15",
+    "version": "2.0",
+    "documentUrl": "/policies/wfh-policy.pdf",
+    "summary": "Employees can avail up to 2 WFH days per month with prior approval. Must maintain regular working hours and be available for meetings."
+  },
+  {
+    "id": "pol-002",
+    "title": "Leave Policy",
+    "category": "leave",
+    "description": "Complete guide to all types of leaves, eligibility, and application process",
+    "effectiveDate": "2025-01-01",
+    "lastUpdated": "2025-10-30",
+    "version": "3.0",
+    "documentUrl": "/policies/leave-policy.pdf",
+    "summary": "Casual Leave: 15 days, Sick Leave: 10 days, Earned Leave: 15 days per year. Apply leaves minimum 3 days in advance except medical emergencies."
+  },
+  {
+    "id": "pol-003",
+    "title": "Code of Conduct",
+    "category": "ethics",
+    "description": "Professional behavior standards and ethical guidelines for all employees",
+    "effectiveDate": "2023-01-01",
+    "lastUpdated": "2025-06-01",
+    "version": "1.2",
+    "documentUrl": "/policies/code-of-conduct.pdf",
+    "summary": "Maintain professional conduct, respect colleagues, avoid conflicts of interest, and uphold company values at all times."
+  },
+  {
+    "id": "pol-004",
+    "title": "Information Security Policy",
+    "category": "security",
+    "description": "Data protection, password management, and security protocols",
+    "effectiveDate": "2024-01-01",
+    "lastUpdated": "2025-09-20",
+    "version": "2.1",
+    "documentUrl": "/policies/security-policy.pdf",
+    "summary": "Use strong passwords, enable 2FA, don't share credentials, report security incidents immediately, and follow data handling guidelines."
+  },
+  {
+    "id": "pol-005",
+    "title": "Anti-Harassment Policy",
+    "category": "ethics",
+    "description": "Zero-tolerance policy for harassment and discrimination",
+    "effectiveDate": "2023-01-01",
+    "lastUpdated": "2025-04-10",
+    "version": "1.1",
+    "documentUrl": "/policies/anti-harassment.pdf",
+    "summary": "WorkZone maintains zero tolerance for any form of harassment or discrimination. Report incidents to HR immediately with confidentiality assured."
+  },
+  {
+    "id": "pol-006",
+    "title": "Dress Code Policy",
+    "category": "workplace",
+    "description": "Professional attire guidelines for office and client meetings",
+    "effectiveDate": "2023-01-01",
+    "lastUpdated": "2025-03-15",
+    "version": "1.0",
+    "documentUrl": "/policies/dress-code.pdf",
+    "summary": "Business casual attire for regular office days. Formal wear for client meetings. Casual Fridays allowed with smart casuals."
+  },
+  {
+    "id": "pol-007",
+    "title": "Performance Review Process",
+    "category": "hr",
+    "description": "Annual and quarterly performance evaluation guidelines",
+    "effectiveDate": "2024-01-01",
+    "lastUpdated": "2025-08-05",
+    "version": "2.0",
+    "documentUrl": "/policies/performance-review.pdf",
+    "summary": "Quarterly check-ins and annual performance reviews. Self-assessment followed by manager review. Ratings impact increments and promotions."
+  },
+  {
+    "id": "pol-008",
+    "title": "Expense Reimbursement Policy",
+    "category": "finance",
+    "description": "Guidelines for claiming business expenses and reimbursements",
+    "effectiveDate": "2023-01-01",
+    "lastUpdated": "2025-07-20",
+    "version": "1.5",
+    "documentUrl": "/policies/expense-reimbursement.pdf",
+    "summary": "Submit expense claims within 15 days with valid bills. Travel, meals, and client entertainment covered as per policy limits."
+  },
+  {
+    "id": "pol-009",
+    "title": "Health & Safety Policy",
+    "category": "workplace",
+    "description": "Workplace safety guidelines and emergency procedures",
+    "effectiveDate": "2023-01-01",
+    "lastUpdated": "2025-05-12",
+    "version": "1.0",
+    "documentUrl": "/policies/health-safety.pdf",
+    "summary": "Follow safety protocols, use ergonomic workstations, report hazards immediately. Emergency exits and assembly points clearly marked."
+  },
+  {
+    "id": "pol-010",
+    "title": "Learning & Development Policy",
+    "category": "hr",
+    "description": "Training opportunities, certifications, and skill development programs",
+    "effectiveDate": "2024-01-01",
+    "lastUpdated": "2025-09-01",
+    "version": "2.0",
+    "documentUrl": "/policies/learning-development.pdf",
+    "summary": "₹50,000 annual learning budget per employee. Company-sponsored certifications, conferences, and online courses. Mandatory 40 hours training annually."
+  }
+]
