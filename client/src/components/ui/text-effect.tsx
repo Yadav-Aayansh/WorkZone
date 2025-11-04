@@ -21,7 +21,7 @@ export type PresetType = 'blur' | 'fade-in-blur' | 'scale' | 'fade' | 'slide';
 export type PerType = 'word' | 'char' | 'line';
 
 export type TextEffectProps = {
-  children: string;
+  children: string | React.ReactNode;
   per?: PerType;
   as?: keyof React.JSX.IntrinsicElements;
   variants?: {
@@ -116,11 +116,20 @@ const presetVariants: Record<
 };
 
 const AnimationComponent: React.FC<{
-  segment: string;
+  segment: string | React.ReactNode;
   variants: Variants;
   per: 'line' | 'word' | 'char';
   segmentWrapperClassName?: string;
 }> = React.memo(({ segment, variants, per, segmentWrapperClassName }) => {
+  // If segment is not a string, render it directly
+  if (typeof segment !== 'string') {
+    return (
+      <motion.span variants={variants} className='inline-block'>
+        {segment}
+      </motion.span>
+    );
+  }
+
   const content =
     per === 'line' ? (
       <motion.span variants={variants} className='block'>
@@ -164,7 +173,11 @@ const AnimationComponent: React.FC<{
 
 AnimationComponent.displayName = 'AnimationComponent';
 
-const splitText = (text: string, per: PerType) => {
+const splitText = (text: string | React.ReactNode, per: PerType) => {
+  // If text is not a string, return it as a single segment
+  if (typeof text !== 'string') {
+    return [text];
+  }
   if (per === 'line') return text.split('\n');
   return text.split(/(\s+)/);
 };
@@ -281,10 +294,10 @@ export function TextEffect({
           onAnimationStart={onAnimationStart}
           style={style}
         >
-          {per !== 'line' ? <span className='sr-only'>{children}</span> : null}
+          {per !== 'line' && typeof children === 'string' ? <span className='sr-only'>{children}</span> : null}
           {segments.map((segment, index) => (
             <AnimationComponent
-              key={`${per}-${index}-${segment}`}
+              key={`${per}-${index}-${typeof segment === 'string' ? segment : index}`}
               segment={segment}
               variants={computedVariants.item}
               per={per}
