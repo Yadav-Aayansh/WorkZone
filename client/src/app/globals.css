@@ -43,7 +43,7 @@
    ====================== */
 :root {
     --radius: 0.625rem;
-    --background: oklch(0.506 0.153 295.649); /* soft lavender white */
+    --background: oklch(95.139% 0.02773 301.648); /* soft lavender white */
     --foreground: oklch(0.2 0.03 275); /* dark purple text */
 
     --card: oklch(1 0 0);
