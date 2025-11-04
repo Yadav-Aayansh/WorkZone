@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -36,7 +42,8 @@ const mockQuestions = [
 ];
 
 const mockAnalysis = {
-  summary: "Strong technical knowledge with good communication. Shows leadership potential but could improve on system design thinking.",
+  summary:
+    "Strong technical knowledge with good communication. Shows leadership potential but could improve on system design thinking.",
   strengths: [
     "Clear articulation of technical concepts",
     "Good problem-solving approach",
@@ -126,7 +133,10 @@ export function InterviewAssistant() {
 
               <div className="space-y-2">
                 <Label htmlFor="experience">Experience Level</Label>
-                <Select value={experienceLevel} onValueChange={setExperienceLevel}>
+                <Select
+                  value={experienceLevel}
+                  onValueChange={setExperienceLevel}
+                >
                   <SelectTrigger id="experience">
                     <SelectValue placeholder="Select experience level" />
                   </SelectTrigger>
@@ -134,7 +144,9 @@ export function InterviewAssistant() {
                     <SelectItem value="junior">Junior (0-2 years)</SelectItem>
                     <SelectItem value="mid">Mid-level (3-5 years)</SelectItem>
                     <SelectItem value="senior">Senior (5+ years)</SelectItem>
-                    <SelectItem value="lead">Lead/Principal (8+ years)</SelectItem>
+                    <SelectItem value="lead">
+                      Lead/Principal (8+ years)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -236,7 +248,9 @@ export function InterviewAssistant() {
         {/* Tips Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">💡 Question Generation Tips</CardTitle>
+            <CardTitle className="text-base">
+              💡 Question Generation Tips
+            </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-1">
@@ -337,7 +351,11 @@ export function InterviewAssistant() {
                     <p className="text-sm text-muted-foreground mb-2">
                       Overall Score
                     </p>
-                    <p className={`text-4xl font-bold ${getScoreColor(analysis.score)}`}>
+                    <p
+                      className={`text-4xl font-bold ${getScoreColor(
+                        analysis.score
+                      )}`}
+                    >
                       {analysis.score}%
                     </p>
                   </div>
@@ -397,7 +415,9 @@ export function InterviewAssistant() {
                       <TrendingUp className="h-4 w-4 text-primary mt-0.5" />
                       <h4 className="font-semibold">Recommendation</h4>
                     </div>
-                    <p className="text-sm font-medium">{analysis.recommendation}</p>
+                    <p className="text-sm font-medium">
+                      {analysis.recommendation}
+                    </p>
                   </div>
                 </div>
               ) : (
