@@ -4,5 +4,5 @@ from .user import (
 )
 
 from .job import (
-    CreateJobRequest, JobResponse
+    CreateJobRequest, JobResponse, ListJobsRequest, UpdateJobRequest
 )

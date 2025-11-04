@@ -11,3 +11,6 @@ class UserNotFoundError(NotFoundError):
 
 class InvalidUserCredentialsError(AuthenticationError):
     pass
+
+class JobNotFoundError(NotFoundError):
+    pass
