@@ -1,0 +1,84 @@
+[
+  {
+    "id": "offer-1",
+    "candidateId": "cand-10",
+    "candidateName": "Aditya Sharma",
+    "candidateEmail": "aditya.sharma@email.com",
+    "jobId": "job-4",
+    "jobTitle": "DevOps Engineer",
+    "role": "Senior DevOps Engineer",
+    "department": "Engineering",
+    "status": "accepted",
+    "offeredDate": "2025-10-28T10:00:00Z",
+    "respondedDate": "2025-10-30T14:30:00Z",
+    "joiningDate": "2025-12-01T00:00:00Z",
+    "salary": {
+      "base": 2500000,
+      "bonus": 300000,
+      "currency": "INR"
+    },
+    "benefits": [
+      "Health Insurance",
+      "Remote Work Options",
+      "Learning & Development Budget",
+      "Performance Bonus"
+    ],
+    "offerLetterUrl": "/offers/aditya-sharma-offer.pdf",
+    "generatedBy": "John Doe"
+  },
+  {
+    "id": "offer-2",
+    "candidateId": "cand-11",
+    "candidateName": "Kavya Nair",
+    "candidateEmail": "kavya.nair@email.com",
+    "jobId": "job-3",
+    "jobTitle": "UX/UI Designer",
+    "role": "Senior UX Designer",
+    "department": "Design",
+    "status": "pending",
+    "offeredDate": "2025-10-30T15:00:00Z",
+    "respondedDate": null,
+    "joiningDate": "2025-12-15T00:00:00Z",
+    "salary": {
+      "base": 1800000,
+      "bonus": 200000,
+      "currency": "INR"
+    },
+    "benefits": [
+      "Health Insurance",
+      "Flexible Hours",
+      "Design Tools Subscription",
+      "Performance Bonus"
+    ],
+    "offerLetterUrl": "/offers/kavya-nair-offer.pdf",
+    "generatedBy": "Mike Chen"
+  },
+  {
+    "id": "offer-3",
+    "candidateId": "cand-12",
+    "candidateName": "Rajesh Gupta",
+    "candidateEmail": "rajesh.gupta@email.com",
+    "jobId": "job-1",
+    "jobTitle": "Senior Full Stack Developer",
+    "role": "Senior Full Stack Developer",
+    "department": "Engineering",
+    "status": "rejected",
+    "offeredDate": "2025-10-25T11:00:00Z",
+    "respondedDate": "2025-10-27T09:30:00Z",
+    "joiningDate": null,
+    "salary": {
+      "base": 2800000,
+      "bonus": 350000,
+      "currency": "INR"
+    },
+    "benefits": [
+      "Health Insurance",
+      "Remote Work Options",
+      "Stock Options",
+      "Performance Bonus"
+    ],
+    "offerLetterUrl": "/offers/rajesh-gupta-offer.pdf",
+    "generatedBy": "John Doe",
+    "rejectionReason": "Accepted offer from another company"
+  }
+]

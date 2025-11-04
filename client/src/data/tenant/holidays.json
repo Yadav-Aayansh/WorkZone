@@ -1,0 +1,119 @@
+[
+  {
+    "id": "holiday-001",
+    "name": "Diwali",
+    "date": "2025-11-01",
+    "day": "Saturday",
+    "type": "national",
+    "description": "Festival of Lights",
+    "isOptional": false
+  },
+  {
+    "id": "holiday-002",
+    "name": "Guru Nanak Jayanti",
+    "date": "2025-11-15",
+    "day": "Saturday",
+    "type": "religious",
+    "description": "Birth anniversary of Guru Nanak Dev Ji",
+    "isOptional": false
+  },
+  {
+    "id": "holiday-003",
+    "name": "Christmas",
+    "date": "2025-12-25",
+    "day": "Thursday",
+    "type": "national",
+    "description": "Christmas Day celebration",
+    "isOptional": false
+  },
+  {
+    "id": "holiday-004",
+    "name": "New Year",
+    "date": "2026-01-01",
+    "day": "Thursday",
+    "type": "national",
+    "description": "New Year's Day",
+    "isOptional": false
+  },
+  {
+    "id": "holiday-005",
+    "name": "Republic Day",
+    "date": "2026-01-26",
+    "day": "Monday",
+    "type": "national",
+    "description": "Republic Day of India",
+    "isOptional": false
+  },
+  {
+    "id": "holiday-006",
+    "name": "Maha Shivaratri",
+    "date": "2026-02-17",
+    "day": "Tuesday",
+    "type": "religious",
+    "description": "Great Night of Shiva",
+    "isOptional": true
+  },
+  {
+    "id": "holiday-007",
+    "name": "Holi",
+    "date": "2026-03-06",
+    "day": "Friday",
+    "type": "national",
+    "description": "Festival of Colors",
+    "isOptional": false
+  },
+  {
+    "id": "holiday-008",
+    "name": "Good Friday",
+    "date": "2026-04-03",
+    "day": "Friday",
+    "type": "religious",
+    "description": "Crucifixion of Jesus Christ",
+    "isOptional": true
+  },
+  {
+    "id": "holiday-009",
+    "name": "Eid al-Fitr",
+    "date": "2026-04-06",
+    "day": "Monday",
+    "type": "religious",
+    "description": "Festival of Breaking the Fast",
+    "isOptional": false
+  },
+  {
+    "id": "holiday-010",
+    "name": "Independence Day",
+    "date": "2026-08-15",
+    "day": "Saturday",
+    "type": "national",
+    "description": "Independence Day of India",
+    "isOptional": false
+  },
+  {
+    "id": "holiday-011",
+    "name": "Janmashtami",
+    "date": "2026-08-26",
+    "day": "Wednesday",
+    "type": "religious",
+    "description": "Birth of Lord Krishna",
+    "isOptional": true
+  },
+  {
+    "id": "holiday-012",
+    "name": "Gandhi Jayanti",
+    "date": "2026-10-02",
+    "day": "Friday",
+    "type": "national",
+    "description": "Birth anniversary of Mahatma Gandhi",
+    "isOptional": false
+  },
+  {
+    "id": "holiday-013",
+    "name": "Dussehra",
+    "date": "2026-10-13",
+    "day": "Tuesday",
+    "type": "national",
+    "description": "Victory of good over evil",
+    "isOptional": false
+  }
+]

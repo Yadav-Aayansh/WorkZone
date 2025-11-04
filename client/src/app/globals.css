@@ -1,7 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+
 @custom-variant dark (&:is(.dark *));
+
 
 @theme inline {
     --color-background: var(--background);
@@ -38,36 +40,45 @@
     --radius-xl: calc(var(--radius) + 4px);
 }
 
+
 /* ======================
    🌞 LIGHT THEME (Default)
    ====================== */
 :root {
     --radius: 0.625rem;
-    --background: oklch(95.139% 0.02773 301.648); /* soft lavender white */
+    --background: oklch(97.068% 0.01653 301.033); /* soft lavender white */
     --foreground: oklch(0.2 0.03 275); /* dark purple text */
+
 
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.22 0.03 275);
 
+
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.22 0.03 275);
+
 
     --primary: oklch(0.55 0.25 290); /* rich mid purple */
     --primary-foreground: oklch(0.98 0.02 285);
 
+
     --secondary: oklch(0.92 0.05 280); /* light lavender gray */
     --secondary-foreground: oklch(0.25 0.04 275);
+
 
     --accent: oklch(0.7 0.2 310); /* violet-blue glow */
     --accent-foreground: oklch(0.98 0.02 285);
 
+
     --muted: oklch(0.95 0.04 285);
     --muted-foreground: oklch(0.5 0.05 280);
+
 
     --destructive: oklch(0.63 0.23 30);
     --border: oklch(0.92 0.04 285);
     --input: oklch(0.92 0.04 285);
     --ring: oklch(0.6 0.25 290);
+
 
     --sidebar: oklch(0.98 0.02 285);
     --sidebar-foreground: oklch(0.2 0.03 275);
@@ -77,7 +88,19 @@
     --sidebar-accent-foreground: oklch(0.98 0.02 285);
     --sidebar-border: oklch(0.9 0.03 285);
     --sidebar-ring: oklch(0.55 0.25 290);
+
+
+    /* Employee Portal Colors - Teal/Cyan Theme */
+    --employee-primary: oklch(0.55 0.15 195); /* teal-600 */
+    --employee-primary-dark: oklch(0.48 0.14 195); /* teal-700 */
+    --employee-secondary: oklch(0.62 0.16 210); /* cyan-600 */
+    --employee-accent: oklch(0.70 0.18 200); /* teal-500 */
+    --employee-success: oklch(0.58 0.19 150); /* green-600 */
+    --employee-warning: oklch(0.67 0.18 60); /* yellow-500 */
+    --employee-error: oklch(0.63 0.24 25); /* red-600 */
+    --employee-info: oklch(0.60 0.20 240); /* blue-600 */
 }
+
 
 /* ======================
    🌚 DARK THEME
@@ -86,28 +109,36 @@
     --background: oklch(0.171 0.045 293.729); /* near-black purple */
     --foreground: oklch(0.97 0.02 285);
 
+
     --card: oklch(0.2 0.05 275);
     --card-foreground: oklch(0.97 0.02 285);
+
 
     --popover: oklch(0.2 0.05 275);
     --popover-foreground: oklch(0.97 0.02 285);
 
+
     --primary: oklch(0.75 0.22 300); /* electric violet */
     --primary-foreground: oklch(0.15 0.03 270);
+
 
     --secondary: oklch(0.3 0.05 280);
     --secondary-foreground: oklch(0.95 0.02 285);
 
+
     --accent: oklch(0.65 0.2 310); /* neon purple glow */
     --accent-foreground: oklch(0.98 0.02 285);
 
+
     --muted: oklch(0.25 0.04 275);
     --muted-foreground: oklch(0.7 0.05 285);
+
 
     --destructive: oklch(0.7 0.22 25);
     --border: oklch(0.3 0.04 285);
     --input: oklch(0.3 0.04 285);
     --ring: oklch(0.75 0.22 300);
+
 
     --sidebar: oklch(0.2 0.05 275);
     --sidebar-foreground: oklch(0.97 0.02 285);
@@ -117,7 +148,19 @@
     --sidebar-accent-foreground: oklch(0.98 0.02 285);
     --sidebar-border: oklch(0.3 0.04 285);
     --sidebar-ring: oklch(0.75 0.22 300);
+
+
+    /* Employee Portal Colors - Teal/Cyan Theme (Dark) */
+    --employee-primary: oklch(0.62 0.16 195); /* teal-500 */
+    --employee-primary-dark: oklch(0.70 0.18 195); /* teal-400 */
+    --employee-secondary: oklch(0.70 0.18 210); /* cyan-500 */
+    --employee-accent: oklch(0.78 0.20 200); /* teal-400 */
+    --employee-success: oklch(0.68 0.20 150); /* green-500 */
+    --employee-warning: oklch(0.75 0.20 60); /* yellow-400 */
+    --employee-error: oklch(0.70 0.25 25); /* red-500 */
+    --employee-info: oklch(0.68 0.22 240); /* blue-500 */
 }
+
 
 /* ======================
    Base layer setup
@@ -131,12 +174,43 @@
     }
 }
 
-@layer base {
-  * {
+
+@layer utilities {
+    * {
     @apply border-border outline-ring/50;
     }
-  body {
+    body {
     @apply bg-background text-foreground;
+    }
+
+
+    /* Employee Portal Utility Classes */
+    .bg-employee-gradient {
+        background: linear-gradient(135deg, oklch(var(--employee-primary)), oklch(var(--employee-secondary)));
+    }
+   
+    .bg-employee-gradient-hover:hover {
+        background: linear-gradient(135deg, oklch(var(--employee-primary-dark)), oklch(var(--employee-primary)));
+    }
+
+
+    .text-employee {
+        color: oklch(var(--employee-primary));
+    }
+
+
+    .bg-employee {
+        background-color: oklch(var(--employee-primary));
+    }
+
+
+    .border-employee {
+        border-color: oklch(var(--employee-accent) / 0.2);
+    }
+
+
+    .shadow-employee {
+        box-shadow: 0 10px 30px -5px oklch(var(--employee-accent) / 0.2);
     }
 }
 

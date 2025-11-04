@@ -1,8 +1,14 @@
 "use client";
 
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTenantAuth } from "@/providers/tenant-auth-provider";
+
+
+// 🔧 DEVELOPMENT MODE - Set to false for production
+const DISABLE_AUTH_FOR_DEVELOPMENT = true;
+
 
 interface TenantProtectedRouteProps {
   children: React.ReactNode;
@@ -10,6 +16,7 @@ interface TenantProtectedRouteProps {
   redirectTo?: string; // Custom redirect path
   requireAuth?: boolean; // If false, just passes children through
 }
+
 
 /**
  * TenantProtectedRoute - Protects tenant routes based on authentication and roles
@@ -43,11 +50,20 @@ export function TenantProtectedRoute({
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
 
+
   useEffect(() => {
+    // 🔧 DEVELOPMENT MODE: Bypass all auth checks
+    if (DISABLE_AUTH_FOR_DEVELOPMENT) {
+      setIsChecking(false);
+      return;
+    }
+
+
     // Wait for auth to initialize
     if (!isInitialized) {
       return;
     }
+
 
     // If auth not required, show children
     if (!requireAuth) {
@@ -55,11 +71,13 @@ export function TenantProtectedRoute({
       return;
     }
 
+
     // Check authentication
     if (!isAuthenticated) {
       router.push(redirectTo);
       return;
     }
+
 
     // Check role-based access if roles specified
     if (allowedRoles.length > 0 && userRole) {
@@ -67,12 +85,14 @@ export function TenantProtectedRoute({
         (role) => role.toLowerCase() === userRole.toLowerCase()
       );
 
+
       if (!hasAccess) {
         // Redirect to unauthorized page or user's default dashboard
         router.push("/unauthorized");
         return;
       }
     }
+
 
     setIsChecking(false);
   }, [
@@ -85,6 +105,13 @@ export function TenantProtectedRoute({
     requireAuth,
   ]);
 
+
+  // 🔧 DEVELOPMENT MODE: Skip loading and return children immediately
+  if (DISABLE_AUTH_FOR_DEVELOPMENT) {
+    return <>{children}</>;
+  }
+
+
   // Show loading state
   if (isLoading || isChecking || !isInitialized) {
     return (
@@ -93,6 +120,7 @@ export function TenantProtectedRoute({
       </div>
     );
   }
+
 
   // Show children if all checks passed
   if (
@@ -106,9 +134,11 @@ export function TenantProtectedRoute({
     return <>{children}</>;
   }
 
+
   // Default: show nothing (redirecting)
   return null;
 }
+
 
 /**
  * Higher-order component version for easier use
@@ -130,3 +160,6 @@ export function withTenantAuth<P extends object>(
     );
   };
 }
+
+
+
