@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
@@ -40,7 +46,8 @@ const mockResults = [
     experience: "5 years",
     skillsMatch: 92,
     matchPercent: 92,
-    summary: "Excellent match with strong React & Node.js background. Leadership experience aligns well.",
+    summary:
+      "Excellent match with strong React & Node.js background. Leadership experience aligns well.",
     strengths: ["Full-stack expertise", "Team leadership", "Problem solving"],
   },
   {
@@ -49,7 +56,8 @@ const mockResults = [
     experience: "3 years",
     skillsMatch: 85,
     matchPercent: 85,
-    summary: "Strong technical skills in frontend. Fast learner with good project portfolio.",
+    summary:
+      "Strong technical skills in frontend. Fast learner with good project portfolio.",
     strengths: ["React mastery", "UI/UX focus", "Quick adaptation"],
   },
   {
@@ -58,7 +66,8 @@ const mockResults = [
     experience: "7 years",
     skillsMatch: 78,
     matchPercent: 78,
-    summary: "Solid backend experience but limited frontend exposure. Good database skills.",
+    summary:
+      "Solid backend experience but limited frontend exposure. Good database skills.",
     strengths: ["Backend architecture", "Database optimization", "API design"],
   },
 ];
@@ -100,7 +109,9 @@ export function ResumeScorer() {
     return "text-orange-600 dark:text-orange-400";
   };
 
-  const getScoreVariant = (score: number): "default" | "secondary" | "destructive" | "outline" => {
+  const getScoreVariant = (
+    score: number
+  ): "default" | "secondary" | "destructive" | "outline" => {
     if (score >= 85) return "default";
     if (score >= 70) return "secondary";
     return "outline";
@@ -120,7 +131,8 @@ export function ResumeScorer() {
               <CardTitle>Job Description</CardTitle>
             </div>
             <CardDescription>
-              Paste the job description to analyze required skills and qualifications
+              Paste the job description to analyze required skills and
+              qualifications
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -155,7 +167,8 @@ export function ResumeScorer() {
             {jdAnalyzed && (
               <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                 <p className="text-sm text-muted-foreground">
-                  ✓ Identified 8 key skills · 3 required qualifications · Experience level: Senior
+                  ✓ Identified 8 key skills · 3 required qualifications ·
+                  Experience level: Senior
                 </p>
               </div>
             )}
@@ -187,7 +200,9 @@ export function ResumeScorer() {
 
             {/* Mock uploaded files */}
             <div className="space-y-2">
-              <p className="text-sm font-medium">Uploaded Resumes ({mockResumes.length})</p>
+              <p className="text-sm font-medium">
+                Uploaded Resumes ({mockResumes.length})
+              </p>
               {mockResumes.map((resume, index) => (
                 <div
                   key={index}
@@ -197,7 +212,9 @@ export function ResumeScorer() {
                     <FileText className="h-5 w-5 text-primary" />
                     <div>
                       <p className="text-sm font-medium">{resume.name}</p>
-                      <p className="text-xs text-muted-foreground">{resume.size}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {resume.size}
+                      </p>
                     </div>
                   </div>
                   <CheckCircle2 className="h-5 w-5 text-green-500" />
@@ -242,7 +259,8 @@ export function ResumeScorer() {
                     <CardTitle>AI Scoring Results</CardTitle>
                   </div>
                   <CardDescription>
-                    {mockResults.length} candidates analyzed and ranked by match score
+                    {mockResults.length} candidates analyzed and ranked by match
+                    score
                   </CardDescription>
                 </div>
                 <Button
@@ -286,7 +304,10 @@ export function ResumeScorer() {
                         <TableCell>{result.experience}</TableCell>
                         <TableCell>
                           <div className="space-y-1">
-                            <Progress value={result.skillsMatch} className="h-2" />
+                            <Progress
+                              value={result.skillsMatch}
+                              className="h-2"
+                            />
                             <span className="text-xs text-muted-foreground">
                               {result.skillsMatch}%
                             </span>
@@ -294,13 +315,17 @@ export function ResumeScorer() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={getScoreVariant(result.matchPercent)}>
-                            <span className={getScoreColor(result.matchPercent)}>
+                            <span
+                              className={getScoreColor(result.matchPercent)}
+                            >
                               {result.matchPercent}%
                             </span>
                           </Badge>
                         </TableCell>
                         <TableCell className="max-w-xs">
-                          <p className="text-sm line-clamp-2">{result.summary}</p>
+                          <p className="text-sm line-clamp-2">
+                            {result.summary}
+                          </p>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="sm">
@@ -368,15 +393,21 @@ export function ResumeScorer() {
                 {/* Stats */}
                 <div className="pt-4 border-t space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total Analyzed</span>
+                    <span className="text-muted-foreground">
+                      Total Analyzed
+                    </span>
                     <span className="font-semibold">{mockResults.length}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">High Match (85%+)</span>
+                    <span className="text-muted-foreground">
+                      High Match (85%+)
+                    </span>
                     <span className="font-semibold text-green-600">2</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Medium Match (70-84%)</span>
+                    <span className="text-muted-foreground">
+                      Medium Match (70-84%)
+                    </span>
                     <span className="font-semibold text-yellow-600">1</span>
                   </div>
                 </div>

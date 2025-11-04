@@ -73,7 +73,7 @@ export const PricingFAQ = () => {
             </span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Have questions? We've got answers. Can't find what you're looking
+            Have questions? We&#39;ve got answers. Can&#39;t find what you&#39;re looking
             for? Contact our support team.
           </p>
         </div>
