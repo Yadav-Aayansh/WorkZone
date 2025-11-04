@@ -1,7 +1,9 @@
 from src.repository.tenant import JobRepository
-from src.schemas.tenant import CreateJobRequest
+from src.schemas.tenant import CreateJobRequest, ListJobsRequest, UpdateJobRequest
 from src.core.context import user_context
 from src.core.logger import logger
+from src.exceptions.tenant import JobNotFoundError
+from src.exceptions.base import RoleNotAllowedError
 
 class JobService:
     def __init__(self, job_repo: JobRepository):
@@ -20,6 +22,46 @@ class JobService:
         except Exception as e:
             logger.exception(e)
             raise
+
+    async def list_jobs(self, data: ListJobsRequest):
+        jobs = await self.job_repo.list_jobs(
+            data.department,
+            data.location,
+            data.is_open,
+            data.search
+        )
+        return jobs
+    
+    async def get_job(self, id: str):
+        job = await self.job_repo.get_job_by_id(id)
+        if not job:
+            raise JobNotFoundError(f"Job not found")
+        
+        return job
+    
+    async def update_job(self, id: str, user_id: str, data: UpdateJobRequest):
+        job = await self.job_repo.get_job_by_id(id)
+        if not job:
+            raise JobNotFoundError(f"Job not found")
+        
+        logger.info(job.posted_by)
+        logger.info(user_id)
+        if str(job.posted_by) != user_id:
+            raise RoleNotAllowedError("Invalid role!")
+        
+        return await self.job_repo.update_job(id, data.model_dump(exclude_unset=True,exclude_none=True))
+    
+    async def delete_job(self, id: str, user_id: str):
+        job = await self.job_repo.get_job_by_id(id)
+        if not job:
+            raise JobNotFoundError(f"Job not found")
+        
+        if str(job.posted_by) != user_id:
+            raise RoleNotAllowedError("Invalid role!")
+        
+        deleted = await self.job_repo.delete_job(id)
+        if deleted:
+            return {"message": "Job deleted successfully!"}
 
 
 
