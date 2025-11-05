@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
-import { AuthProvider } from "@/providers/auth-provider";
-import { TenantProvider } from "@/providers/tenant-provider";
-import { TenantAuthProvider } from "@/providers/tenant-auth-provider";
+// import { AuthProvider } from "@/providers/auth-provider";
+// import { TenantProvider } from "@/providers/tenant-provider";
+// import { TenantAuthProvider } from "@/providers/tenant-auth-provider";
 import { ToastProvider } from "@/providers/toast-provider";
-import { AuthTokenManager } from "@/components/auth/AuthTokenManager";
+// import { AuthTokenManager } from "@/components/auth/AuthTokenManager";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -98,15 +98,8 @@ export default function RootLayout({
           // disableTransitionOnChange
         >
           <ToastProvider>
-            {/* Platform Auth Provider - for company/client authentication */}
-            <AuthProvider>
-              <AuthTokenManager />
-
-              {/* Tenant Providers - for subdomain-based tenant features */}
-              <TenantProvider>
-                <TenantAuthProvider>{children}</TenantAuthProvider>
-              </TenantProvider>
-            </AuthProvider>
+            {/* Auth providers disabled for peer review - no backend required */}
+            {children}
           </ToastProvider>
         </ThemeProvider>
       </body>

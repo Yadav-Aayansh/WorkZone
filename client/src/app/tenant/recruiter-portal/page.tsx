@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
+// import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { RecruiterPortalLayout } from "@/components/tenant/recruiter-portal-layout";
 import {
   Card,
@@ -45,7 +45,7 @@ function AIInterviewReportContent() {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Interview Not Found</h2>
           <p className="text-muted-foreground mb-4">
-            The AI interview report you're looking for doesn't exist or hasn't
+            The AI interview report you&#39;re looking for doesn&#39;t exist or hasn&#39;t
             been completed.
           </p>
           <Button
@@ -501,10 +501,8 @@ function AIInterviewReportContent() {
 
 export default function AIInterviewReportPage() {
   return (
-    <TenantProtectedRoute allowedRoles={["recruiter"]}>
-      <RecruiterPortalLayout>
-        <AIInterviewReportContent />
-      </RecruiterPortalLayout>
-    </TenantProtectedRoute>
+    <RecruiterPortalLayout>
+      <AIInterviewReportContent />
+    </RecruiterPortalLayout>
   );
 }

@@ -11,7 +11,7 @@ import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "@/components/logo";
-import { authAPI, APIError } from "@/lib/api";
+// import { authAPI, APIError } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 
@@ -26,7 +26,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
-  const { login, redirectAfterAuth } = useAuth();
+  const { redirectAfterAuth } = useAuth();
   const { showToast } = useToast();
 
   const {
@@ -37,47 +37,22 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (_data: LoginFormData) => {
     setIsLoading(true);
     setError("");
 
-    try {
-      const response = await authAPI.login({
-        email: data.email,
-        password: data.password,
-      });
-
-      // Store tokens and update auth state
-      await login(response);
-
+    // MOCK: No backend call - accept any credentials for peer review
+    setTimeout(() => {
       showToast({
         type: "success",
         title: "Welcome back!",
         message: "Successfully logged in.",
       });
 
-      // Redirect based on account status
-      redirectAfterAuth(response.account_status);
-    } catch (err) {
-      if (err instanceof APIError) {
-        setError(err.message);
-        showToast({
-          type: "error",
-          title: "Login failed",
-          message: err.message,
-        });
-      } else {
-        const errorMessage = "An unexpected error occurred. Please try again.";
-        setError(errorMessage);
-        showToast({
-          type: "error",
-          title: "Login failed",
-          message: errorMessage,
-        });
-      }
-    } finally {
+      // Redirect to dashboard
+      redirectAfterAuth("ACTIVE");
       setIsLoading(false);
-    }
+    }, 500);
   };
 
   return (

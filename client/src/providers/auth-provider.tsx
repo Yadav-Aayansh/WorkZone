@@ -7,8 +7,10 @@ import React, {
   useState,
   useCallback,
 } from "react";
-import { platformAuthAPI } from "@/lib/api";
+// import { platformAuthAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
+
+// MOCK VERSION FOR PEER REVIEW - No backend required
 
 export interface AuthState {
   isAuthenticated: boolean;
@@ -47,64 +49,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const router = useRouter();
-  // Initialize auth state and attempt token refresh
+  // Initialize auth state - MOCK version always returns authenticated
   useEffect(() => {
-    let mounted = true;
-
-    const initializeAuth = async () => {
-      try {
-        if (typeof window === "undefined") return;
-
-        const tokens = platformAuthAPI.getTokens();
-        const accountStatus = localStorage.getItem("account_status");
-        const subscriptionStatus = localStorage.getItem("subscription_status");
-
-        if (!tokens.accessToken) {
-          // No tokens found
-          if (mounted) {
-            setAuthState({
-              isAuthenticated: false,
-              accessToken: null,
-              refreshToken: null,
-              accountStatus: null,
-              subscriptionStatus: null,
-              isLoading: false,
-              isInitialized: true,
-            });
-          }
-          return;
-        }
-
-        // For now, just trust the stored tokens since refresh endpoint doesn't exist yet
-        if (mounted) {
-          setAuthState({
-            isAuthenticated: true,
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
-            accountStatus,
-            subscriptionStatus,
-            isLoading: false,
-            isInitialized: true,
-          });
-        }
-      } catch (error) {
-        console.error("Auth initialization error:", error);
-
-        if (mounted) {
-          setAuthState((prev) => ({
-            ...prev,
-            isLoading: false,
-            isInitialized: true,
-          }));
-        }
-      }
-    };
-
-    initializeAuth();
-
-    return () => {
-      mounted = false;
-    };
+    // Mock authenticated state for peer review
+    setAuthState({
+      isAuthenticated: true,
+      accessToken: "mock-access-token",
+      refreshToken: "mock-refresh-token",
+      accountStatus: "ACTIVE",
+      subscriptionStatus: "ACTIVE",
+      isLoading: false,
+      isInitialized: true,
+    });
   }, []);
 
   const login = useCallback(
@@ -134,25 +90,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    try {
-      await platformAuthAPI.logout();
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-
-    setAuthState({
-      isAuthenticated: false,
-      accessToken: null,
-      refreshToken: null,
-      accountStatus: null,
-      subscriptionStatus: null,
-      isLoading: false,
-      isInitialized: true,
-    });
-
-    // Redirect to login page
-    router.push("/login");
-  }, [router]);
+    // Mock logout - no backend call
+    console.log("Mock logout - staying authenticated for peer review");
+    // Don't actually log out for peer review
+  }, []);
 
   const updateStatus = useCallback(
     (accountStatus: string, subscriptionStatus: string) => {
@@ -169,33 +110,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const refreshAuth = useCallback(async (): Promise<boolean> => {
-    try {
-      const refreshResponse = await platformAuthAPI.refreshToken();
-
-      // Update tokens and status in localStorage
-      localStorage.setItem("access_token", refreshResponse.access_token);
-      localStorage.setItem("refresh_token", refreshResponse.refresh_token);
-      localStorage.setItem("account_status", refreshResponse.account_status);
-      localStorage.setItem(
-        "subscription_status",
-        refreshResponse.subscription_status
-      );
-
-      setAuthState((prev) => ({
-        ...prev,
-        accessToken: refreshResponse.access_token,
-        refreshToken: refreshResponse.refresh_token,
-        accountStatus: refreshResponse.account_status,
-        subscriptionStatus: refreshResponse.subscription_status,
-      }));
-
-      return true;
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-      await logout();
-      return false;
-    }
-  }, [logout]);
+    // Mock refresh - always succeeds
+    return true;
+  }, []);
 
   const redirectAfterAuth = useCallback(
     (accountStatus: string) => {
@@ -234,10 +151,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
+  const router = useRouter();
+
+  // MOCK: Return default authenticated state if used outside provider (for peer review)
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    console.warn(
+      "useAuth used outside AuthProvider - returning mock data for peer review"
+    );
+
+    return {
+      isAuthenticated: true,
+      accessToken: "mock-access-token",
+      refreshToken: "mock-refresh-token",
+      accountStatus: "ACTIVE",
+      subscriptionStatus: "ACTIVE",
+      isLoading: false,
+      isInitialized: true,
+      login: async () => {},
+      logout: async () => {},
+      updateStatus: () => {},
+      refreshAuth: async () => true,
+      redirectAfterAuth: (accountStatus: string) => {
+        switch (accountStatus?.toLowerCase()) {
+          case "onboarding":
+            router.push("/signup");
+            break;
+          case "subscription":
+            router.push("/signup?step=3");
+            break;
+          case "active":
+            router.push("/dashboard");
+            break;
+          default:
+            router.push("/dashboard");
+            break;
+        }
+      },
+    };
   }
+
   return context;
 }

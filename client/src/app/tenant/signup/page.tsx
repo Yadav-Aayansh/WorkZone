@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTenant } from "@/providers/tenant-provider";
 import { useTenantAuth } from "@/providers/tenant-auth-provider";
-import { tenantAuthAPI, extractUserDataFromToken } from "@/lib/api/tenant";
+// import { tenantAuthAPI, extractUserDataFromToken } from "@/lib/api/tenant";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,9 +25,9 @@ import { AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
 export default function TenantSignupPage() {
-  const router = useRouter();
+  // const router = useRouter();
   const { tenant, isLoading: tenantLoading } = useTenant();
-  const { login: setAuthState, redirectAfterAuth } = useTenantAuth();
+  const { redirectAfterAuth } = useTenantAuth();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -75,38 +75,14 @@ export default function TenantSignupPage() {
 
     setIsSubmitting(true);
 
-    try {
-      // Call backend signup API (only applicant role allowed for public signup)
-      const response = await tenantAuthAPI.signup({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        role: "applicant", // Backend only allows applicant for public signup
-      });
+    // MOCK: No backend call - accept any signup for peer review
+    setTimeout(() => {
+      console.log("Mock tenant signup success:", formData.email);
 
-      // Extract user data from JWT token
-      const userData = extractUserDataFromToken(response.access_token);
-
-      if (!userData) {
-        throw new Error("Failed to extract user data from token");
-      }
-
-      // Set auth state in TenantAuthProvider
-      await setAuthState({
-        access_token: response.access_token,
-        refresh_token: response.refresh_token,
-        role: userData.role,
-        user_id: userData.userId,
-      });
-
-      // Redirect based on user role (should be applicant -> /careers)
-      redirectAfterAuth(userData.role);
-    } catch (err: any) {
-      console.error("Signup error:", err);
-      setError(err.message || "Failed to create account. Please try again.");
-    } finally {
+      // Redirect to careers page (default for applicant role)
+      redirectAfterAuth("applicant");
       setIsSubmitting(false);
-    }
+    }, 500);
   };
 
   // Show loading while tenant data is being fetched

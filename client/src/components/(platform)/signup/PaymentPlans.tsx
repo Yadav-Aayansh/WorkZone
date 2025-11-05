@@ -2,7 +2,6 @@
 // @ts-nocheck
 /* eslint-disable */
 
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Sparkles, Zap, Crown } from "lucide-react";
 import { SignupData } from "@/app/(platform)/(auth)/signup/page";
 import { Logo } from "@/components/logo";
-import { loadRazorpayScript } from "@/lib/razorpay";
-import { subscriptionAPI, CreateOrderRequest } from "@/lib/api";
-import { useAuth } from "@/providers/auth-provider";
+// import { loadRazorpayScript } from "@/lib/razorpay";
+// import { subscriptionAPI, CreateOrderRequest } from "@/lib/api";
+// import { useAuth } from "@/providers/auth-provider";
 
 interface PaymentPlansProps {
   onNext: (data: Partial<SignupData>) => void;
@@ -74,13 +73,13 @@ export default function PaymentPlans({
     "3_months" | "6_months" | "12_months" | null
   >(initialData.plan);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
-  const { updateStatus } = useAuth();
+  // const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  // const { updateStatus } = useAuth();
 
-  useEffect(() => {
-    // Preload Razorpay script
-    loadRazorpayScript().then((loaded) => setRazorpayLoaded(loaded));
-  }, []);
+  // useEffect(() => {
+  //   // Preload Razorpay script
+  //   loadRazorpayScript().then((loaded) => setRazorpayLoaded(loaded));
+  // }, []);
 
   const handlePayment = async () => {
     if (!selectedPlan) return;
@@ -88,113 +87,22 @@ export default function PaymentPlans({
     const plan = plans.find((p) => p.id === selectedPlan);
     if (!plan) return;
 
-    if (!razorpayLoaded) {
-      alert("Payment gateway is loading. Please try again in a moment.");
-      return;
-    }
-
-    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-    if (!razorpayKey) {
-      alert(
-        "Payment gateway is not configured. Please add your Razorpay API keys."
-      );
-      return;
-    }
-
     setIsProcessing(true);
 
-    try {
-      // Step 1: Create order via backend API
-      const createOrderData: CreateOrderRequest = {
+    // MOCK: No backend or payment gateway - simulate successful payment for peer review
+    setTimeout(() => {
+      console.log(
+        "MOCK: Payment simulated successfully for plan:",
+        selectedPlan
+      );
+
+      // Simulate successful payment
+      onNext({
         plan: selectedPlan,
-      };
-
-      const orderResponse = await subscriptionAPI.createOrder(createOrderData);
-
-      console.log("Order created:", orderResponse);
-
-      // Step 2: Initiate Razorpay payment with the backend order
-      const razorpayOptions = {
-        key: razorpayKey,
-        amount: orderResponse.amount, // Amount from backend (already in paise)
-        currency: orderResponse.currency,
-        name: "WorkZone HR Management",
-        description: `${plan.name} Plan - ${plan.duration}`,
-        order_id: orderResponse.id, // Razorpay order ID from backend
-        prefill: {
-          name: initialData.fullName || "User",
-          email: initialData.email || "",
-        },
-        theme: {
-          color: "#8b5cf6", // Purple theme color
-        },
-        handler: async (response: any) => {
-          console.log("=== PAYMENT SUCCESSFUL ===");
-          console.log("Razorpay Response:", response);
-
-          try {
-            // Step 3: Verify payment with backend
-            const updateOrderData = {
-              order_id: response.razorpay_order_id,
-              payment_id: response.razorpay_payment_id,
-              signature: response.razorpay_signature,
-            };
-
-            console.log("Sending to backend:", updateOrderData);
-
-            const verificationResponse = await subscriptionAPI.updateOrder(
-              updateOrderData
-            );
-            console.log("Payment verified by backend:", verificationResponse);
-
-            // Update auth status with the response from backend
-            if (
-              verificationResponse.account_status &&
-              verificationResponse.subscription_status
-            ) {
-              updateStatus(
-                verificationResponse.account_status,
-                verificationResponse.subscription_status
-              );
-            }
-
-            // Payment successful and verified
-            onNext({
-              plan: selectedPlan,
-              paymentId: response.razorpay_payment_id,
-            });
-          } catch (error: any) {
-            console.error("Payment verification error:", error);
-            alert(
-              "Payment verification failed. Please contact support with your payment ID: " +
-                response.razorpay_payment_id
-            );
-            setIsProcessing(false);
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            setIsProcessing(false);
-            console.log("Payment cancelled by user");
-          },
-        },
-      };
-
-      // Load and open Razorpay
-      const isLoaded = await loadRazorpayScript();
-      if (!isLoaded) {
-        throw new Error("Razorpay SDK failed to load");
-      }
-
-      const razorpay = new (window as any).Razorpay(razorpayOptions);
-      razorpay.open();
-    } catch (error: any) {
-      console.error("Payment error:", error);
-      const errorMessage =
-        error?.message || "Failed to initiate payment. Please try again.";
-      alert(errorMessage);
+        paymentId: "mock-payment-" + Date.now(),
+      });
       setIsProcessing(false);
-    }
+    }, 1000);
   };
 
   return (

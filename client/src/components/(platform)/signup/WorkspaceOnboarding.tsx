@@ -20,8 +20,8 @@ import { useState, useRef } from "react";
 import { SignupData } from "@/app/(platform)/(auth)/signup/page";
 import { Logo } from "@/components/logo";
 import Image from "next/image";
-import { authAPI, APIError } from "@/lib/api";
-import { useAuth } from "@/providers/auth-provider";
+// import { authAPI, APIError } from "@/lib/api";
+// import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 
 const workspaceSchema = z.object({
@@ -60,7 +60,7 @@ export default function WorkspaceOnboarding({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { isAuthenticated, updateStatus } = useAuth();
+  // const { isAuthenticated, updateStatus } = useAuth();
   const { showToast } = useToast();
 
   const {
@@ -146,26 +146,8 @@ export default function WorkspaceOnboarding({
     setIsLoading(true);
     setError("");
 
-    try {
-      if (!isAuthenticated) {
-        setError("Please sign up first to set up your workspace.");
-        showToast({
-          type: "error",
-          title: "Authentication required",
-          message: "Please sign up first to continue.",
-        });
-        return;
-      }
-
-      const response = await authAPI.onboarding({
-        tenant_id: data.tenantId,
-        brand_name: data.companyName,
-        logo: logo,
-      });
-
-      // Update account status
-      updateStatus(response.account_status, response.subscription_status);
-
+    // MOCK: No backend call - accept any workspace setup for peer review
+    setTimeout(() => {
       showToast({
         type: "success",
         title: "Workspace setup complete!",
@@ -174,26 +156,8 @@ export default function WorkspaceOnboarding({
 
       // Pass data to next step
       onNext({ ...data, logo });
-    } catch (err) {
-      if (err instanceof APIError) {
-        setError(err.message);
-        showToast({
-          type: "error",
-          title: "Workspace setup failed",
-          message: err.message,
-        });
-      } else {
-        const errorMessage = "An unexpected error occurred. Please try again.";
-        setError(errorMessage);
-        showToast({
-          type: "error",
-          title: "Workspace setup failed",
-          message: errorMessage,
-        });
-      }
-    } finally {
       setIsLoading(false);
-    }
+    }, 500);
   };
 
   return (

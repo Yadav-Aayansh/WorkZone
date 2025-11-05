@@ -137,13 +137,35 @@ export function TenantProvider({ children }: TenantProviderProps) {
 
 /**
  * Hook to access tenant context
- * Must be used within TenantProvider
+ * MOCK: Returns default tenant config if used outside provider (for peer review)
  */
-export function useTenant() {
+export function useTenant(): TenantContextType {
   const context = useContext(TenantContext);
+
+  // MOCK: Return default tenant config if used outside provider (for peer review)
   if (context === undefined) {
-    throw new Error("useTenant must be used within TenantProvider");
+    console.warn(
+      "useTenant used outside TenantProvider - returning mock data for peer review"
+    );
+
+    return {
+      tenant: {
+        id: "mock-tenant-123",
+        subdomain: "demo",
+        brandName: "Demo Company",
+        logo: "/assets/logos/default-logo.png",
+        theme: {
+          primaryColor: "#8b5cf6",
+          secondaryColor: "#ec4899",
+        },
+      },
+      isLoading: false,
+      isTenantRoute: false,
+      error: null,
+      refreshTenant: async () => {},
+    };
   }
+
   return context;
 }
 

@@ -1,36 +1,209 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧩 WorkZone.tech – Frontend (Milestone 3)
 
-## Getting Started
+### Generative AI-Powered HR Management Platform
 
-First, run the development server:
+_IIT Madras Software Engineering Project – SEP 2025_
+
+This folder contains the **frontend code** for **WorkZone.tech**, developed as part of **Milestone 3: Scheduling & Design**.  
+The interface is built with **Next.js 15 **, **Tailwind CSS**, and **ShadCN UI** to deliver a responsive, component-based prototype for the HR Management Platform.
+
+---
+
+## 📦 How to Run the Project (After Downloading ZIP)
+
+> **Note:** This milestone contains only static UI (no backend).  
+> Works on Windows, macOS, or Linux.
+
+### 1️⃣ Unzip
+
+Extract the file **`WorkZone-Frontend-M3.zip`** anywhere on your computer.
+
+### 2️⃣ Open Terminal
+
+Right-click inside the extracted **`frontend`** folder → “Open in Terminal”  
+or open the folder in **VS Code** and use its terminal.
+
+### 3️⃣ Install Dependencies
+
+#### Using npm
+
+```bash
+npm install
+```
+
+#### Using pnpm (Recommended)
+
+```bash
+pnpm install
+```
+
+### 4️⃣ Run Development Server
+
+#### npm
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#### pnpm
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 5️⃣ View in Browser
 
-## Learn More
+Visit 👉 **http://localhost:3000**  
+You should see the **WorkZone.tech** home page.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🧩 UI Modules Included
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Module                 | Route                                     | Description                               |
+| ---------------------- | ----------------------------------------- | ----------------------------------------- |
+| Platform Landing       | `/`                                       | Main landing page with features & pricing |
+| Features Page          | `/features`                               | Detailed platform features showcase       |
+| Pricing Page           | `/pricing`                                | Subscription plans & pricing details      |
+| About Page             | `/about`                                  | Team information & project details        |
+| Platform Login         | `/login`                                  | Platform owner authentication             |
+| Platform Signup        | `/signup`                                 | Multi-step registration with payment      |
+| Platform Dashboard     | `/dashboard`                              | Owner dashboard with team management      |
+| AI Resume Scorer       | `/ai-tools/resume-scorer`                 | Upload resumes → AI-powered scoring       |
+| AI Interview Assistant | `/ai-tools/interview`                     | Generate questions & analyze responses    |
+| Tenant Landing         | `/tenant`                                 | Tenant organization homepage              |
+| Tenant Login           | `/tenant/login`                           | Employee/Recruiter authentication         |
+| Recruiter Dashboard    | `/tenant/recruiter-portal/dashboard`      | Recruitment metrics & analytics           |
+| Jobs Management        | `/tenant/recruiter-portal/jobs`           | Create & manage job postings              |
+| Candidates Management  | `/tenant/recruiter-portal/candidates`     | Track & evaluate candidates               |
+| Interviews Management  | `/tenant/recruiter-portal/interviews`     | Schedule & manage interviews              |
+| Offers Management      | `/tenant/recruiter-portal/offers`         | Create & send job offers                  |
+| Resume Scoring Tool    | `/tenant/recruiter-portal/resume-scoring` | Bulk resume analysis for recruiters       |
+| Employee Portal        | `/tenant/employee-portal`                 | Company announcements & updates           |
+| Employee Profile       | `/tenant/employee-portal/profile`         | Personal & professional information       |
+| Team Directory         | `/tenant/employee-portal/team`            | Organization team members                 |
+| Company Policies       | `/tenant/employee-portal/policies`        | HR policies & documents                   |
+| Support System         | `/tenant/employee-portal/support`         | Submit & track support tickets            |
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧠 Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Next.js 15.5.4 (App Router with Turbopack)**
+- **React 19.1.0**
+- **TypeScript 5**
+- **Tailwind CSS 4**
+- **Shadcn/ui Components (Radix UI)**
+- **React Hook Form + Zod Validation**
+- **Framer Motion** (Animations)
+- **Recharts** (Analytics & Charts)
+- **Lucide Icons**
+- **next-themes** (Dark Mode)
+- **Razorpay** (Payment Integration)
+- **Sonner** (Toast Notifications)
+- Mock JSON data for development (API-ready architecture)
+
+---
+
+## 🔢 Folder Structure
+
+```
+client/
+├── README.md
+├── package.json
+├── pnpm-lock.yaml
+├── next.config.ts
+├── tsconfig.json
+├── tailwind.config.ts
+├── components.json
+├── .env.local.example
+├── public/
+│   └── assets/
+│       ├── images/
+│       └── logos/
+└── src/
+    ├── app/
+    │   ├── layout.tsx
+    │   ├── page.tsx
+    │   ├── globals.css
+    │   ├── (platform)/              # Platform routes
+    │   │   ├── page.tsx             # Landing page
+    │   │   ├── login/
+    │   │   ├── signup/
+    │   │   ├── dashboard/
+    │   │   ├── features/
+    │   │   ├── pricing/
+    │   │   ├── about/
+    │   │   └── ai-tools/
+    │   │       ├── resume-scorer/
+    │   │       └── interview/
+    │   ├── tenant/                  # Tenant routes
+    │   │   ├── page.tsx
+    │   │   ├── login/
+    │   │   ├── signup/
+    │   │   ├── employee-portal/
+    │   │   │   ├── page.tsx         # Announcements
+    │   │   │   ├── profile/
+    │   │   │   ├── team/
+    │   │   │   ├── policies/
+    │   │   │   └── support/
+    │   │   └── recruiter-portal/
+    │   │       ├── dashboard/
+    │   │       ├── jobs/
+    │   │       ├── candidates/
+    │   │       ├── interviews/
+    │   │       ├── offers/
+    │   │       └── resume-scoring/
+    │   └── api/                     # API routes
+    ├── components/
+    │   ├── ui/                      # Shadcn components
+    │   ├── (platform)/              # Platform components
+    │   ├── tenant/                  # Tenant components
+    │   ├── auth/                    # Auth components
+    │   └── ai/                      # AI feature components
+    ├── lib/
+    │   ├── api.ts
+    │   ├── auth.ts
+    │   ├── utils.ts
+    │   ├── razorpay.ts
+    │   └── validations/
+    ├── providers/                   # React Context providers
+    │   ├── auth-provider.tsx
+    │   ├── tenant-provider.tsx
+    │   ├── tenant-auth-provider.tsx
+    │   └── theme-provider.tsx
+    ├── hooks/                       # Custom hooks
+    └── data/
+        └── tenant/                  # Mock JSON data
+```
+
+---
+
+## 🧪 Notes
+
+- **This is a static prototype.** No database or API integration yet.
+- Use Chrome or Edge for best rendering.
+- Designed for desktop view (1280 px width) and responsive up to tablet.
+- Next milestone (M4) will connect to the FastAPI backend and GenAI APIs.
+
+---
+
+## 👥 Team Details
+
+| Member     | Role                                     |
+| ---------- | ---------------------------------------- |
+| Aayansh    | Backend Developer (FastAPI)              |
+| Sandesh    | Frontend Developer (UI Design & Routing) |
+| Abhishek   | Frontend Developer (Components & Layout) |
+| Mayank     | Team Lead                                |
+| Rishabh    | GenAI Integration                        |
+| Achal Deep | Code Manager                             |
+| Shreyas    | AI/ML Developer                          |
+| Raghav Rao | Tester                                   |
+
+---
+
+### ✅ End of README
+
+**Submitted for Milestone 3 – Scheduling & Design**  
+_IIT Madras BS in Data Science and Applications – Software Engineering Project (SEP 2025)_

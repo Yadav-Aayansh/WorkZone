@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
+// import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { RecruiterPortalLayout } from "@/components/tenant/recruiter-portal-layout";
 import {
   Card,
@@ -615,10 +615,8 @@ function ResumeScoringContent() {
 
 export default function ResumeScoringPage() {
   return (
-    <TenantProtectedRoute allowedRoles={["recruiter"]}>
-      <RecruiterPortalLayout>
-        <ResumeScoringContent />
-      </RecruiterPortalLayout>
-    </TenantProtectedRoute>
+    <RecruiterPortalLayout>
+      <ResumeScoringContent />
+    </RecruiterPortalLayout>
   );
 }

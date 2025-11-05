@@ -12,8 +12,8 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { SignupData } from "@/app/(platform)/(auth)/signup/page";
 import { Logo } from "@/components/logo";
-import { authAPI, APIError } from "@/lib/api";
-import { useAuth } from "@/providers/auth-provider";
+// import { authAPI, APIError } from "@/lib/api";
+// import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 
 const accountSchema = z
@@ -48,7 +48,7 @@ export default function AccountCreation({
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
-  const { login } = useAuth();
+  // const { login } = useAuth();
   const { showToast } = useToast();
 
   const {
@@ -69,16 +69,8 @@ export default function AccountCreation({
     setIsLoading(true);
     setError("");
 
-    try {
-      const response = await authAPI.signup({
-        name: data.fullName,
-        email: data.email,
-        password: data.password,
-      });
-
-      // Store tokens and update auth state
-      login(response);
-
+    // MOCK: No backend call - accept any credentials for peer review
+    setTimeout(() => {
       showToast({
         type: "success",
         title: "Account created successfully!",
@@ -87,26 +79,8 @@ export default function AccountCreation({
 
       // Pass data to next step
       onNext(data);
-    } catch (err) {
-      if (err instanceof APIError) {
-        setError(err.message);
-        showToast({
-          type: "error",
-          title: "Signup failed",
-          message: err.message,
-        });
-      } else {
-        const errorMessage = "An unexpected error occurred. Please try again.";
-        setError(errorMessage);
-        showToast({
-          type: "error",
-          title: "Signup failed",
-          message: errorMessage,
-        });
-      }
-    } finally {
       setIsLoading(false);
-    }
+    }, 500);
   };
 
   return (

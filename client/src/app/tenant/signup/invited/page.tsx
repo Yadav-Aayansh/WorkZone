@@ -8,7 +8,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTenant } from "@/providers/tenant-provider";
 import { useTenantAuth } from "@/providers/tenant-auth-provider";
-import { tenantAuthAPI, extractUserDataFromToken } from "@/lib/api/tenant";
+// import { tenantAuthAPI, extractUserDataFromToken } from "@/lib/api/tenant";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +28,7 @@ function TenantInvitedSignupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { tenant, isLoading: tenantLoading } = useTenant();
-  const { login: setAuthState, redirectAfterAuth } = useTenantAuth();
+  const { redirectAfterAuth } = useTenantAuth();
 
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
   const [invitedEmail, setInvitedEmail] = useState<string | null>(null);
@@ -112,39 +112,14 @@ function TenantInvitedSignupContent() {
 
     setIsSubmitting(true);
 
-    try {
-      // Call backend invited signup API
-      const response = await tenantAuthAPI.signupInvited({
-        token: invitationToken,
-        password: formData.password,
-      });
+    // MOCK: No backend call - accept any invited signup for peer review
+    setTimeout(() => {
+      console.log("Mock invited signup success");
 
-      // Extract user data from JWT token
-      const userData = extractUserDataFromToken(response.access_token);
-
-      if (!userData) {
-        throw new Error("Failed to extract user data from token");
-      }
-
-      // Set auth state in TenantAuthProvider
-      await setAuthState({
-        access_token: response.access_token,
-        refresh_token: response.refresh_token,
-        role: userData.role,
-        user_id: userData.userId,
-      });
-
-      // Redirect based on user role
-      redirectAfterAuth(userData.role);
-    } catch (err: any) {
-      console.error("Invited signup error:", err);
-      setError(
-        err.message ||
-          "Failed to complete signup. Your invitation may have expired."
-      );
-    } finally {
+      // Redirect to employee portal (typical invited user)
+      redirectAfterAuth("employee");
       setIsSubmitting(false);
-    }
+    }, 500);
   };
 
   // Show loading while tenant data is being fetched or token is being decoded

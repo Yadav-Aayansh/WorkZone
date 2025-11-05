@@ -7,8 +7,10 @@ import React, {
   useState,
   useCallback,
 } from "react";
-import { tenantAuthAPI } from "@/lib/api";
+// import { tenantAuthAPI } from "@/lib/api";
 import { useRouter } from "next/navigation";
+
+// MOCK VERSION FOR PEER REVIEW - No backend required
 
 // Tenant auth state interface
 export interface TenantAuthState {
@@ -64,64 +66,18 @@ export function TenantAuthProvider({ children }: TenantAuthProviderProps) {
 
   const router = useRouter();
 
-  // Initialize auth state on mount
+  // Initialize auth state - MOCK version always returns authenticated
   useEffect(() => {
-    let mounted = true;
-
-    const initializeAuth = async () => {
-      try {
-        if (typeof window === "undefined") return;
-
-        const tokens = tenantAuthAPI.getTokens();
-        const userRole = localStorage.getItem("tenant_user_role");
-        const userId = localStorage.getItem("tenant_user_id");
-
-        if (!tokens.accessToken) {
-          // No tokens found
-          if (mounted) {
-            setAuthState({
-              isAuthenticated: false,
-              accessToken: null,
-              refreshToken: null,
-              userRole: null,
-              userId: null,
-              isLoading: false,
-              isInitialized: true,
-            });
-          }
-          return;
-        }
-
-        // Tokens found - assume authenticated
-        if (mounted) {
-          setAuthState({
-            isAuthenticated: true,
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken,
-            userRole,
-            userId,
-            isLoading: false,
-            isInitialized: true,
-          });
-        }
-      } catch (error) {
-        console.error("Tenant auth initialization error:", error);
-
-        if (mounted) {
-          setAuthState((prev) => ({
-            ...prev,
-            isLoading: false,
-            isInitialized: true,
-          }));
-        }
-      }
-    };
-
-    initializeAuth();
-
-    return () => {
-      mounted = false;
-    };
+    // Mock authenticated state for peer review as recruiter
+    setAuthState({
+      isAuthenticated: true,
+      accessToken: "mock-tenant-access-token",
+      refreshToken: "mock-tenant-refresh-token",
+      userRole: "recruiter", // Default role for demo
+      userId: "mock-user-123",
+      isLoading: false,
+      isInitialized: true,
+    });
   }, []);
 
   const login = useCallback(
@@ -131,78 +87,21 @@ export function TenantAuthProvider({ children }: TenantAuthProviderProps) {
       role?: string;
       user_id?: string;
     }) => {
-      // Store tenant tokens (separate from platform tokens)
-      tenantAuthAPI.setTokens(tokens.access_token, tokens.refresh_token);
-
-      // Store additional user info
-      if (tokens.role) {
-        localStorage.setItem("tenant_user_role", tokens.role);
-      }
-      if (tokens.user_id) {
-        localStorage.setItem("tenant_user_id", tokens.user_id);
-      }
-
-      setAuthState({
-        isAuthenticated: true,
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-        userRole: tokens.role || null,
-        userId: tokens.user_id || null,
-        isLoading: false,
-        isInitialized: true,
-      });
+      // Mock login - just log
+      console.log("Mock tenant login", tokens);
     },
     []
   );
 
   const logout = useCallback(async () => {
-    try {
-      await tenantAuthAPI.logout();
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-
-    // Clear tenant user info
-    localStorage.removeItem("tenant_user_role");
-    localStorage.removeItem("tenant_user_id");
-
-    setAuthState({
-      isAuthenticated: false,
-      accessToken: null,
-      refreshToken: null,
-      userRole: null,
-      userId: null,
-      isLoading: false,
-      isInitialized: true,
-    });
-
-    // Redirect to tenant login page
-    router.push("/login");
-  }, [router]);
+    // Mock logout - no backend call, stay authenticated
+    console.log("Mock tenant logout - staying authenticated for peer review");
+  }, []);
 
   const refreshAuth = useCallback(async (): Promise<boolean> => {
-    try {
-      const refreshResponse = await tenantAuthAPI.refreshToken();
-
-      // Update tokens
-      tenantAuthAPI.setTokens(
-        refreshResponse.access_token,
-        refreshResponse.refresh_token
-      );
-
-      setAuthState((prev) => ({
-        ...prev,
-        accessToken: refreshResponse.access_token,
-        refreshToken: refreshResponse.refresh_token,
-      }));
-
-      return true;
-    } catch (error) {
-      console.error("Token refresh failed:", error);
-      await logout();
-      return false;
-    }
-  }, [logout]);
+    // Mock refresh - always succeeds
+    return true;
+  }, []);
 
   const redirectAfterAuth = useCallback(
     (role: string) => {
@@ -244,12 +143,50 @@ export function TenantAuthProvider({ children }: TenantAuthProviderProps) {
 
 /**
  * Hook to access tenant auth context
- * Must be used within TenantAuthProvider
+ * MOCK: Returns default authenticated state if used outside provider (for peer review)
  */
-export function useTenantAuth() {
+export function useTenantAuth(): TenantAuthContextType {
   const context = useContext(TenantAuthContext);
+  const router = useRouter();
+
+  // MOCK: Return default authenticated state if used outside provider (for peer review)
   if (context === undefined) {
-    throw new Error("useTenantAuth must be used within TenantAuthProvider");
+    console.warn(
+      "useTenantAuth used outside TenantAuthProvider - returning mock data for peer review"
+    );
+
+    return {
+      isAuthenticated: true,
+      accessToken: "mock-tenant-access-token",
+      refreshToken: "mock-tenant-refresh-token",
+      userRole: "recruiter",
+      userId: "mock-user-123",
+      isLoading: false,
+      isInitialized: true,
+      login: async () => {},
+      logout: async () => {},
+      refreshAuth: async () => true,
+      redirectAfterAuth: (role: string) => {
+        switch (role?.toLowerCase()) {
+          case "employee":
+            router.push("/employee-portal");
+            break;
+          case "manager":
+            router.push("/manager-portal");
+            break;
+          case "recruiter":
+            router.push("/recruiter-portal");
+            break;
+          case "applicant":
+            router.push("/careers");
+            break;
+          default:
+            router.push("/");
+            break;
+        }
+      },
+    };
   }
+
   return context;
 }

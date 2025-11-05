@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
+// import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { RecruiterPortalLayout } from "@/components/tenant/recruiter-portal-layout";
 import {
   Card,
@@ -60,7 +60,7 @@ function CreateOfferContent() {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Candidate Not Found</h2>
           <p className="text-muted-foreground mb-4">
-            The candidate you're trying to create an offer for doesn't exist.
+            The candidate you&#39;re trying to create an offer for doesn&#39;t exist.
           </p>
           <Button
             onClick={() => router.push("/tenant/recruiter-portal/offers")}
@@ -544,10 +544,8 @@ function CreateOfferContent() {
 
 export default function CreateOfferPage() {
   return (
-    <TenantProtectedRoute allowedRoles={["recruiter"]}>
-      <RecruiterPortalLayout>
-        <CreateOfferContent />
-      </RecruiterPortalLayout>
-    </TenantProtectedRoute>
+    <RecruiterPortalLayout>
+      <CreateOfferContent />
+    </RecruiterPortalLayout>
   );
 }
