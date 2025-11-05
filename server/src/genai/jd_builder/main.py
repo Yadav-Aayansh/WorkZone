@@ -12,7 +12,6 @@ The user will provide a short prompt. You will generate a full JD in Markdown fo
 2.  **Professional Tone:** The tone should be {tone}.
 3.  **Inclusive Language:** Use clear, professional, and inclusive language. Avoid all corporate jargon, clichés, or biased terms ('rockstar', 'ninja', 'hacker', 'work hard play hard').
 4.  **Infer Details:** Infer logical responsibilities and skills based on the user's prompt. For example, a "Senior Python Developer" likely needs "mentoring junior developers," "code reviews," and "architectural design."
-5.  **Placeholders:** Use placeholders for company-specific info, like `[Company Name]` (or the one provided), `[About Us section]`, and `[benefits details]`.
 
 **REQUIRED SECTIONS (in this order):**
 - `# [Job Title]`
@@ -35,13 +34,11 @@ def generate_jd(prompt_data: JDBuilderPrompt) -> GeneratedJD:
 
     company_name = prompt_data.company_name or "[Company Name]"
 
-    # Format the system prompt with the desired tone and company name
     system_prompt = _SYSTEM_PROMPT.format(
         tone=prompt_data.tone, 
         company_name=company_name
     )
 
-    # Combine the system prompt and the user's simple prompt
     full_prompt = f"{system_prompt}\n\n**User Prompt:**\n\"{prompt_data.prompt}\""
     
     print("Generating JD... (This may take a moment)")
@@ -52,25 +49,3 @@ def generate_jd(prompt_data: JDBuilderPrompt) -> GeneratedJD:
         return GeneratedJD(markdown_text=markdown_output)
 
     return GeneratedJD(markdown_text=markdown_output)
-
-if __name__ == '__main__':
-    from src.core.config import Config
-
-    if not Config.GOOGLE_API_KEY:
-        print("!!! Skipping JD Builder test: GOOGLE_API_KEY not found in .env file.")
-    else:
-        print("--- Running JD Builder Test ---")
-        
-        # 1. Define the user's simple prompt
-        user_input = JDBuilderPrompt(
-            prompt="Senior Python Developer for a fintech startup. 5+ years experience. Needs to know Django, PostgreSQL, and AWS."
-        )
-        
-        # 2. Generate the JD
-        generated_jd = generate_jd(user_input)
-        
-        # 3. Print the result
-        print("\n" + "="*50)
-        print("     GENERATED JOB DESCRIPTION")
-        print("="*50 + "\n")
-        print(generated_jd.markdown_text)
