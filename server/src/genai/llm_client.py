@@ -8,7 +8,9 @@ class LLMClient:
     def __init__(self):
         self.api_key = Config.GOOGLE_API_KEY if hasattr(Config, 'GOOGLE_API_KEY') else None
         self.model_name = "gemini-2.5-flash"    # use this model for fast responses gemini-2.0-flash-exp 
+        self.pro_model_name = "gemini-2.5-pro"  # use this model for complex tasks like question generation
         self.text_model = None
+        self.pro_model = None
         self.embedding_model_name = "models/text-embedding-004"
         
         if not self.api_key:
@@ -19,14 +21,17 @@ class LLMClient:
             # Configure Google AI SDK
             genai.configure(api_key=self.api_key)
             self.text_model = genai.GenerativeModel(self.model_name)
-            print(f"✓ LLM Client initialized successfully ({self.model_name})")
+            self.pro_model = genai.GenerativeModel(self.pro_model_name)
+            print(f"✓ LLM Client initialized successfully ({self.model_name}, {self.pro_model_name})")
         except Exception as e:
             print(f"!!! ERROR: Failed to configure Google AI SDK: {e}")
     
     
-    def call_llm(self, messages: List[Dict], temperature: float = 0.7) -> str:
+    def call_llm(self, messages: List[Dict], temperature: float = 0.7, use_pro: bool = False) -> str:
 
-        if not self.text_model:
+        model = self.pro_model if use_pro else self.text_model
+        
+        if not model:
             raise Exception("LLM model not initialized. Check GEMINI_API_KEY.")
         
         try:
@@ -72,13 +77,13 @@ class LLMClient:
             # Handle single-turn vs multi-turn
             if not chat_history:
                 # Single-turn conversation (most common in HR interview)
-                response = self.text_model.generate_content(
+                response = model.generate_content(
                     final_user_message,
                     generation_config=generation_config
                 )
             else:
                 # Multi-turn conversation with history
-                chat = self.text_model.start_chat(history=chat_history)
+                chat = model.start_chat(history=chat_history)
                 response = chat.send_message(
                     final_user_message,
                     generation_config=generation_config

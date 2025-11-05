@@ -41,7 +41,7 @@ Return ONLY a JSON array:
     ]
     
     try:
-        response = llm_client.call_llm(messages, temperature=0.7)
+        response = llm_client.call_llm(messages, temperature=0.7, use_pro=True)
         
         # Extract JSON from response
         start = response.find('[')
@@ -110,7 +110,7 @@ Return ONLY the question, nothing else."""
     ]
     
     try:
-        followup = llm_client.call_llm(messages, temperature=0.6)
+        followup = llm_client.call_llm(messages, temperature=0.6, use_pro=True)
         followup = clean_text_for_speech(followup)
         return followup.strip() if followup else None
     except:
