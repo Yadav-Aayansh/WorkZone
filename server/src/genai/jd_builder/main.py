@@ -25,7 +25,7 @@ The user will provide a short prompt. You will generate a full JD in Markdown fo
     - `[Insert the company's standard DEI statement here. Example: "{company_name} is an equal opportunity employer. We celebrate diversity and are committed to creating an inclusive environment for all employees."]`
 """
 
-def generate_jd(prompt_data: JDBuilderPrompt) -> GeneratedJD:
+async def generate_jd(prompt_data: JDBuilderPrompt) -> GeneratedJD:
     
     if not llm_client.text_model:
         return GeneratedJD(markdown_text="Error: LLM client not initialized. Please check API key.")
@@ -41,7 +41,7 @@ def generate_jd(prompt_data: JDBuilderPrompt) -> GeneratedJD:
     
     print("Generating JD... (This may take a moment)")
     
-    markdown_output = llm_client.generate_text(full_prompt)
+    markdown_output = await llm_client.generate_text_async(full_prompt)
     
     if "Error:" in markdown_output:
         return GeneratedJD(markdown_text=markdown_output)
