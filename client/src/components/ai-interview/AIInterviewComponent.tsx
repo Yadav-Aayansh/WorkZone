@@ -12,6 +12,21 @@ interface AIInterviewProps {
   interviewId: string;
 }
 
+/**
+ * Validates that a URL is from a trusted source (Google Cloud Storage)
+ * @param url - The URL to validate
+ * @returns true if URL is from a trusted source, false otherwise
+ */
+function isTrustedUrl(url: string): boolean {
+  try {
+    const urlObj = new URL(url);
+    // Allow only HTTPS URLs from googleapis.com (Google Cloud Storage)
+    return urlObj.protocol === 'https:' && urlObj.hostname.endsWith('googleapis.com');
+  } catch {
+    return false;
+  }
+}
+
 export function AIInterviewComponent({ interviewId }: AIInterviewProps) {
   const [currentAnswer, setCurrentAnswer] = useState('');
   const [interviewComplete, setInterviewComplete] = useState(false);
@@ -104,7 +119,7 @@ export function AIInterviewComponent({ interviewId }: AIInterviewProps) {
             </div>
           )}
           
-          {completionData.report_url && (
+          {completionData.report_url && isTrustedUrl(completionData.report_url) && (
             <a
               href={completionData.report_url}
               target="_blank"
@@ -113,6 +128,12 @@ export function AIInterviewComponent({ interviewId }: AIInterviewProps) {
             >
               Download Interview Report
             </a>
+          )}
+          
+          {completionData.report_url && !isTrustedUrl(completionData.report_url) && (
+            <p className="text-red-600 text-sm">
+              Report URL is not from a trusted source and cannot be displayed.
+            </p>
           )}
         </div>
       </div>
@@ -157,7 +178,7 @@ export function AIInterviewComponent({ interviewId }: AIInterviewProps) {
           </div>
 
           {/* Audio Player */}
-          {currentQuestion.question_audio_url && (
+          {currentQuestion.question_audio_url && isTrustedUrl(currentQuestion.question_audio_url) && (
             <div className="mb-4">
               <audio controls src={currentQuestion.question_audio_url} className="w-full">
                 Your browser does not support the audio element.
