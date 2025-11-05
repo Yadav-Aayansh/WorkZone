@@ -19,8 +19,6 @@ The user will provide a short prompt. You will generate a full JD in Markdown fo
 - `## Key Responsibilities` (A bulleted list)
 - `## Required Qualifications (Must-Haves)` (A bulleted list of essential skills)
 - `## Preferred Qualifications (Nice-to-Haves)` (A bulleted list of non-essential skills)
-- `## Benefits`
-    - `[Provide a brief list of key benefits, e.g., Health insurance, 401(k), Remote work options. Link to a full benefits page if available.]`
 - `## About {company_name}`
     - `[This is a placeholder for the company boilerplate. Describe the company's mission and culture.]`
 - `## Diversity, Equity, and Inclusion Statement`
