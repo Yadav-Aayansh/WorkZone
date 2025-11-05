@@ -84,9 +84,25 @@ export function useAIInterviewWebSocket(options: UseAIInterviewWebSocketOptions)
     if (!interviewId) return;
 
     // Construct WebSocket URL
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = process.env.NEXT_PUBLIC_API_URL || window.location.host;
-    const wsUrl = `${protocol}//${host}/api/tenant/ai-interview/ws/${interviewId}`;
+    let wsUrl: string;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    
+    if (apiUrl) {
+      // Parse API URL to extract host and protocol
+      try {
+        const url = new URL(apiUrl);
+        const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+        wsUrl = `${wsProtocol}//${url.host}/api/tenant/ai-interview/ws/${interviewId}`;
+      } catch {
+        // Fallback if API_URL is malformed
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        wsUrl = `${protocol}//${window.location.host}/api/tenant/ai-interview/ws/${interviewId}`;
+      }
+    } else {
+      // Use current location as fallback
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsUrl = `${protocol}//${window.location.host}/api/tenant/ai-interview/ws/${interviewId}`;
+    }
 
     // Create WebSocket connection
     const ws = new WebSocket(wsUrl);

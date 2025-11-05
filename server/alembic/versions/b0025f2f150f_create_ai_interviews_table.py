@@ -45,4 +45,6 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     op.drop_table('ai_interviews')
-    op.execute('DROP TYPE interviewstatus')
+    # Note: The enum type 'interviewstatus' is not dropped to avoid breaking
+    # other potential dependencies. If you need to drop it, ensure no other
+    # tables reference it first.

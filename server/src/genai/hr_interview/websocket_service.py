@@ -5,7 +5,7 @@ Handles real-time interview communication via WebSocket
 
 import asyncio
 import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Dict, Optional
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -34,6 +34,9 @@ from src.core.storage import storage_client
 
 
 # In-memory session storage (replace with Redis in production)
+# TODO: Implement proper session cleanup and use Redis for production
+# Current limitation: Sessions persist in memory until server restart
+# For production: Use Redis with TTL for automatic cleanup and multi-instance support
 active_ws_sessions: Dict[str, SessionData] = {}
 active_connections: Dict[str, WebSocket] = {}
 
@@ -265,12 +268,12 @@ async def handle_websocket_session(
         await send_question(websocket, session_data, 0)
         
         # Set timeout
-        start_time = datetime.now()
+        start_time = get_indian_time()
         
         # Listen for messages
         while True:
             # Check timeout (30 minutes)
-            if datetime.now() - start_time > SESSION_TIMEOUT:
+            if get_indian_time() - start_time > SESSION_TIMEOUT:
                 timeout_msg = WSStatusMessage(
                     type="status",
                     status="Interview timeout - 30 minutes exceeded",
