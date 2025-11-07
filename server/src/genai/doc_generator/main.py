@@ -112,3 +112,54 @@ def _generate_policy_update_email(data: PolicyUpdateData) -> str:
     6.  A closing from "The {data.company_name} HR Team".
     """
     return llm_client.generate_text(prompt)
+
+
+# --- Test Block ---
+if __name__ == '__main__':
+    if not Config.GOOGLE_API_KEY:
+        print("!!! Skipping Document Generator test: GOOGLE_API_KEY not found in .env file.")
+    else:
+        print("\n" + "="*50)
+        print("     1. TESTING OFFER LETTER")
+        print("="*50 + "\n")
+        
+        # 1. Test Offer Letter
+        offer_data = OfferLetterData(
+            candidate_name="Shreyas Jani",
+            company_name="HRM Solutions Inc.",
+            position="Senior GenAI Developer",
+            salary="₹35,00,000 per annum",
+            start_date="December 1, 2025"
+        )
+        offer_email = generate_document(offer_data)
+        print(offer_email.html_content)
+
+        print("\n" + "="*50)
+        print("     2. TESTING REJECTION LETTER")
+        print("="*50 + "\n")
+
+        # 2. Test Rejection Letter
+        rejection_data = RejectionLetterData(
+            candidate_name="Alex Johnson",
+            company_name="HRM Solutions Inc.",
+            position="Junior Backend Developer"
+        )
+        rejection_email = generate_document(rejection_data)
+        print(rejection_email.html_content)
+
+        print("\n" + "="*50)
+        print("     3. TESTING POLICY UPDATE")
+        print("="*50 + "\n")
+
+        # 3. Test Policy Update
+        policy_data = PolicyUpdateData(
+            policy_name="Remote Work Policy",
+            policy_changes="""
+- All employees are now eligible for 2 remote work days per week, effective immediately.
+- A new 'Remote Work Request' form must be submitted to your manager 48 hours in advance.
+- The quarterly 'In-Office Week' has been discontinued.
+""",
+            company_name="HRM Solutions Inc."
+        )
+        policy_email = generate_document(policy_data)
+        print(policy_email.html_content)
