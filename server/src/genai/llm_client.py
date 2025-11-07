@@ -142,6 +142,14 @@ class LLMClient:
 llm_client = LLMClient()
 
 
+
+
+
+
+
+
+
+
 # Testing the module
 if __name__ == "__main__":
     print("Testing Unified SDK-Based LLM Client")
@@ -203,7 +211,7 @@ if __name__ == "__main__":
         print("\n[Test 4] Backward Compatible Function")
         print("-" * 70)
         try:
-            response = call_llm(test_messages, temperature=0.3)
+            response = llm_client.call_llm(test_messages, temperature=0.3)
             print(f"✓ Response: {response}")
             print("✓ Existing HR interview code will work without changes!")
         except Exception as e:

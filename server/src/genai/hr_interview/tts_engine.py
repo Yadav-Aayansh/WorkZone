@@ -24,7 +24,6 @@ GOOGLE_LANGUAGE_CODE = "en-IN"
 
 
 def initialize_tts_client():
-    """Initialize Google Cloud TTS client"""
     if not TTS_AVAILABLE:
         return None
     
@@ -58,7 +57,7 @@ def initialize_tts_client():
 tts_client = initialize_tts_client()
 
 
-def text_to_speech(text: str, session_id: str, question_index: int) -> str:
+async def text_to_speech(text: str, session_id: str, question_index: int) -> str:
     if not tts_client:
         raise Exception(
             "Google Cloud TTS not configured. Set GOOGLE_APPLICATION_CREDENTIALS"
@@ -118,34 +117,3 @@ def text_to_speech(text: str, session_id: str, question_index: int) -> str:
     
     except Exception as e:
         raise Exception(f"TTS error: {str(e)}")
-
-
-# Testing the module
-
-if __name__ == "__main__":
-    print("Testing Text-to-Speech Module")
-    print("=" * 60)
-    
-    if not TTS_AVAILABLE:
-        print("✗ Google Cloud TTS library not installed")
-        print("Install with: pip install google-cloud-texttospeech")
-    elif not tts_client:
-        print("✗ Google Cloud TTS not configured")
-        print("Set GOOGLE_APPLICATION_CREDENTIALS environment variable")
-    else:
-        print("✓ TTS Client initialized")
-        
-        # Test conversion
-        test_text = "Testing TTS engine with storage integration"
-        test_session = "test_session_123"
-        test_q_index = 0
-        
-        try:
-            signed_url = text_to_speech(test_text, test_session, test_q_index)
-            print(f"✓ Audio generated and uploaded successfully")
-            print(f"  Signed URL: {signed_url}")
-            print(f"  Voice: {GOOGLE_VOICE_NAME}")
-            print(f"  Language: {GOOGLE_LANGUAGE_CODE}")
-        except Exception as e:
-            print(f"✗ Error: {e}")
-
