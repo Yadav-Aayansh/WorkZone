@@ -19,71 +19,84 @@ import { cn } from "@/lib/utils";
 
 const pricingPlans = [
   {
-    name: "Starter",
-    description: "Perfect for small teams getting started",
-    price: "Free",
-    period: "forever",
-    icon: Zap,
+    name: "3 Months",
+    description: "Perfect for getting started",
+    price: "₹29,999",
+    period: "for 3 months",
+    icon: Sparkles,
     popular: false,
     features: [
-      "Up to 10 employees",
-      "Basic job posting",
-      "Employee self-service portal",
-      "Leave management",
-      "Basic analytics",
-      "Email support",
-      "1 GB storage",
-    ],
-    cta: "Get Started",
-    href: "/(auth)/register",
-    color: "blue",
-  },
-  {
-    name: "Professional",
-    description: "Best for growing companies",
-    price: "$49",
-    period: "per month",
-    icon: Sparkles,
-    popular: true,
-    features: [
-      "Up to 100 employees",
+      "Unlimited employees",
       "AI-powered resume screening",
       "Automated interview scheduling",
       "Performance management",
       "Advanced analytics & reports",
       "Document generation",
-      "Priority support",
-      "50 GB storage",
+      "Leave management",
+      "Employee self-service portal",
       "Custom branding",
+      "Email support",
+      "50 GB storage",
+    ],
+    cta: "Get Started",
+    href: "/(auth)/signup",
+    color: "blue",
+  },
+  {
+    name: "6 Months",
+    description: "Best value for growing companies",
+    price: "₹49,999",
+    period: "for 6 months",
+    originalPrice: "₹59,999",
+    discount: "Save 17%",
+    icon: Zap,
+    popular: true,
+    features: [
+      "Unlimited employees",
+      "AI-powered resume screening",
+      "Automated interview scheduling",
+      "Performance management",
+      "Advanced analytics & reports",
+      "Document generation",
+      "Leave management",
+      "Employee self-service portal",
+      "Custom branding",
+      "Priority support",
+      "100 GB storage",
       "API access",
     ],
-    cta: "Start Free Trial",
-    href: "/(auth)/register",
+    cta: "Get Started",
+    href: "/(auth)/signup",
     color: "purple",
   },
   {
-    name: "Enterprise",
-    description: "Advanced features for large organizations",
-    price: "Custom",
-    period: "contact sales",
+    name: "1 Year",
+    description: "Maximum savings for long-term growth",
+    price: "₹99,999",
+    period: "for 12 months",
+    originalPrice: "₹1,19,999",
+    discount: "Save 17%",
     icon: Rocket,
     popular: false,
     features: [
       "Unlimited employees",
       "Full AI suite (GenAI tools)",
       "AI interview assistant",
+      "Automated interview scheduling",
+      "Performance management",
+      "Advanced analytics & reports",
       "Predictive analytics",
-      "Custom integrations",
-      "Dedicated account manager",
+      "Document generation",
+      "Leave management",
+      "Employee self-service portal",
+      "Custom branding",
       "24/7 premium support",
       "Unlimited storage",
-      "Custom domain mapping",
-      "SSO & advanced security",
-      "Compliance tracking",
-      "White-label option",
+      "API access",
+      "Custom integrations",
     ],
-    cta: "Contact Sales",
-    href: "#contact",
+    cta: "Get Started",
+    href: "/(auth)/signup",
     color: "pink",
   },
 ];
@@ -130,6 +143,14 @@ export const PricingCards = () => {
                   </div>
                 )}
 
+                {plan.discount && !plan.popular && (
+                  <div className="absolute -top-4 left-0 right-0 flex justify-center">
+                    <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white border-0">
+                      {plan.discount}
+                    </Badge>
+                  </div>
+                )}
+
                 <CardHeader className="text-center pb-8">
                   <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
                     <Icon className={cn("h-8 w-8", iconColor)} />
@@ -142,13 +163,17 @@ export const PricingCards = () => {
 
                 <CardContent className="flex-1">
                   <div className="mb-8 text-center">
+                    {plan.originalPrice && (
+                      <div className="mb-1">
+                        <span className="text-lg text-muted-foreground line-through">
+                          {plan.originalPrice}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-baseline justify-center gap-2">
                       <span className="text-5xl font-bold tracking-tight">
                         {plan.price}
                       </span>
-                      {plan.price !== "Custom" && plan.price !== "Free" && (
-                        <span className="text-muted-foreground">/mo</span>
-                      )}
                     </div>
                     <p className="mt-2 text-sm text-muted-foreground">
                       {plan.period}

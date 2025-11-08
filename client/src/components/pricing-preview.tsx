@@ -17,43 +17,39 @@ import { cn } from "@/lib/utils";
 
 const featuredPlans = [
   {
-    name: "Starter",
-    description: "Perfect for small teams",
-    price: "Free",
-    period: "forever",
-    icon: Zap,
+    name: "3 Months",
+    description: "Perfect for getting started",
+    price: "₹29,999",
+    period: "for 3 months",
+    icon: Sparkles,
     popular: false,
-    features: ["Up to 10 employees", "Basic job posting", "Leave management"],
+    features: ["Unlimited employees", "All AI features", "Email support"],
     cta: "Get Started",
     href: "/signup",
     color: "blue",
   },
   {
-    name: "Professional",
-    description: "Best for growing companies",
-    price: "$49",
-    period: "per month",
-    icon: Sparkles,
+    name: "6 Months",
+    description: "Best value for growing companies",
+    price: "₹49,999",
+    period: "for 6 months",
+    icon: Zap,
     popular: true,
-    features: [
-      "Up to 100 employees",
-      "AI-powered screening",
-      "Priority support",
-    ],
-    cta: "Start Free Trial",
+    features: ["Unlimited employees", "All AI features", "Priority support"],
+    cta: "Get Started",
     href: "/signup",
     color: "purple",
   },
   {
-    name: "Enterprise",
-    description: "For large organizations",
-    price: "Custom",
-    period: "contact sales",
+    name: "1 Year",
+    description: "Maximum savings",
+    price: "₹99,999",
+    period: "for 12 months",
     icon: Rocket,
     popular: false,
-    features: ["Unlimited employees", "Full AI suite", "24/7 support"],
-    cta: "Contact Sales",
-    href: "/pricing",
+    features: ["Unlimited employees", "All AI features", "24/7 support"],
+    cta: "Get Started",
+    href: "/signup",
     color: "pink",
   },
 ];
@@ -125,11 +121,6 @@ export default function PricingPreview() {
                       <span className="text-3xl md:text-4xl font-bold tracking-tight">
                         {plan.price}
                       </span>
-                      {plan.price !== "Free" && plan.price !== "Custom" && (
-                        <span className="text-muted-foreground text-sm">
-                          /mo
-                        </span>
-                      )}
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {plan.period}

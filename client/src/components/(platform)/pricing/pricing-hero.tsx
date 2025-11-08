@@ -78,8 +78,8 @@ export const PricingHero = () => {
             as="p"
             className="mx-auto mt-6 max-w-3xl text-balance text-lg text-muted-foreground md:text-xl"
           >
-            Scale your HR operations effortlessly with our flexible pricing.
-            Start free, upgrade anytime, and pay only for what you need.
+            All features included in every plan. Choose the duration that works
+            best for your business and unlock unlimited potential.
           </TextEffect>
         </div>
       </div>
