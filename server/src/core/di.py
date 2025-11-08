@@ -39,7 +39,7 @@ def get_workspace_service(db: AsyncSession = Depends(get_public_db)):
     
 security_guard = HTTPBearer()
 
-def get_current_user(use_tenant: bool = False, roles: list[str] | None = None):
+def get_current_user(*, use_tenant: bool = False, roles: list[str] | None = None):
     def dependency(
             credentials: HTTPAuthorizationCredentials = Depends(security_guard),
             tenant_id: str | None = Depends(get_tenant_id) if use_tenant else None

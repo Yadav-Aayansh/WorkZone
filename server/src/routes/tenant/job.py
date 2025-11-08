@@ -9,6 +9,8 @@ from src.models.tenant import Role
 from typing import List
 from src.exceptions.tenant import JobNotFoundError
 from src.exceptions.base import RoleNotAllowedError
+from src.genai.jd_builder.main import generate_jd
+from src.genai.schemas.jd_builder_schemas import JDBuilderPrompt
 
 job_router = APIRouter(tags=["Tenant Job"])
 
@@ -81,3 +83,11 @@ async def delete_job(
         raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+# AI Features
+
+@job_router.post(path="/jobs/ai/enhance-description")
+async def job_description_enhancer(prompt: JDBuilderPrompt):
+    return generate_jd(prompt)
