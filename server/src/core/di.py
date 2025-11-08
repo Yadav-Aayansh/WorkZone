@@ -40,22 +40,30 @@ def get_workspace_service(db: AsyncSession = Depends(get_public_db)):
 security_guard = HTTPBearer()
 
 def get_current_user(*, use_tenant: bool = False, roles: list[str] | None = None):
-    def dependency(
-            credentials: HTTPAuthorizationCredentials = Depends(security_guard),
-            tenant_id: str | None = Depends(get_tenant_id) if use_tenant else None
-    ):
-        if use_tenant:
-            audience = f"{tenant_id}.{Config.DOMAIN_NAME}"
-        else:
-            audience = Config.DOMAIN_NAME
-        payload = decode_token(credentials.credentials, audience)
-        
+    def validate_and_extract_user(payload, roles):
         if roles:
             allowed_roles = [r.value if isinstance(r, Role) else r for r in roles]
             if payload.get("role") not in allowed_roles:
                 raise RoleNotAllowedError("Invalid role!")
         user_context.set(payload.get("sub"))
         return payload
+    
+    if use_tenant:
+        async def dependency(
+            credentials: HTTPAuthorizationCredentials = Depends(security_guard),
+            tenant_id: str = Depends(get_tenant_id)
+        ):
+            audience = f"{tenant_id}.{Config.DOMAIN_NAME}"
+            payload = decode_token(credentials.credentials, audience)
+            return validate_and_extract_user(payload, roles)
+    else:
+        def dependency(
+            credentials: HTTPAuthorizationCredentials = Depends(security_guard)
+        ):
+            audience = Config.DOMAIN_NAME
+            payload = decode_token(credentials.credentials, audience)
+            return validate_and_extract_user(payload, roles)
+
     return dependency
 
 async def get_tenant_id(
