@@ -14,6 +14,9 @@ class ValidationError(AppException):
 class AuthenticationError(AppException):
     pass
 
+class AuthorizationError(AppException):
+    pass
+
 class PaymentError(AppException):
     pass
 
