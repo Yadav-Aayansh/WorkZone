@@ -4,12 +4,13 @@ from .database import get_public_db, get_schema
 from src.repository.platform import ClientRepository, OrderRepository
 from src.repository.tenant import (
     UserRepository, ManagerRepository, RecruiterRepository,
-    EmployeeRepository, ApplicantRepository, JobRepository
+    EmployeeRepository, ApplicantRepository, JobRepository,
+    ApplicationRepository
 )
 from src.services.platform import (
     ClientService, OrderService, WorkspaceService
 )
-from src.services.tenant import UserService, JobService
+from src.services.tenant import UserService, JobService, ApplicationService
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from src.exceptions.base import RoleNotAllowedError
 from .security import decode_token
@@ -94,3 +95,8 @@ async def get_user_service(db: AsyncSession = Depends(get_tenant_db)):
 async def get_job_service(db: AsyncSession = Depends(get_tenant_db)):
     job_repo = JobRepository(db)
     return JobService(job_repo)
+
+async def get_application_service(db: AsyncSession = Depends(get_tenant_db)):
+    job_repo = JobRepository(db)
+    application_repo = ApplicationRepository(db)
+    return ApplicationService(job_repo, application_repo)

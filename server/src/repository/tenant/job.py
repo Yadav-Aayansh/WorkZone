@@ -27,7 +27,7 @@ class JobRepository:
             await self.db.refresh(new_job)
             return new_job
         except Exception as e:
-            self.db.rollback()
+            await self.db.rollback()
             logger.exception(f"Unexpected error creating job: {e}")
             raise
 

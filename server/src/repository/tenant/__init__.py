@@ -4,3 +4,4 @@ from .recruiter import RecruiterRepository
 from .employee import EmployeeRepository
 from .applicant import ApplicantRepository
 from .job import JobRepository
+from .application import ApplicationRepository
