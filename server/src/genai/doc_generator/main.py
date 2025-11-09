@@ -75,6 +75,7 @@ def _generate_rejection_email(data: RejectionLetterData) -> str:
     - Candidate Name: {data.candidate_name}
     - Company Name: {data.company_name}
     - Position: {data.position}
+    - Feedback (if provided): {data.feedback or 'N/A'}
 
     **Content to Generate:**
     1.  A polite opening that thanks the candidate for their time.
@@ -142,7 +143,8 @@ if __name__ == '__main__':
         rejection_data = RejectionLetterData(
             candidate_name="Alex Johnson",
             company_name="HRM Solutions Inc.",
-            position="Junior Backend Developer"
+            position="Junior Backend Developer",
+            feedback="Not enough experience with Java"
         )
         rejection_email = generate_document(rejection_data)
         print(rejection_email.html_content)
