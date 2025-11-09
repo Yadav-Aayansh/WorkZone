@@ -5,7 +5,7 @@ from src.genai.hr_interview.text_cleaner import clean_text_for_speech
 from src.genai.schemas.hr_interview_schemas import InterviewQuestion
 
 
-def generate_interview_questions(
+async def generate_interview_questions(
     jd: str,
     resume: str,
     num_questions: int = 3
@@ -79,7 +79,7 @@ Return ONLY a JSON array:
         ]
 
 
-def generate_followup_question(
+async def generate_followup_question(
     question: str,
     answer: str,
     jd: str
@@ -115,50 +115,3 @@ Return ONLY the question, nothing else."""
         return followup.strip() if followup else None
     except:
         return None
-
-
-# Testing the module
-
-if __name__ == "__main__":
-    print("Testing Question Generator Module (Pydantic)")
-    print("=" * 60)
-    
-    # Test data
-    test_jd = """
-    Software Engineer - Python
-    Required: 3+ years Python, FastAPI, MongoDB
-    Experience with AI/ML is a plus
-    """
-    
-    test_resume = """
-    John Doe - Software Developer
-    5 years experience in Python development
-    Built REST APIs using FastAPI and Flask
-    Worked on ML projects using scikit-learn
-    """
-    
-    print("\n1. Testing Interview Question Generation:")
-    print("-" * 60)
-    try:
-        questions = generate_interview_questions(test_jd, test_resume, num_questions=3)
-        print(f"✓ Generated {len(questions)} questions (Pydantic validated):\n")
-        for i, q in enumerate(questions, 1):
-            print(f"{i}. [{q.type}] {q.question}")
-            print(f"   Focus: {q.focus_area}")
-            print(f"   Type: {type(q).__name__}\n")
-    except Exception as e:
-        print(f"✗ Error: {e}")
-    
-    print("\n2. Testing Follow-up Question Generation:")
-    print("-" * 60)
-    test_q = "Tell me about your Python experience."
-    test_answer = "I have worked with Python for 5 years, building web applications using FastAPI and Flask. I've also done data analysis with pandas and machine learning with scikit-learn."
-    
-    try:
-        followup = generate_followup_question(test_q, test_answer, test_jd)
-        if followup:
-            print(f"✓ Follow-up: {followup}")
-        else:
-            print("✓ No follow-up generated (answer too short)")
-    except Exception as e:
-        print(f"✗ Error: {e}")
