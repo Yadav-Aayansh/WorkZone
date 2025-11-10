@@ -5,7 +5,7 @@ from src.genai.hr_interview.answer_analyzer import analyze_answer_quality
 from src.genai.schemas.hr_interview_schemas import InterviewQuestion, QuestionResponse, InterviewReport, DetailedQA
 
 
-def generate_interview_report(
+async def generate_interview_report(
     jd: str,
     resume: str,
     questions: List[InterviewQuestion],
@@ -20,7 +20,7 @@ def generate_interview_report(
     total_score = 0
     
     for i, resp in enumerate(responses):
-        analysis = analyze_answer_quality(
+        analysis = await analyze_answer_quality(
             questions[i].question,
             resp.answer,
             questions[i].focus_area
@@ -128,51 +128,3 @@ Return JSON:
             detailed_qa=detailed_qa
         )
 
-
-# Testing the module
-
-if __name__ == "__main__":
-    print("Testing Report Generator Module (Pydantic)")
-    print("=" * 60)
-    
-    # Test data
-    test_jd = "Python Developer with FastAPI and MongoDB experience"
-    test_resume = "John Doe - 5 years Python, FastAPI expert"
-    test_questions = [
-        InterviewQuestion(question="What is your Python experience?", type="technical", focus_area="technical"),
-        InterviewQuestion(question="Tell me about a challenging project.", type="experience", focus_area="experience"),
-        InterviewQuestion(question="How do you handle deadlines?", type="behavioral", focus_area="soft_skills")
-    ]
-    test_responses = [
-        QuestionResponse(question_index=0, question=test_questions[0].question, answer="I have 5 years of Python experience, specializing in FastAPI and web development.", timestamp="2025-01-01T10:00:00"),
-        QuestionResponse(question_index=1, question=test_questions[1].question, answer="I built a complex API system that handled 10k requests/sec with caching.", timestamp="2025-01-01T10:02:00"),
-        QuestionResponse(question_index=2, question=test_questions[2].question, answer="I prioritize tasks and communicate clearly with my team.", timestamp="2025-01-01T10:04:00")
-    ]
-    
-    try:
-        report = generate_interview_report(
-            jd=test_jd,
-            resume=test_resume,
-            questions=test_questions,
-            responses=test_responses,
-            candidate_name="John Doe",
-            position="Python Developer",
-            session_id="test_123"
-        )
-        
-        print("\n✓ Report Generated Successfully (Pydantic Validated)\n")
-        print(f"Type: {type(report).__name__}")
-        print(f"Overall Score: {report.overall_score}/100")
-        print(f"\nStrengths ({len(report.strengths)}):")
-        for s in report.strengths:
-            print(f"  • {s}")
-        print(f"\nWeaknesses ({len(report.weaknesses)}):")
-        for w in report.weaknesses:
-            print(f"  • {w}")
-        print(f"\nTechnical Fit: {report.technical_fit}")
-        print(f"\nCommunication: {report.communication_assessment}")
-        print(f"\nRecommendation: {report.recommendations}")
-        print(f"\nDetailed Q&A: {len(report.detailed_qa)} questions analyzed")
-        
-    except Exception as e:
-        print(f"✗ Error: {e}")

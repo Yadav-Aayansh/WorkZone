@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_EMAIL: str
     GCS_BUCKET_NAME: str
 
-    # Google API key for LLM and embedding model
+    # Gemini API
     GOOGLE_API_KEY: str
 
     # JWT

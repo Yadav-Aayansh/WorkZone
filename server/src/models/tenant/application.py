@@ -7,8 +7,7 @@ from sqlalchemy import Column, UUID, String, DateTime, ForeignKey, Enum
 
 class ApplicationStatus(enum.Enum):
     PENDING = "pending"
-    SHORTLISTED = "shortlisted"
-    AI_INTERVIEW_SCHEDULED = "ai_interview_scheduled"
+    SHORTLISTED = "shortlisted" 
     AI_INTERVIEW_COMPLETED = "ai_interview_completed"
     HUMAN_INTERVIEW_SCHEDULED = "human_interview_scheduled"
     HUMAN_INTERVIEW_COMPLETED = "human_interview_completed"
@@ -23,6 +22,8 @@ class Application(TenantBase):
     job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     status = Column(Enum(ApplicationStatus), default=ApplicationStatus.PENDING)
+    resume = Column(String(500), nullable=False)
     applied_on = Column(DateTime(timezone=True), default=get_indian_time, nullable=False)
 
     job = relationship("Job", back_populates="applications", uselist=False, lazy=True)
+    ai_interview = relationship("AiInterview", back_populates="application", uselist=False)

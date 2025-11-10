@@ -1,5 +1,4 @@
 import os
-import requests
 
 try:
     from google.cloud import speech
@@ -8,9 +7,14 @@ except ImportError:
     STT_AVAILABLE = False
     print("Warning: Google Cloud STT not available")
 
+# Import shared HTTP client
+try:
+    from src.core.http_client import http_client
+except ImportError:
+    from http_client import http_client  # Fallback for testing
+
 
 def initialize_stt_client():
-    """Initialize Google Cloud STT client"""
     if not STT_AVAILABLE:
         return None
     
@@ -39,16 +43,16 @@ def initialize_stt_client():
 stt_client = initialize_stt_client()
 
 
-def speech_to_text(audio_signed_url: str) -> str:
-    
+async def speech_to_text(audio_signed_url: str) -> str:
     if not stt_client:
         raise Exception(
             "Google Cloud STT not configured. Set GOOGLE_APPLICATION_CREDENTIALS"
         )
     
     try:
-        # Download audio from signed URL
-        response = requests.get(audio_signed_url)
+        # Download audio from signed URL using shared httpx client
+        client = http_client.get_client()
+        response = await client.get(audio_signed_url)
         response.raise_for_status()
         audio_data = response.content
         
@@ -87,56 +91,3 @@ def speech_to_text(audio_signed_url: str) -> str:
     
     except Exception as e:
         raise Exception(f"STT error: {str(e)}")
-
-
-# Testing the module
-
-if __name__ == "__main__":
-    print("Testing Speech-to-Text Module")
-    print("=" * 60)
-    
-    if not STT_AVAILABLE:
-        print("✗ Google Cloud STT library not installed")
-        print("Install with: pip install google-cloud-speech")
-    elif not stt_client:
-        print("✗ Google Cloud STT not configured")
-        print("Set GOOGLE_APPLICATION_CREDENTIALS environment variable")
-    else:
-        print("✓ STT Client initialized")
-        
-        # Test transcription with storage client
-        try:
-            from src.core.storage import storage_client
-            
-            # Try to get audio file from your bucket
-            test_audio_blob = "interview_audio/hr.mp3"
-            
-            print(f"\nTesting with audio file: {test_audio_blob}")
-            print("-" * 60)
-            
-            # Get signed URL
-            signed_url = storage_client.get_url(test_audio_blob, expiration=1)
-            
-            if not signed_url:
-                print(f"✗ Audio file not found: {test_audio_blob}")
-                print("\nPlease upload an audio file to test:")
-                print("  1. Go to GCP Console → Storage → workzone-interview")
-                print("  2. Upload an MP3/WAV file to interview_audio/ folder")
-                print("  3. Update test_audio_blob variable with your filename")
-            else:
-                print(f"✓ Generated signed URL")
-                
-                # Transcribe
-                transcription = speech_to_text(signed_url)
-                print(f"✓ Transcription successful")
-                print(f"\nTranscribed text:")
-                print(f"  {transcription}")
-                
-        except Exception as e:
-            print(f"✗ Error: {e}")
-            import traceback
-            traceback.print_exc()
-            print("\nPlease ensure:")
-            print("  1. GCP credentials are configured in config.py")
-            print("  2. Audio file exists in GCP Storage")
-            print("  3. Audio file is in supported format (MP3, WAV, FLAC)")
