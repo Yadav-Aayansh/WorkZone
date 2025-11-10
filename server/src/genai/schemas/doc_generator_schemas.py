@@ -17,6 +17,7 @@ class RejectionLetterData(BaseModel):
     candidate_name: str
     company_name: str
     position: str
+    feedback: Optional[str] = Field(None, description="Optional constructive feedback explaining the reason for rejection.")
 
 class PolicyUpdateData(BaseModel):
     """Specific data required to generate a policy update email."""
