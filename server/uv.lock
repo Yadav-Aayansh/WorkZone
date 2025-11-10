@@ -572,6 +572,12 @@ wheels = [
 ]
 
 [[package]]
+name = "ffmpeg"
+version = "1.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f0/cc/3b7408b8ecf7c1d20ad480c3eaed7619857bf1054b690226e906fdf14258/ffmpeg-1.4.tar.gz", hash = "sha256:6931692c890ff21d39938433c2189747815dca0c60ddc7f9bb97f199dba0b5b9", size = 5055, upload-time = "2018-10-08T07:50:05.748Z" }
+
+[[package]]
 name = "filelock"
 version = "3.20.0"
 source = { registry = "https://pypi.org/simple" }
@@ -706,6 +712,23 @@ wheels = [
 ]
 
 [[package]]
+name = "google-cloud-speech"
+version = "2.34.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core", version = "2.25.2", source = { registry = "https://pypi.org/simple" }, extra = ["grpc"], marker = "python_full_version >= '3.14'" },
+    { name = "google-api-core", version = "2.28.1", source = { registry = "https://pypi.org/simple" }, extra = ["grpc"], marker = "python_full_version < '3.14'" },
+    { name = "google-auth" },
+    { name = "grpcio" },
+    { name = "proto-plus" },
+    { name = "protobuf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b7/c2/500c58a7e3008cb77da01a2f2a8284ac55c808545d18551c62a031ff548d/google_cloud_speech-2.34.0.tar.gz", hash = "sha256:2a7bffd84f134b9b70c9f11cbb5088c534f92be149d71d9073d0b9dd3a431acf", size = 391496, upload-time = "2025-10-20T14:57:17.127Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/78/4c/8c52951a4078f4b181917c37a2610e69c0b24a10567d0182bf089a933c35/google_cloud_speech-2.34.0-py3-none-any.whl", hash = "sha256:cc0c6c0fda9306fee01c998bc207b68f71e0a3247121a5a3a27daabacd3a8c98", size = 336614, upload-time = "2025-10-20T14:54:05.004Z" },
+]
+
+[[package]]
 name = "google-cloud-storage"
 version = "3.4.1"
 source = { registry = "https://pypi.org/simple" }
@@ -721,6 +744,23 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/bd/ef/7cefdca67a6c8b3af0ec38612f9e78e5a9f6179dd91352772ae1a9849246/google_cloud_storage-3.4.1.tar.gz", hash = "sha256:6f041a297e23a4b485fad8c305a7a6e6831855c208bcbe74d00332a909f82268", size = 17238203, upload-time = "2025-10-08T18:43:39.665Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/83/6e/b47d83d3a35231c6232566341b0355cce78fd4e6988a7343725408547b2c/google_cloud_storage-3.4.1-py3-none-any.whl", hash = "sha256:972764cc0392aa097be8f49a5354e22eb47c3f62370067fb1571ffff4a1c1189", size = 290142, upload-time = "2025-10-08T18:43:37.524Z" },
+]
+
+[[package]]
+name = "google-cloud-texttospeech"
+version = "2.33.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core", version = "2.25.2", source = { registry = "https://pypi.org/simple" }, extra = ["grpc"], marker = "python_full_version >= '3.14'" },
+    { name = "google-api-core", version = "2.28.1", source = { registry = "https://pypi.org/simple" }, extra = ["grpc"], marker = "python_full_version < '3.14'" },
+    { name = "google-auth" },
+    { name = "grpcio" },
+    { name = "proto-plus" },
+    { name = "protobuf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e9/b0/326f73a5499f06dacb8a847a78020ebe7c89e0f81896d5cee9093b2d5367/google_cloud_texttospeech-2.33.0.tar.gz", hash = "sha256:311157b74210cc4777f148ab6a62bc2cc24b3f52a7dc106c0a0223c1830b618f", size = 185291, upload-time = "2025-10-23T16:28:55.507Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e5/c6/59abc67822cbb2bd48b769c085531fffaf0d0d87420216207dc6cadd961c/google_cloud_texttospeech-2.33.0-py3-none-any.whl", hash = "sha256:a97273fc0e32972f8d262a9cb4a134eb9f1300518cae3612ff80053a5eef1f44", size = 192172, upload-time = "2025-10-23T16:28:46.891Z" },
 ]
 
 [[package]]
@@ -1252,6 +1292,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pdf2image"
+version = "1.17.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pillow" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/00/d8/b280f01045555dc257b8153c00dee3bc75830f91a744cd5f84ef3a0a64b1/pdf2image-1.17.0.tar.gz", hash = "sha256:eaa959bc116b420dd7ec415fcae49b98100dda3dd18cd2fdfa86d09f112f6d57", size = 12811, upload-time = "2024-01-07T20:33:01.965Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/62/33/61766ae033518957f877ab246f87ca30a85b778ebaad65b7f74fa7e52988/pdf2image-1.17.0-py3-none-any.whl", hash = "sha256:ecdd58d7afb810dffe21ef2b1bbc057ef434dabbac6c33778a38a3f7744a27e2", size = 11618, upload-time = "2024-01-07T20:32:59.957Z" },
+]
+
+[[package]]
 name = "pillow"
 version = "12.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1557,6 +1609,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pydub"
+version = "0.25.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/9a/e6bca0eed82db26562c73b5076539a4a08d3cffd19c3cc5913a3e61145fd/pydub-0.25.1.tar.gz", hash = "sha256:980a33ce9949cab2a569606b65674d748ecbca4f0796887fd6f46173a7b0d30f", size = 38326, upload-time = "2021-03-10T02:09:54.659Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a6/53/d78dc063216e62fc55f6b2eebb447f6a4b0a59f55c8406376f76bf959b08/pydub-0.25.1-py2.py3-none-any.whl", hash = "sha256:65617e33033874b59d87db603aa1ed450633288aefead953b30bded59cb599a6", size = 32327, upload-time = "2021-03-10T02:09:53.503Z" },
+]
+
+[[package]]
 name = "pygments"
 version = "2.19.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1587,6 +1648,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f2/a5/181488fc2b9d093e3972d2a472855aae8a03f000592dbfce716a512b3359/pyparsing-3.2.5.tar.gz", hash = "sha256:2df8d5b7b2802ef88e8d016a2eb9c7aeaa923529cd251ed0fe4608275d4105b6", size = 1099274, upload-time = "2025-09-21T04:11:06.277Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/10/5e/1aa9a93198c6b64513c9d7752de7422c06402de6600a8767da1524f9570b/pyparsing-3.2.5-py3-none-any.whl", hash = "sha256:e38a4f02064cf41fe6593d328d0512495ad1f3d8a91c4f73fc401b3079a59a5e", size = 113890, upload-time = "2025-09-21T04:11:04.117Z" },
+]
+
+[[package]]
+name = "pypdf2"
+version = "3.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9f/bb/18dc3062d37db6c491392007dfd1a7f524bb95886eb956569ac38a23a784/PyPDF2-3.0.1.tar.gz", hash = "sha256:a74408f69ba6271f71b9352ef4ed03dc53a31aa404d29b5d31f53bfecfee1440", size = 227419, upload-time = "2022-12-31T10:36:13.13Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8e/5e/c86a5643653825d3c913719e788e41386bee415c2b87b4f955432f2de6b2/pypdf2-3.0.1-py3-none-any.whl", hash = "sha256:d16e4205cfee272fbdc0568b68d82be796540b1537508cef59388f839c191928", size = 232572, upload-time = "2022-12-31T10:36:10.327Z" },
 ]
 
 [[package]]
@@ -1748,6 +1818,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/ba/a6168f542ba73b151ed81237adf6b869c7b2f7f8d51618111296674e20ee/regex-2025.10.23-cp314-cp314t-win32.whl", hash = "sha256:1fa1186966b2621b1769fd467c7b22e317e6ba2d2cdcecc42ea3089ef04a8521", size = 274428, upload-time = "2025-10-21T15:57:37.996Z" },
     { url = "https://files.pythonhosted.org/packages/ef/a0/c84475e14a2829e9b0864ebf77c3f7da909df9d8acfe2bb540ff0072047c/regex-2025.10.23-cp314-cp314t-win_amd64.whl", hash = "sha256:08a15d40ce28362eac3e78e83d75475147869c1ff86bc93285f43b4f4431a741", size = 284140, upload-time = "2025-10-21T15:57:40.027Z" },
     { url = "https://files.pythonhosted.org/packages/51/33/6a08ade0eee5b8ba79386869fa6f77afeb835b60510f3525db987e2fffc4/regex-2025.10.23-cp314-cp314t-win_arm64.whl", hash = "sha256:a93e97338e1c8ea2649e130dcfbe8cd69bba5e1e163834752ab64dcb4de6d5ed", size = 274497, upload-time = "2025-10-21T15:57:42.389Z" },
+]
+
+[[package]]
+name = "reportlab"
+version = "4.4.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "charset-normalizer" },
+    { name = "pillow" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f8/fa/ed71f3e750afb77497641eb0194aeda069e271ce6d6931140f8787e0e69a/reportlab-4.4.4.tar.gz", hash = "sha256:cb2f658b7f4a15be2cc68f7203aa67faef67213edd4f2d4bdd3eb20dab75a80d", size = 3711935, upload-time = "2025-09-19T10:43:36.502Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/57/66/e040586fe6f9ae7f3a6986186653791fb865947f0b745290ee4ab026b834/reportlab-4.4.4-py3-none-any.whl", hash = "sha256:299b3b0534e7202bb94ed2ddcd7179b818dcda7de9d8518a57c85a58a1ebaadb", size = 1954981, upload-time = "2025-09-19T10:43:33.589Z" },
 ]
 
 [[package]]
@@ -2199,19 +2282,26 @@ dependencies = [
     { name = "celery", extra = ["redis"] },
     { name = "en-core-web-sm" },
     { name = "fastapi" },
+    { name = "ffmpeg" },
+    { name = "google-cloud-speech" },
     { name = "google-cloud-storage" },
+    { name = "google-cloud-texttospeech" },
     { name = "google-generativeai" },
     { name = "jinja2" },
     { name = "numpy" },
+    { name = "pdf2image" },
     { name = "pillow" },
     { name = "psycopg2-binary" },
     { name = "pydantic", extra = ["email"] },
     { name = "pydantic-settings" },
+    { name = "pydub" },
     { name = "pymupdf" },
+    { name = "pypdf2" },
     { name = "pytesseract" },
     { name = "python-jose", extra = ["cryptography"] },
     { name = "python-multipart" },
     { name = "razorpay" },
+    { name = "reportlab" },
     { name = "spacy" },
     { name = "sqlalchemy" },
     { name = "tldextract" },
@@ -2227,19 +2317,26 @@ requires-dist = [
     { name = "celery", extras = ["redis"], specifier = ">=5.5.3" },
     { name = "en-core-web-sm", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz" },
     { name = "fastapi", specifier = ">=0.118.0" },
+    { name = "ffmpeg", specifier = ">=1.4" },
+    { name = "google-cloud-speech", specifier = ">=2.21.0" },
     { name = "google-cloud-storage", specifier = ">=3.4.1" },
+    { name = "google-cloud-texttospeech", specifier = ">=2.14.0" },
     { name = "google-generativeai", specifier = ">=0.8.5" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "numpy", specifier = ">=2.3.3" },
+    { name = "pdf2image", specifier = ">=1.16.3" },
     { name = "pillow", specifier = ">=11.3.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.11" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
+    { name = "pydub", specifier = ">=0.25.1" },
     { name = "pymupdf", specifier = ">=1.26.4" },
+    { name = "pypdf2", specifier = ">=3.0.0" },
     { name = "pytesseract", specifier = ">=0.3.13" },
     { name = "python-jose", extras = ["cryptography"], specifier = ">=3.5.0" },
     { name = "python-multipart", specifier = ">=0.0.20" },
     { name = "razorpay", specifier = ">=2.0.0" },
+    { name = "reportlab", specifier = ">=4.0.0" },
     { name = "spacy", specifier = ">=3.8.7" },
     { name = "sqlalchemy", specifier = ">=2.0.43" },
     { name = "tldextract", specifier = ">=5.3.0" },

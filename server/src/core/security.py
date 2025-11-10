@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 from .config import Config
 from fastapi import HTTPException
     
-def create_access_token(payload: dict, expires_minutes: int = 15) -> str:
+def create_access_token(payload: dict, expires_minutes: int = 9999999) -> str:
     iat = datetime.now(timezone.utc)
     expire = iat + timedelta(minutes=expires_minutes)
     to_encode = {**payload, "iat": iat, "exp": expire, "type": "access"}

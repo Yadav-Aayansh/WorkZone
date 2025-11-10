@@ -1,342 +1,548 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { RequireAuth } from "@/components/auth/ProtectedRoute";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  ArrowRight,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
   Building2,
-  CreditCard,
-  CheckCircle,
   UserPlus,
+  Moon,
+  Sun,
+  Users,
+  TrendingUp,
+  LayoutDashboard,
+  Settings,
+  LogOut,
+  Palette,
+  Bell,
+  CreditCard,
+  BarChart3,
+  FileText,
 } from "lucide-react";
 
+type Tab = "overview" | "team" | "settings";
+
+// Mock tenant data - will be replaced with real API data
+const mockTenantData = {
+  brandName: "Acme Corporation",
+  logo: null, // Will be actual logo URL from backend
+  tenantId: "acme-corp",
+  teamCount: 0, // Real count from backend
+};
+
 export default function DashboardPage() {
-  const { logout, accountStatus, subscriptionStatus } = useAuth();
+  const { logout } = useAuth();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [tenantTheme, setTenantTheme] = useState({
+    primaryColor: "#6366f1",
+    secondaryColor: "#8b5cf6",
+  });
 
   const handleLogout = async () => {
     await logout();
-  };
-
-  const handleContinueOnboarding = () => {
-    router.push("/signup");
-  };
-
-  const handleContinueSubscription = () => {
-    // Redirect directly to the payment step (step 3) in the signup flow
-    router.push("/signup?step=3");
   };
 
   const handleInviteEmployee = () => {
     router.push("/invite");
   };
 
-  const getStatusColor = (status: string | null) => {
-    switch (status?.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "subscription":
-        return "bg-orange-100 text-orange-800";
-      case "onboarding":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const getSubscriptionColor = (status: string | null) => {
-    switch (status?.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "not_started":
-        return "bg-gray-100 text-gray-800";
-      case "expired":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const handleColorChange = (type: "primary" | "secondary", color: string) => {
+    setTenantTheme((prev) => ({
+      ...prev,
+      [type === "primary" ? "primaryColor" : "secondaryColor"]: color,
+    }));
   };
 
-  const getSubscriptionLabel = (status: string | null) => {
-    switch (status?.toLowerCase()) {
-      case "active":
-        return "Active";
-      case "not_started":
-        return "Not Started";
-      case "expired":
-        return "Expired";
-      default:
-        return "Unknown";
-    }
-  };
-
-  const getAccountLabel = (status: string | null) => {
-    switch (status?.toLowerCase()) {
-      case "active":
-        return "Active";
-      case "subscription":
-        return "Subscription Pending";
-      case "onboarding":
-        return "Onboarding";
-      default:
-        return "Pending";
-    }
-  };
+  // Sidebar navigation items
+  const navItems = [
+    { id: "overview" as Tab, label: "Overview", icon: LayoutDashboard },
+    { id: "team" as Tab, label: "Team", icon: Users },
+    { id: "settings" as Tab, label: "Settings", icon: Settings },
+  ];
 
   return (
     <RequireAuth>
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center gap-3">
-                <Logo className="w-8" />
-                <h1 className="text-xl font-semibold">WorkZone Dashboard</h1>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="text-sm text-muted-foreground">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 ${getStatusColor(
-                      accountStatus
-                    )}`}
-                  >
-                    {getAccountLabel(accountStatus)}
-                  </span>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSubscriptionColor(
-                      subscriptionStatus
-                    )}`}
-                  >
-                    {getSubscriptionLabel(subscriptionStatus)}
-                  </span>
+      <div className="flex h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50 dark:from-gray-900 dark:via-[#1a0b2e] dark:to-gray-900 overflow-hidden">
+        {/* Sidebar */}
+        <aside className="w-64 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200 dark:border-gray-700 flex flex-col">
+          {/* Logo & Brand */}
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              {mockTenantData.logo ? (
+                <img
+                  src={mockTenantData.logo}
+                  alt={mockTenantData.brandName}
+                  className="w-10 h-10 rounded-lg object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-6 h-6 text-white" />
                 </div>
-                <Button variant="outline" onClick={handleLogout} size="sm">
-                  Logout
-                </Button>
+              )}
+              <div>
+                <h2 className="font-semibold text-gray-900 dark:text-white">
+                  {mockTenantData.brandName}
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {mockTenantData.tenantId}
+                </p>
               </div>
             </div>
           </div>
-        </header>
+
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    isActive
+                      ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* User Section */}
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 dark:hover:bg-gray-800"
+              onClick={toggleTheme}
+            >
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+              <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
+            </Button>
+          </div>
+        </aside>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="py-16">
-            <div className="max-w-4xl mx-auto">
-              <div className="text-center mb-12">
-                <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg
-                    className="w-12 h-12 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                </div>
-
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  Welcome to WorkZone!
-                </h2>
-
-                <p className="text-gray-600 text-lg">
-                  Let&#39;s get your HR management system fully set up.
+        <main className="flex-1 overflow-auto">
+          {/* Header */}
+          <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 px-8 py-4 sticky top-0 z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {activeTab === "overview"
+                    ? "Dashboard Overview"
+                    : activeTab === "team"
+                    ? "Team Management"
+                    : "Settings"}
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {activeTab === "overview"
+                    ? "Welcome back! Here's your workspace overview"
+                    : activeTab === "team"
+                    ? "Manage your team members and invitations"
+                    : "Customize your workspace settings"}
                 </p>
               </div>
-
-              {/* Status Cards */}
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <div className="p-6 bg-white rounded-xl border shadow-sm">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Building2 className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">
-                        Account Setup
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Company onboarding
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                        accountStatus
-                      )}`}
-                    >
-                      {accountStatus?.toLowerCase() === "onboarding"
-                        ? "In Progress"
-                        : accountStatus?.toLowerCase() === "active"
-                        ? "Completed"
-                        : accountStatus || "Not Started"}
-                    </span>
-                    {accountStatus?.toLowerCase() === "onboarding" && (
-                      <Button
-                        onClick={handleContinueOnboarding}
-                        size="sm"
-                        className="ml-4"
-                      >
-                        Continue Setup
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="p-6 bg-white rounded-xl border shadow-sm">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <CreditCard className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">
-                        Subscription
-                      </h3>
-                      <p className="text-sm text-gray-500">Choose your plan</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getSubscriptionColor(
-                        subscriptionStatus
-                      )}`}
-                    >
-                      {getSubscriptionLabel(subscriptionStatus)}
-                    </span>
-                    {(accountStatus?.toLowerCase() === "subscription" ||
-                      (accountStatus?.toLowerCase() === "active" &&
-                        subscriptionStatus?.toLowerCase() !== "active")) && (
-                      <Button
-                        onClick={handleContinueSubscription}
-                        size="sm"
-                        variant="outline"
-                        className="ml-4"
-                      >
-                        {subscriptionStatus &&
-                        subscriptionStatus?.toLowerCase() !== "not_started"
-                          ? "Manage Plan"
-                          : "Choose Plan"}
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    )}
-                  </div>
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="w-5 h-5" />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                </Button>
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <Logo className="w-6" />
+                  <span className="text-sm font-medium dark:text-white">
+                    WorkZone
+                  </span>
                 </div>
               </div>
+            </div>
+          </header>
 
-              {/* Next Steps Section */}
-              <div className="bg-white rounded-xl border shadow-sm p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  What&apos;s Next?
-                </h3>
+          {/* Tab Content */}
+          <div className="p-8">
+            {activeTab === "overview" && (
+              <div className="space-y-6">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <Card className="border-none shadow-lg hover:shadow-xl transition-shadow dark:bg-gray-800">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                            Team Members
+                          </p>
+                          <p className="text-3xl font-bold dark:text-white">
+                            {mockTenantData.teamCount}
+                          </p>
+                        </div>
+                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                          <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                {accountStatus?.toLowerCase() === "onboarding" && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <Building2 className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <Card className="border-none shadow-lg hover:shadow-xl transition-shadow dark:bg-gray-800">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                            Active Projects
+                          </p>
+                          <p className="text-3xl font-bold dark:text-white">
+                            0
+                          </p>
+                        </div>
+                        <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
+                          <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-none shadow-lg hover:shadow-xl transition-shadow dark:bg-gray-800">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                            This Month
+                          </p>
+                          <p className="text-3xl font-bold dark:text-white">
+                            0
+                          </p>
+                        </div>
+                        <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+                          <BarChart3 className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-none shadow-lg hover:shadow-xl transition-shadow dark:bg-gray-800">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                            Documents
+                          </p>
+                          <p className="text-3xl font-bold dark:text-white">
+                            0
+                          </p>
+                        </div>
+                        <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
+                          <FileText className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Quick Actions */}
+                <Card className="border-none shadow-xl dark:bg-gray-800">
+                  <CardHeader>
+                    <CardTitle className="text-xl dark:text-white">
+                      Quick Actions
+                    </CardTitle>
+                    <CardDescription className="dark:text-gray-400">
+                      Common tasks to get you started
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <Button
+                        onClick={handleInviteEmployee}
+                        className="h-24 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <UserPlus className="w-6 h-6" />
+                          <span className="font-semibold">
+                            Invite Team Member
+                          </span>
+                        </div>
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="h-24 dark:border-gray-600 dark:hover:bg-gray-700"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <CreditCard className="w-6 h-6" />
+                          <span className="font-semibold">Billing & Plans</span>
+                        </div>
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        onClick={() => setActiveTab("settings")}
+                        className="h-24 dark:border-gray-600 dark:hover:bg-gray-700"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <Settings className="w-6 h-6" />
+                          <span className="font-semibold">
+                            Workspace Settings
+                          </span>
+                        </div>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Recent Activity */}
+                <Card className="border-none shadow-xl dark:bg-gray-800">
+                  <CardHeader>
+                    <CardTitle className="text-xl dark:text-white">
+                      Recent Activity
+                    </CardTitle>
+                    <CardDescription className="dark:text-gray-400">
+                      Latest updates from your workspace
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                      <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>No recent activity to display</p>
+                      <p className="text-sm">Start by inviting team members</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "team" && (
+              <div className="space-y-6">
+                <Card className="border-none shadow-xl dark:bg-gray-800">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium text-blue-900 mb-1">
-                          Complete Company Onboarding
-                        </h4>
-                        <p className="text-sm text-blue-700 mb-3">
-                          Set up your company profile, upload your logo, and
-                          configure your workspace settings.
-                        </p>
-                        <Button
-                          onClick={handleContinueOnboarding}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          Continue Onboarding
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
+                        <CardTitle className="text-xl dark:text-white">
+                          Team Members
+                        </CardTitle>
+                        <CardDescription className="dark:text-gray-400">
+                          Manage your workspace members
+                        </CardDescription>
+                      </div>
+                      <Button
+                        onClick={handleInviteEmployee}
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                      >
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Invite Member
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+                      <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg font-medium mb-2">
+                        No team members yet
+                      </p>
+                      <p className="text-sm mb-6">
+                        Invite your first team member to get started
+                      </p>
+                      <Button
+                        onClick={handleInviteEmployee}
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600"
+                      >
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Send Invitation
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "settings" && (
+              <div className="space-y-6">
+                {/* Workspace Info */}
+                <Card className="border-none shadow-xl dark:bg-gray-800">
+                  <CardHeader>
+                    <CardTitle className="text-xl dark:text-white">
+                      Workspace Information
+                    </CardTitle>
+                    <CardDescription className="dark:text-gray-400">
+                      Basic details about your workspace
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label className="dark:text-gray-300">
+                        Organization Name
+                      </Label>
+                      <Input
+                        value={mockTenantData.brandName}
+                        readOnly
+                        className="mt-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                    </div>
+                    <div>
+                      <Label className="dark:text-gray-300">Workspace ID</Label>
+                      <Input
+                        value={mockTenantData.tenantId}
+                        readOnly
+                        className="mt-2 dark:bg-gray-700 dark:border-gray-600"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Theme Customization */}
+                <Card className="border-none shadow-xl dark:bg-gray-800">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg">
+                        <Palette className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl dark:text-white">
+                          Theme Customization
+                        </CardTitle>
+                        <CardDescription className="dark:text-gray-400">
+                          Customize your tenant&apos;s color scheme
+                        </CardDescription>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {accountStatus?.toLowerCase() === "subscription" && (
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <CreditCard className="w-5 h-5 text-orange-600 mt-0.5" />
-                      <div>
-                        <h4 className="font-medium text-orange-900 mb-1">
-                          Choose Your Subscription Plan
-                        </h4>
-                        <p className="text-sm text-orange-700 mb-3">
-                          Select a plan that fits your company size and needs to
-                          unlock all HR management features.
-                        </p>
-                        <Button
-                          onClick={handleContinueSubscription}
-                          className="bg-orange-600 hover:bg-orange-700"
-                        >
-                          View Plans
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <Label className="dark:text-gray-300">
+                          Primary Color
+                        </Label>
+                        <div className="flex gap-3">
+                          <Input
+                            type="color"
+                            value={tenantTheme.primaryColor}
+                            onChange={(e) =>
+                              handleColorChange("primary", e.target.value)
+                            }
+                            className="w-16 h-16 p-1 cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <Input
+                              type="text"
+                              value={tenantTheme.primaryColor}
+                              onChange={(e) =>
+                                handleColorChange("primary", e.target.value)
+                              }
+                              className="dark:bg-gray-700 dark:border-gray-600"
+                            />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              Main brand color
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                )}
 
-                {accountStatus?.toLowerCase() === "active" && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                      <div className="flex-1">
-                        <h4 className="font-medium text-green-900 mb-1">
-                          Setup Complete!
-                        </h4>
-                        <p className="text-sm text-green-700 mb-3">
-                          Your WorkZone account is fully configured. You can now
-                          start managing your workforce.
-                        </p>
-                        <div className="flex gap-3 flex-wrap">
-                          <Button
-                            onClick={handleInviteEmployee}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Invite Employee
-                          </Button>
-                          <Button variant="outline">View Features</Button>
+                      <div className="space-y-3">
+                        <Label className="dark:text-gray-300">
+                          Secondary Color
+                        </Label>
+                        <div className="flex gap-3">
+                          <Input
+                            type="color"
+                            value={tenantTheme.secondaryColor}
+                            onChange={(e) =>
+                              handleColorChange("secondary", e.target.value)
+                            }
+                            className="w-16 h-16 p-1 cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <Input
+                              type="text"
+                              value={tenantTheme.secondaryColor}
+                              onChange={(e) =>
+                                handleColorChange("secondary", e.target.value)
+                              }
+                              className="dark:bg-gray-700 dark:border-gray-600"
+                            />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              Accent color
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
 
-                {!accountStatus && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <Building2 className="w-5 h-5 text-gray-600 mt-0.5" />
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-1">
-                          Get Started
-                        </h4>
-                        <p className="text-sm text-gray-700 mb-3">
-                          Let&apos;s set up your company profile and get you started
-                          with WorkZone.
-                        </p>
-                        <Button onClick={handleContinueOnboarding}>
-                          Start Setup
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
+                    <div className="p-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <h4 className="font-medium mb-4 dark:text-white">
+                        Preview
+                      </h4>
+                      <div className="space-y-3">
+                        <div
+                          className="h-12 rounded-lg flex items-center justify-center text-white font-medium"
+                          style={{
+                            background: `linear-gradient(to right, ${tenantTheme.primaryColor}, ${tenantTheme.secondaryColor})`,
+                          }}
+                        >
+                          Button Preview
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div
+                            className="h-20 rounded-lg"
+                            style={{
+                              backgroundColor: tenantTheme.primaryColor,
+                            }}
+                          />
+                          <div
+                            className="h-20 rounded-lg"
+                            style={{
+                              backgroundColor: tenantTheme.secondaryColor,
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+
+                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
+                      <Button
+                        variant="outline"
+                        className="dark:border-gray-600"
+                      >
+                        Reset to Default
+                      </Button>
+                      <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+                        Save Theme
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </div>
+            )}
           </div>
         </main>
       </div>

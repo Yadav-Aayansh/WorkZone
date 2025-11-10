@@ -115,6 +115,14 @@ class LLMClient:
             print(f"LLMClient Error during text generation: {e}")
             return "Error: Could not generate a response."
     
+    async def generate_text_async(self, prompt: str) -> str:
+        try:
+            # Use the asynchronous ..._async() method from the library
+            response = await self.text_model.generate_content_async(prompt)
+            return response.text
+        except Exception as e:
+            return f"Error: {e}"
+
     
     def generate_embedding(self, text: str) -> Optional[List[float]]:
 

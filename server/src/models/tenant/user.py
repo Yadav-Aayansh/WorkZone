@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy.dialects.postgresql import UUID
 from src.core.database import TenantBase
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, DateTime, Enum
+from sqlalchemy import Column, String, DateTime, Enum
 from src.utils.datetime import get_indian_time
 
 class Role(enum.Enum):

@@ -43,7 +43,7 @@
    ====================== */
 :root {
     --radius: 0.625rem;
-    --background: oklch(0.506 0.153 295.649); /* soft lavender white */
+    --background: oklch(95.139% 0.02773 301.648); /* soft lavender white */
     --foreground: oklch(0.2 0.03 275); /* dark purple text */
 
     --card: oklch(1 0 0);
@@ -138,4 +138,21 @@
   body {
     @apply bg-background text-foreground;
     }
+}
+
+/* ======================
+   AI Features Animations
+   ====================== */
+@keyframes gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
 }
