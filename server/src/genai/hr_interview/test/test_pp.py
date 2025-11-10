@@ -2,10 +2,6 @@ import asyncio
 import sys
 import os
 
-
-# # Allow imports from the src/ directory
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 from src.genai.hr_interview.pdf_processor import (
     extract_text_from_pdf,
     STORAGE_AVAILABLE,
@@ -14,14 +10,14 @@ from src.genai.hr_interview.pdf_processor import (
 
 
 async def run_tests():
-    print("Testing PDF Processor Module")
-    print("=" * 60)
+    print("\n" + "="*70)
+    print("Testing PDF Processor Module (with httpx)")
+    print("="*70)
 
-    
     if STORAGE_AVAILABLE:
         print("\n✓ Storage client available")
         print("\nTesting with GCP Storage files...")
-        print("-" * 60)
+        print("-" * 70)
 
         test_blob_names = [
             "resumes/resume.pdf",
@@ -39,30 +35,42 @@ async def run_tests():
 
                 print("  ✓ Generated signed URL")
 
-            
+                # Extract text using httpx (new implementation)
                 text = await extract_text_from_pdf(signed_url)
 
-                print(f"  ✓ Extracted {len(text)} characters")
-                print("  First 200 characters:\n ", text[:200], "...")
+                print(f"  ✓ Extracted {len(text)} characters using httpx")
+                print("  First 200 characters:")
+                print("  " + text[:200].replace("\n", " ") + "...")
 
             except Exception as e:
                 print(f"  ✗ Error: {e}")
+                import traceback
+                traceback.print_exc()
 
-    # test without GCP (public PDF)
+    # Test without GCP (public PDF)
     else:
         print("\n⚠ Storage client not available")
         print("\nTesting with public PDF URL...")
-        print("-" * 60)
+        print("-" * 70)
 
+        # Using a reliable public PDF
         public_pdf_url = "https://arxiv.org/pdf/1706.03762.pdf"  # Transformer paper
 
         try:
+            print(f"\nDownloading PDF from: {public_pdf_url}")
             text = await extract_text_from_pdf(public_pdf_url)
-            print(f"✓ Extracted {len(text)} characters")
-            print("First 200 chars:\n", text[:200], "...")
+            print(f"✓ Extracted {len(text)} characters using httpx")
+            print("\nFirst 300 chars:")
+            print(text[:300].replace("\n", " ") + "...")
 
         except Exception as e:
             print(f"✗ Error: {e}")
+            import traceback
+            traceback.print_exc()
+
+    print("\n" + "="*70)
+    print("PDF Processor Tests Completed")
+    print("="*70 + "\n")
 
 
 if __name__ == "__main__":

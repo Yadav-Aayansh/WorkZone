@@ -8,14 +8,14 @@ try:
     STORAGE_AVAILABLE = True
 except Exception as e:
     STORAGE_AVAILABLE = False
-    print(f"⚠ Warning: Storage client not available: {e}")
+    print(f"Warning: Storage client not available: {e}")
 
 try:
     from google.cloud import texttospeech
     TTS_AVAILABLE = True
 except ImportError:
     TTS_AVAILABLE = False
-    print("⚠ Warning: Google Cloud TTS not available")
+    print("Warning: Google Cloud TTS not available")
 
 
 # Configuration

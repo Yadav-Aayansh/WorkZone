@@ -2,10 +2,6 @@ import asyncio
 import sys
 import os
 
-# # Ensure src/ is available in import path
-# ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-# sys.path.append(ROOT_DIR)
-
 from src.genai.hr_interview.stt_engine import (
     STT_AVAILABLE,
     stt_client,
@@ -14,55 +10,108 @@ from src.genai.hr_interview.stt_engine import (
 
 
 async def test_stt_module():
-    print("\n=== TEST: Speech-to-Text Module ===")
-    print("====================================")
+    print("\n" + "="*70)
+    print("TEST: Speech-to-Text Module (with httpx)")
+    print("="*70)
 
     if not STT_AVAILABLE:
-        print("✗ google-cloud-speech not installed")
+        print("\n✗ google-cloud-speech not installed")
         print("Install using: pip install google-cloud-speech")
         return
 
     if not stt_client:
-        print("✗ STT client not initialized — missing GCP credentials")
+        print("\n✗ STT client not initialized – missing GCP credentials")
+        print("Set environment variables:")
+        print("  - GOOGLE_PROJECT_ID")
+        print("  - GOOGLE_PRIVATE_KEY")
+        print("  - GOOGLE_CLIENT_EMAIL")
         return
 
-    print("✓ STT Client initialized")
+    print("\n✓ STT Client initialized")
 
     # Try a sample audio file from GCP bucket
     try:
         from src.core.storage import storage_client
 
-        test_audio_blob = "interview_audio/hr.mp3"
+        test_audio_blob = "interview_audio/test_session_123/question_0.mp3"
 
-        print(f"\nTrying to fetch audio file: {test_audio_blob}")
+        print(f"\nAttempting to fetch audio file: {test_audio_blob}")
 
         signed_url = storage_client.get_url(test_audio_blob, expiration=1)
 
         if not signed_url:
-            print("✗ Audio file not found in bucket")
-            print("\nUpload any test MP3 file to:")
-            print(" → GCP Storage → workzone-interview → interview_audio/")
-            print("Then update test_audio_blob variable.")
+            print("\n✗ Audio file not found in bucket")
+            print("\nTo test STT:")
+            print("1. Upload any test MP3/WAV file to GCP Storage")
+            print("2. Path: workzone-interview/interview_audio/")
+            print("3. Update 'test_audio_blob' variable in this file")
             return
 
         print("✓ Signed URL generated")
-        print("Fetching + transcribing audio...")
+        print("\nDownloading audio using httpx and transcribing...")
 
         transcription = await speech_to_text(signed_url)
 
-        print("✓ Transcription successful")
-        print("\n===== TRANSCRIBED TEXT =====")
+        print("\n" + "="*70)
+        print("✓ TRANSCRIPTION SUCCESSFUL")
+        print("="*70)
+        print("\nTranscribed Text:")
+        print("-" * 70)
         print(transcription)
-        print("============================\n")
+        print("-" * 70)
+        print(f"\nTranscription length: {len(transcription)} characters")
+        print("="*70 + "\n")
 
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f"\n✗ Error: {e}")
         import traceback
         traceback.print_exc()
 
 
+async def test_stt_with_different_formats():
+    """Test STT with different audio formats if available"""
+    print("\n=== Test: Multiple Audio Formats ===")
+    
+    if not stt_client:
+        print("⚠ Skipping - STT not configured")
+        return
+
+    try:
+        from src.core.storage import storage_client
+
+        # Test different formats
+        test_files = [
+            ("interview_audio/test.mp3", "MP3 format"),
+            ("interview_audio/test.wav", "WAV format"),
+            ("interview_audio/test.flac", "FLAC format"),
+        ]
+
+        for blob_name, description in test_files:
+            print(f"\nTesting {description}: {blob_name}")
+            
+            signed_url = storage_client.get_url(blob_name, expiration=1)
+            
+            if not signed_url:
+                print(f"  ⚠ File not found, skipping...")
+                continue
+
+            try:
+                transcription = await speech_to_text(signed_url)
+                print(f"  ✓ Success: {transcription[:100]}...")
+            except Exception as e:
+                print(f"  ✗ Failed: {e}")
+
+    except ImportError:
+        print("⚠ Storage client not available")
+
+
 async def main():
     await test_stt_module()
+    await test_stt_with_different_formats()
+    
+    print("\n" + "="*70)
+    print("STT Tests Completed")
+    print("="*70 + "\n")
 
 
 if __name__ == "__main__":
