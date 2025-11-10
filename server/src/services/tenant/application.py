@@ -4,7 +4,6 @@ from src.exceptions.tenant import JobNotFoundError, UnauthorizedAccessError, App
 from src.core.storage import storage_client
 from src.core.context import tenant_context
 from src.core.logger import logger
-from src.genai import process_and_rank_resumes, generate_document
 
 class ApplicationService:
     def __init__(self, job_repo: JobRepository, application_repo: ApplicationRepository):
@@ -53,20 +52,3 @@ class ApplicationService:
             raise UnauthorizedAccessError("Access denied!")
         
         return await self.application_repo.withdraw_application(id)
-    
-            
-
-    async def resume_ranking(self, id: str, top_x: int):
-        job = await self.job_repo.get_job_by_id(id, True)
-        applicant_details = [(application.user_id, application.resume) for application in job.applications]
-
-        ranking_results = process_and_rank_resumes(applicant_details, job.description, top_x)
-        for shortlisted in ranking_results.shortlisted_candidates:
-            # self.job_repo.update_application(id, Status.SHORTLISTED, score)
-            # send mail to complete ai interview
-            pass
-
-        for rejected in ranking_results.rejected_candidates:
-            # html = generate_doc(rejection_schema)
-            # Rejection email
-            pass

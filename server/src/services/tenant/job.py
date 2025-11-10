@@ -4,6 +4,7 @@ from src.core.context import user_context
 from src.core.logger import logger
 from src.exceptions.tenant import JobNotFoundError
 from src.exceptions.base import RoleNotAllowedError
+from src.genai import process_and_rank_resumes, generate_document
 
 class JobService:
     def __init__(self, job_repo: JobRepository):
@@ -44,13 +45,24 @@ class JobService:
         if not job:
             raise JobNotFoundError(f"Job not found")
         
-        logger.info(job.posted_by)
-        logger.info(user_id)
         if str(job.posted_by) != user_id:
             raise RoleNotAllowedError("Invalid role!")
         
         return await self.job_repo.update_job(id, data.model_dump(exclude_unset=True,exclude_none=True))
     
+    async def close_job(self, id: str, user_id: str, top_x: int):
+        job = await self.job_repo.get_job_by_id(id)
+        if not job:
+            raise JobNotFoundError(f"Job not found")
+        
+        if str(job.posted_by) != user_id:
+            raise RoleNotAllowedError("Invalid role!")
+        
+        resume_ranking.delay(id, top_x)
+        return await self.job_repo.close_job(id)
+
+
+
     async def delete_job(self, id: str, user_id: str):
         job = await self.job_repo.get_job_by_id(id)
         if not job:

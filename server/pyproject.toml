@@ -38,5 +38,6 @@ dependencies = [
     "pdf2image>=1.16.3",
     "pydub>=0.25.1",
     "ffmpeg>=1.4",
+    "aiohttp>=3.13.2",
 ]
 

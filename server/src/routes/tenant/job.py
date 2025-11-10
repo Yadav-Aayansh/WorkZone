@@ -68,6 +68,23 @@ async def update_job(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+@job_router.post(path="/jobs/{job_id}/close", status_code=200, response_model=JobResponse)
+async def close_job(
+    job_id: str,
+    service: JobService = Depends(get_job_service),
+    current_user = Depends(get_current_user(use_tenant=True, roles=[Role.RECRUITER]))
+):
+    try:
+        user_id = current_user.get("sub")
+        return await service.close_job(job_id, user_id)
+    except JobNotFoundError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+    except RoleNotAllowedError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @job_router.delete(path="/jobs/{job_id}", status_code=204)
 async def delete_job(
     job_id: str,

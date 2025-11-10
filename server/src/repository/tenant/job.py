@@ -80,6 +80,23 @@ class JobRepository:
             logger.exception(f"Error updating job: {e}")
             raise
 
+    async def close_job(self, id: str):
+        try:
+            result = await self.db.execute(select(Job).where(Job.id==id))
+            job = result.scalar_one_or_none()
+            
+            if not job:
+                return None
+
+            job.is_open = False
+            await self.db.commit()
+            await self.db.refresh(job)
+            return job
+        except Exception as e:
+            await self.db.rollback()
+            logger.exception(f"Error closing job: {e}")
+            raise  
+
     async def delete_job(self, id: str):
         try:
             result = await self.db.execute(select(Job).where(Job.id==id))
