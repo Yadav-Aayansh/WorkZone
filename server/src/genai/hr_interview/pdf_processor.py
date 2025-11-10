@@ -1,6 +1,5 @@
 import io
 import PyPDF2
-import requests
 
 # OCR imports (optional)
 try:
@@ -10,7 +9,7 @@ try:
     OCR_AVAILABLE = True
 except ImportError:
     OCR_AVAILABLE = False
-    print("⚠ Warning: OCR libraries not available")
+    print("Warning: OCR libraries not available")
 
 # Conditional import for testing without full config
 try:
@@ -18,24 +17,20 @@ try:
     STORAGE_AVAILABLE = True
 except Exception as e:
     STORAGE_AVAILABLE = False
-    print(f"⚠ Warning: Storage client not available: {e}")
+    print(f"Warning: Storage client not available: {e}")
 
-# OCR imports (optional)
+# Import shared HTTP client
 try:
-    from PIL import Image
-    import pytesseract
-    from pdf2image import convert_from_bytes
-    OCR_AVAILABLE = True
+    from src.core.http_client import http_client
 except ImportError:
-    OCR_AVAILABLE = False
-    print("⚠ Warning: OCR libraries not available")
+    from http_client import http_client  # Fallback for testing
 
 
-def extract_text_from_pdf(pdf_url: str) -> str:
-
+async def extract_text_from_pdf(pdf_url: str) -> str:
     try:
-        # Download PDF from signed URL
-        response = requests.get(pdf_url)
+        # Download PDF from signed URL using shared httpx client
+        client = http_client.get_client()
+        response = await client.get(pdf_url)
         response.raise_for_status()
         pdf_content = response.content
         
@@ -63,71 +58,3 @@ def extract_text_from_pdf(pdf_url: str) -> str:
     
     except Exception as e:
         raise Exception(f"Failed to parse PDF: {str(e)}")
-
-
-# Testing the module
-
-if __name__ == "__main__":
-    print("Testing PDF Processor Module")
-    print("=" * 60)
-    
-    # Test with storage client to get signed URL
-    if STORAGE_AVAILABLE:
-        print("\n✓ Storage client available")
-        print("\nTesting with GCP Storage files...")
-        print("-" * 60)
-        
-        # Test files from your bucket
-        test_blob_names = [
-            "jd/JD.pdf",
-            "jd/JD(image).pdf"
-        ]
-        
-        for blob_name in test_blob_names:
-            print(f"\nTesting: {blob_name}")
-            try:
-                # Get signed URL from blob name
-                signed_url = storage_client.get_url(blob_name, expiration=1)
-                
-                if not signed_url:
-                    print(f"  ✗ File not found: {blob_name}")
-                    continue
-                
-                print(f"  ✓ Generated signed URL")
-                
-                # Extract text
-                text = extract_text_from_pdf(signed_url)
-                print(f"  ✓ Successfully extracted {len(text)} characters")
-                print(f"\n  First 200 characters:")
-                print(f"  {text[:200]}...")
-                
-            except Exception as e:
-                print(f"  ✗ Error: {e}")
-    else:
-        print("\n⚠ Storage client not available")
-        print("\nTesting with public PDF URL...")
-        print("-" * 60)
-        
-        # Test with a public PDF
-        test_url = "gs://workzone-interview/jd/JD.pdf"
-        
-        try:
-            text = extract_text_from_pdf(test_url)
-            print(f"✓ Successfully extracted {len(text)} characters")
-            print("\nFirst 200 characters:")
-            print(text[:200])
-            print("...")
-            
-        except Exception as e:
-            print(f"✗ Error: {e}")
-            print("\nTo test with GCP Storage:")
-            print("  1. Ensure config.py has Google Cloud settings")
-            print("  2. Set environment variables or update config.py directly")
-
-
-
-
-
-
-
-

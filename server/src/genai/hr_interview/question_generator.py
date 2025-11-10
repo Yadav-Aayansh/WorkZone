@@ -1,41 +1,66 @@
 import json
+import re
 from typing import List, Optional
 from src.genai.llm_client import llm_client
 from src.genai.hr_interview.text_cleaner import clean_text_for_speech
-from src.genai.schemas.hr_interview_schemas import InterviewQuestion
+from src.genai.schemas.hr_interview_schemas import InterviewQuestion, QuestionResponse
 
 
-def generate_interview_questions(
+async def generate_next_question(
     jd: str,
     resume: str,
-    num_questions: int = 3
-) -> List[InterviewQuestion]:
+    previous_qa: List[QuestionResponse],
+    candidate_name: Optional[str] = None
+) -> InterviewQuestion:
     
-    prompt = f"""You are an expert technical recruiter. Generate {num_questions} concise, direct interview questions.
+    # Build context from previous Q&A
+    conversation_context = ""
+    if previous_qa:
+        conversation_context = "\n\nPrevious Questions & Answers:\n"
+        for i, qa in enumerate(previous_qa, 1):
+            conversation_context += f"Q{i}: {qa.question}\nA{i}: {qa.answer}\n\n"
+    
+    # Determine what type of question to ask next
+    question_count = len(previous_qa)
+    
+    if question_count == 0:
+        question_type_guidance = "Start with a warm introduction question asking about their background."
+    elif question_count < 3:
+        question_type_guidance = "Ask a technical question related to the job requirements and their resume."
+    elif question_count < 5:
+        question_type_guidance = "Ask about their experience with specific projects or technologies mentioned in their resume or previous answers."
+    else:
+        question_type_guidance = "Ask a behavioral or situational question to understand their soft skills and work style."
+    
+    prompt = f"""You are an expert technical recruiter conducting a dynamic interview. Generate ONE concise, conversational interview question.
 
 Job Description:
 {jd}
 
 Resume:
 {resume}
+{conversation_context}
+
+Guidance: {question_type_guidance}
 
 Requirements:
-- Each question should be ONE clear sentence
-- Mix technical, experience-based, and behavioral questions
-- Questions should be conversational and natural
-- No explanations, just the questions
+- Generate ONE clear, single-sentence question
+- Make it conversational and natural
+- Build on previous answers if relevant
+- Avoid repeating topics already covered
+- The question should help assess the candidate's fit for the role
 
-Return ONLY a JSON array:
-[
-  {{"type": "technical", "question": "What is your experience with [technology from JD]?", "focus_area": "skills"}},
-  {{"type": "experience", "question": "Tell me about [project from resume].", "focus_area": "experience"}},
-  {{"type": "behavioral", "question": "How do you handle [situation]?", "focus_area": "soft_skills"}}
-]"""
+Return ONLY a JSON object:
+{{
+  "type": "technical|experience|behavioral|introduction",
+  "question": "Your question here?",
+  "focus_area": "specific_skill|experience|soft_skills|general"
+}}"""
 
     messages = [
         {
             "role": "system",
-            "content": "You are a concise technical recruiter. Return only valid JSON with clear, single-sentence questions."
+            "content": "You are a concise technical recruiter conducting a conversational interview. Return only valid JSON with a clear, single-sentence question."
         },
         {"role": "user", "content": prompt}
     ]
@@ -44,23 +69,21 @@ Return ONLY a JSON array:
         response = llm_client.call_llm(messages, temperature=0.7)
         
         # Extract JSON from response
-        start = response.find('[')
-        end = response.rfind(']') + 1
+        start = response.find('{')
+        end = response.rfind('}') + 1
         json_str = response[start:end]
-        questions_data = json.loads(json_str)
+        question_data = json.loads(json_str)
         
-        # Convert to Pydantic models and clean for speech
-        questions = []
-        for q_data in questions_data:
-            q_data['question'] = clean_text_for_speech(q_data['question'])
-            questions.append(InterviewQuestion(**q_data))
+        # Clean question for speech
+        question_data['question'] = clean_text_for_speech(question_data['question'])
         
-        return questions
+        return InterviewQuestion(**question_data)
     
     except Exception as e:
         print(f"Question generation error: {e}")
-        # Fallback questions
-        return [
+        
+        # Fallback questions based on count
+        fallback_questions = [
             InterviewQuestion(
                 type="introduction",
                 question="Tell me about your background and experience.",
@@ -72,93 +95,86 @@ Return ONLY a JSON array:
                 focus_area="skills"
             ),
             InterviewQuestion(
+                type="experience",
+                question="Can you describe a challenging project you've worked on?",
+                focus_area="experience"
+            ),
+            InterviewQuestion(
                 type="behavioral",
-                question="Describe how you handle challenging situations at work.",
+                question="How do you handle difficult situations at work?",
                 focus_area="soft_skills"
-            )
+            ),
         ]
+        
+        return fallback_questions[min(question_count, len(fallback_questions) - 1)]
 
 
-def generate_followup_question(
-    question: str,
-    answer: str,
-    jd: str
-) -> Optional[str]:
-   
-    # Skip follow-up for very short answers
-    if len(answer.split()) < 10:
-        return None
+def is_poor_answer(answer: str) -> bool:
+    # Normalize answer for comparison
+    answer_lower = answer.lower().strip()
     
-    prompt = f"""Generate ONE short follow-up question based on:
-
-Question: {question}
-Answer: {answer}
-
-The follow-up should:
-- Be ONE clear sentence
-- Probe deeper into their answer
-- Be conversational
-
-Return ONLY the question, nothing else."""
-
-    messages = [
-        {
-            "role": "system",
-            "content": "You are an interviewer asking brief follow-up questions."
-        },
-        {"role": "user", "content": prompt}
+    # Remove extra whitespace
+    answer_lower = re.sub(r'\s+', ' ', answer_lower)
+    
+    # Patterns indicating "I don't know" responses
+    poor_answer_patterns = [
+        r'\bi don\'?t know\b',
+        r'\bno idea\b',
+        r'\bnot sure\b',
+        r'\bdon\'?t remember\b',
+        r'\bcan\'?t recall\b',
+        r'\bno experience\b',
+        r'\bnever (done|worked|used)\b',
+        r'\bno clue\b',
+        r'\bdon\'?t have (any |much )?experience\b',
+        r'\bnot familiar\b',
+        r'\bhaven\'?t (done|worked|used)\b',
+        r'\bsorry,? (but )?i\b',
     ]
     
-    try:
-        followup = llm_client.call_llm(messages, temperature=0.6)
-        followup = clean_text_for_speech(followup)
-        return followup.strip() if followup else None
-    except:
-        return None
+    # Check if answer matches any poor answer pattern
+    for pattern in poor_answer_patterns:
+        if re.search(pattern, answer_lower):
+            return True
+    
+    # Check if answer is too short (less than 5 words) and doesn't seem substantial
+    word_count = len(answer.split())
+    if word_count < 5:
+        # If very short, likely not a good answer unless it's a simple factual response
+        return True
+    
+    return False
 
 
-# Testing the module
+def count_poor_answers(previous_qa: List[QuestionResponse]) -> int:
+    poor_count = 0
+    for qa in previous_qa:
+        if is_poor_answer(qa.answer):
+            poor_count += 1
+    return poor_count
 
-if __name__ == "__main__":
-    print("Testing Question Generator Module (Pydantic)")
-    print("=" * 60)
+
+async def should_continue_interview(
+    previous_qa: List[QuestionResponse],
+    min_questions: int = 5,
+    max_questions: int = 10,
+    max_poor_answers: int = 3
+) -> bool:
     
-    # Test data
-    test_jd = """
-    Software Engineer - Python
-    Required: 3+ years Python, FastAPI, MongoDB
-    Experience with AI/ML is a plus
-    """
+    question_count = len(previous_qa)
     
-    test_resume = """
-    John Doe - Software Developer
-    5 years experience in Python development
-    Built REST APIs using FastAPI and Flask
-    Worked on ML projects using scikit-learn
-    """
+    # Check for too many poor answers - END INTERVIEW EARLY
+    poor_answer_count = count_poor_answers(previous_qa)
+    if poor_answer_count >= max_poor_answers:
+        return False  # Stop interview due to too many poor answers
     
-    print("\n1. Testing Interview Question Generation:")
-    print("-" * 60)
-    try:
-        questions = generate_interview_questions(test_jd, test_resume, num_questions=3)
-        print(f"✓ Generated {len(questions)} questions (Pydantic validated):\n")
-        for i, q in enumerate(questions, 1):
-            print(f"{i}. [{q.type}] {q.question}")
-            print(f"   Focus: {q.focus_area}")
-            print(f"   Type: {type(q).__name__}\n")
-    except Exception as e:
-        print(f"✗ Error: {e}")
+    # Always continue if we haven't reached minimum (unless too many poor answers)
+    if question_count < min_questions:
+        return True
     
-    print("\n2. Testing Follow-up Question Generation:")
-    print("-" * 60)
-    test_q = "Tell me about your Python experience."
-    test_answer = "I have worked with Python for 5 years, building web applications using FastAPI and Flask. I've also done data analysis with pandas and machine learning with scikit-learn."
+    # Stop if we've reached maximum
+    if question_count >= max_questions:
+        return False
     
-    try:
-        followup = generate_followup_question(test_q, test_answer, test_jd)
-        if followup:
-            print(f"✓ Follow-up: {followup}")
-        else:
-            print("✓ No follow-up generated (answer too short)")
-    except Exception as e:
-        print(f"✗ Error: {e}")
+    # Between min and max, continue
+    return True

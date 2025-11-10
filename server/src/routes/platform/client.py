@@ -39,7 +39,7 @@ async def check_tenant_availability(
 async def create_order(
     data: CreateOrder = Depends(),
     service: OrderService = Depends(get_order_service),
-    current_user = Depends(get_current_user)
+    current_user = Depends(get_current_user())
 ):  
     client_id = current_user.get("sub")
     return await service.create_order(client_id, data)

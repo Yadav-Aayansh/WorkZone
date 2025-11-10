@@ -1,60 +1,41 @@
-#Pydantic schemas, validates all inputs and outputs
-
 from pydantic import BaseModel, validator, Field
 from typing import List, Optional, Literal
 from src.utils.datetime import get_indian_time
 from datetime import datetime
 
-
-# ========== INPUT SCHEMAS ==========
+# INPUT SCHEMAS 
 
 class StartInterviewRequest(BaseModel):
-    """Request to start a new interview session"""
+    session_id: str = Field(..., description="Interview session ID from backend")
     resume_blob_name: str = Field(..., description="GCP storage blob name for resume PDF")
-    jd_type: Literal["text", "pdf"] = Field(..., description="Type of job description")
-    jd_content: str = Field(..., description="Plain text JD or GCP blob name for JD PDF")
+    jd_text: str = Field(..., description="Job description in markdown format")
     candidate_name: Optional[str] = Field(None, description="Candidate's name")
     position: Optional[str] = Field(None, description="Position applied for")
-    num_questions: int = Field(default=3, ge=1, le=10, description="Number of questions to generate")
-    
-    @validator('jd_content')
-    def validate_jd_content(cls, v, values):
-        jd_type = values.get('jd_type')
-        if jd_type == 'pdf' and len(v.strip()) < 3:
-            raise ValueError('JD PDF blob name must be provided')
-        return v
 
 
 class ProcessTextAnswerRequest(BaseModel):
-    """Request to process a text answer"""
     session_id: str = Field(..., description="Interview session ID")
     answer_text: str = Field(..., min_length=1, description="Candidate's text answer")
-    current_question_index: int = Field(..., ge=0, description="Current question index")
 
 
 class ProcessVoiceAnswerRequest(BaseModel):
-    """Request to process a voice answer"""
     session_id: str = Field(..., description="Interview session ID")
     audio_blob_name: str = Field(..., description="GCP storage blob name for audio file")
-    current_question_index: int = Field(..., ge=0, description="Current question index")
 
 
 class GenerateReportRequest(BaseModel):
-    """Request to generate final interview report"""
     session_id: str = Field(..., description="Interview session ID")
 
 
-# ========== INTERNAL SCHEMAS ==========
+# INTERNAL SCHEMAS 
 
 class InterviewQuestion(BaseModel):
-    """Single interview question"""
     type: str = Field(..., description="Question type (technical/experience/behavioral)")
     question: str = Field(..., description="Question text")
     focus_area: str = Field(..., description="Focus area of the question")
 
 
 class QuestionResponse(BaseModel):
-    """Single question-answer pair"""
     question_index: int
     question: str
     answer: str
@@ -62,14 +43,12 @@ class QuestionResponse(BaseModel):
 
 
 class AnswerAnalysis(BaseModel):
-    """Analysis of a single answer"""
     score: int = Field(..., ge=1, le=10)
     strength: str
     weakness: str
 
 
 class DetailedQA(BaseModel):
-    """Detailed Q&A with analysis"""
     question: str
     answer: str
     score: int = Field(..., ge=1, le=10)
@@ -77,33 +56,34 @@ class DetailedQA(BaseModel):
     weakness: Optional[str] = None
 
 
-# ========== OUTPUT SCHEMAS ==========
+#  OUTPUT SCHEMAS 
 
 class StartInterviewResponse(BaseModel):
-    """Response after starting interview"""
     session_id: str
-    questions: List[InterviewQuestion]
+    first_question: InterviewQuestion
     first_question_audio_url: str = Field(..., description="Signed URL for first question audio")
     resume_text: str
     jd_text: str
     candidate_name: Optional[str]
     position: Optional[str]
+    question_index: int = Field(default=0, description="Current question index")
 
 
 class ProcessAnswerResponse(BaseModel):
-    """Response after processing an answer"""
     status: Literal["in_progress", "completed"]
-    next_question: Optional[str] = None
+    next_question: Optional[InterviewQuestion] = None
     next_question_audio_url: Optional[str] = Field(None, description="Signed URL for next question audio")
     next_question_index: Optional[int] = None
-    followup_generated: bool = False
-    total_questions: int
-    question_type: Optional[str] = None
+    total_questions_asked: int
     transcription: Optional[str] = None  # Only for voice answers
+    completion_reason: Optional[Literal["max_questions", "poor_answers", "min_questions_reached"]] = Field(
+        None, 
+        description="Reason for interview completion: max_questions (reached 10), poor_answers (3+ 'I don't know'), or min_questions_reached"
+    )
+    poor_answer_count: Optional[int] = Field(None, description="Number of poor quality answers given")
 
 
 class InterviewReport(BaseModel):
-    """Final interview evaluation report"""
     session_id: str
     candidate_name: str
     position: str
@@ -117,23 +97,22 @@ class InterviewReport(BaseModel):
 
 
 class GenerateReportResponse(BaseModel):
-    """Response with report and PDF"""
     report: InterviewReport
-    pdf_url: str = Field(..., description="Signed URL for PDF report")
+    markdown_report: str = Field(..., description="Markdown formatted report")
+    markdown_url: str
 
-
-# ========== SESSION DATA SCHEMA ==========
+# SESSION DATA SCHEMA 
 
 class SessionData(BaseModel):
-    """Internal session data storage"""
     session_id: str
-    questions: List[InterviewQuestion]
     resume_text: str
     jd_text: str
     candidate_name: Optional[str]
     position: Optional[str]
     responses: List[QuestionResponse] = []
+    questions_asked: List[InterviewQuestion] = []
     created_at: datetime = Field(default_factory=get_indian_time)
+    current_question_index: int = 0
     
     class Config:
         arbitrary_types_allowed = True

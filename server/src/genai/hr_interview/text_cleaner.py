@@ -39,23 +39,4 @@ def clean_text_for_speech(text: str) -> str:
     return text.strip()
 
 
-# Testing the module
 
-if __name__ == "__main__":
-    print("Testing Text Cleaner Module")
-    print("=" * 60)
-    
-    # Test cases
-    test_cases = [
-        "**Question 1:** Tell me about your experience with Python? [Technical]",
-        "Let me ask you this. What is your background? How do you handle stress?",
-        "### Important Question\n\n*Describe* your (most challenging) project.",
-        "I will now ask: Can you explain your approach to problem-solving?"
-    ]
-    
-    for i, test_text in enumerate(test_cases, 1):
-        print(f"\nTest {i}:")
-        print(f"Input:  {test_text}")
-        cleaned = clean_text_for_speech(test_text)
-        print(f"Output: {cleaned}")
-        print("✓ Cleaned successfully")
