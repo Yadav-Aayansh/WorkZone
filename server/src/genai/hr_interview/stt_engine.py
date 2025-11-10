@@ -1,5 +1,4 @@
 import os
-import aiohttp
 
 try:
     from google.cloud import speech
@@ -8,9 +7,14 @@ except ImportError:
     STT_AVAILABLE = False
     print("Warning: Google Cloud STT not available")
 
+# Import shared HTTP client
+try:
+    from src.core.http_client import http_client
+except ImportError:
+    from http_client import http_client  # Fallback for testing
+
 
 def initialize_stt_client():
-    """Initialize Google Cloud STT client"""
     if not STT_AVAILABLE:
         return None
     
@@ -40,18 +44,17 @@ stt_client = initialize_stt_client()
 
 
 async def speech_to_text(audio_signed_url: str) -> str:
-    
     if not stt_client:
         raise Exception(
             "Google Cloud STT not configured. Set GOOGLE_APPLICATION_CREDENTIALS"
         )
     
     try:
-        # Download audio from signed URL using async request
-        async with aiohttp.ClientSession() as session:
-            async with session.get(audio_signed_url) as response:
-                response.raise_for_status()
-                audio_data = await response.read()
+        # Download audio from signed URL using shared httpx client
+        client = http_client.get_client()
+        response = await client.get(audio_signed_url)
+        response.raise_for_status()
+        audio_data = response.content
         
         # Detect encoding based on URL extension
         ext = audio_signed_url.split("?")[0].split(".")[-1].lower()
@@ -88,4 +91,3 @@ async def speech_to_text(audio_signed_url: str) -> str:
     
     except Exception as e:
         raise Exception(f"STT error: {str(e)}")
-

@@ -1,6 +1,5 @@
 import io
 import PyPDF2
-import aiohttp
 
 # OCR imports (optional)
 try:
@@ -10,7 +9,7 @@ try:
     OCR_AVAILABLE = True
 except ImportError:
     OCR_AVAILABLE = False
-    print("⚠ Warning: OCR libraries not available")
+    print("Warning: OCR libraries not available")
 
 # Conditional import for testing without full config
 try:
@@ -18,17 +17,22 @@ try:
     STORAGE_AVAILABLE = True
 except Exception as e:
     STORAGE_AVAILABLE = False
-    print(f"⚠ Warning: Storage client not available: {e}")
+    print(f"Warning: Storage client not available: {e}")
+
+# Import shared HTTP client
+try:
+    from src.core.http_client import http_client
+except ImportError:
+    from http_client import http_client  # Fallback for testing
 
 
 async def extract_text_from_pdf(pdf_url: str) -> str:
-
     try:
-        # Download PDF from signed URL using async request
-        async with aiohttp.ClientSession() as session:
-            async with session.get(pdf_url) as response:
-                response.raise_for_status()
-                pdf_content = await response.read()
+        # Download PDF from signed URL using shared httpx client
+        client = http_client.get_client()
+        response = await client.get(pdf_url)
+        response.raise_for_status()
+        pdf_content = response.content
         
         # Step 1: Extract text from PDF text layer
         pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_content))
@@ -54,4 +58,3 @@ async def extract_text_from_pdf(pdf_url: str) -> str:
     
     except Exception as e:
         raise Exception(f"Failed to parse PDF: {str(e)}")
-

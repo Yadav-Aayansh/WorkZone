@@ -17,7 +17,7 @@ from src.genai.schemas.hr_interview_schemas import (
 
 # Import modules
 from src.genai.hr_interview.pdf_processor import extract_text_from_pdf
-from src.genai.hr_interview.question_generator import generate_interview_questions, generate_followup_question
+from src.genai.hr_interview.question_generator import generate_next_question, should_continue_interview
 from src.genai.hr_interview.report_generator import generate_interview_report
 from src.genai.hr_interview.tts_engine import text_to_speech
 from src.genai.hr_interview.stt_engine import speech_to_text
@@ -51,7 +51,6 @@ def upload_markdown_report(markdown_content: str, session_id: str) -> str:
 
 # generate markdown report
 def generate_markdown_report(report) -> str:
-    """Convert InterviewReport to markdown format"""
     markdown = f"""# Interview Report
 
 ## Candidate Information
@@ -114,7 +113,6 @@ active_sessions: Dict[str, SessionData] = {}
 
 
 async def start_interview(request: StartInterviewRequest) -> StartInterviewResponse:
-    
     # Get signed URL for resume and extract text
     resume_signed_url = storage_client.get_url(request.resume_blob_name, expiration=1)
     if not resume_signed_url:
@@ -122,118 +120,138 @@ async def start_interview(request: StartInterviewRequest) -> StartInterviewRespo
     
     resume_text = await extract_text_from_pdf(resume_signed_url)
     
-    # Extract or use JD text
-    if request.jd_type == "pdf":
-        jd_signed_url = storage_client.get_url(request.jd_content, expiration=1)
-        if not jd_signed_url:
-            raise ValueError(f"JD PDF not found: {request.jd_content}")
-        jd_final = await extract_text_from_pdf(jd_signed_url)
-    else:
-        jd_final = request.jd_content
+    # JD is now directly provided as markdown text
+    jd_text = request.jd_text
     
     # Use session_id from request (provided by backend)
     session_id = request.session_id
     
-    # Generate interview questions
-    questions = await generate_interview_questions(jd_final, resume_text, request.num_questions)
-    
-    # Generate audio for first question (returns signed URL)
-    first_question_audio_url = await text_to_speech(
-        questions[0].question,
-        session_id,
-        0
-    )
-    
-    # Create session data
+    # Create session data (with empty questions list initially)
     session_data = SessionData(
         session_id=session_id,
-        questions=questions,
         resume_text=resume_text,
-        jd_text=jd_final,
+        jd_text=jd_text,
         candidate_name=request.candidate_name,
         position=request.position,
-        responses=[]
+        responses=[],
+        questions_asked=[],
+        current_question_index=0
     )
     
     # Store session
     active_sessions[session_id] = session_data
     
+    # Generate first question
+    first_question = await generate_next_question(
+        jd=jd_text,
+        resume=resume_text,
+        previous_qa=[],
+        candidate_name=request.candidate_name
+    )
+    
+    # Add to questions asked
+    session_data.questions_asked.append(first_question)
+    
+    # Generate audio for first question (returns signed URL)
+    first_question_audio_url = await text_to_speech(
+        first_question.question,
+        session_id,
+        0
+    )
+    
     return StartInterviewResponse(
         session_id=session_id,
-        questions=questions,
+        first_question=first_question,
         first_question_audio_url=first_question_audio_url,
         resume_text=resume_text,
-        jd_text=jd_final,
+        jd_text=jd_text,
         candidate_name=request.candidate_name,
-        position=request.position
+        position=request.position,
+        question_index=0
     )
 
 
-async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswerResponse:
-    
+async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswerResponse: 
     # Get session data
     if request.session_id not in active_sessions:
         raise ValueError(f"Session {request.session_id} not found")
     
     session_data = active_sessions[request.session_id]
     
+    # Get current question
+    current_question = session_data.questions_asked[session_data.current_question_index]
+    
     # Store answer
     response_record = QuestionResponse(
-        question_index=request.current_question_index,
-        question=session_data.questions[request.current_question_index].question,
+        question_index=session_data.current_question_index,
+        question=current_question.question,
         answer=request.answer_text,
         timestamp=get_indian_time().isoformat()
     )
     session_data.responses.append(response_record)
     
-    # Generate follow-up question if appropriate
-    followup_generated = False
-    if len(request.answer_text.split()) >= 10 and len(session_data.questions) < 5:
-        followup = await generate_followup_question(
-            session_data.questions[request.current_question_index].question,
-            request.answer_text,
-            session_data.jd_text
-        )
-        if followup:
-            followup_question = InterviewQuestion(
-                type="followup",
-                question=followup,
-                focus_area=session_data.questions[request.current_question_index].focus_area
-            )
-            session_data.questions.insert(request.current_question_index + 1, followup_question)
-            followup_generated = True
+    # Move to next question index
+    session_data.current_question_index += 1
     
-    # Move to next question
-    next_index = request.current_question_index + 1
+    # Check if interview should continue
+    should_continue = await should_continue_interview(
+        session_data.responses,
+        min_questions=5,
+        max_questions=10,
+        max_poor_answers=3
+    )
     
-    # Check if interview is complete
-    if next_index >= len(session_data.questions):
+    # Import count_poor_answers to get the count
+    from src.genai.hr_interview.question_generator import count_poor_answers
+    poor_count = count_poor_answers(session_data.responses)
+    
+    if not should_continue:
+        # Determine completion reason
+        question_count = len(session_data.questions_asked)
+        
+        if poor_count >= 3:
+            completion_reason = "poor_answers"
+        elif question_count >= 10:
+            completion_reason = "max_questions"
+        else:
+            completion_reason = "min_questions_reached"
+        
         return ProcessAnswerResponse(
             status="completed",
-            followup_generated=followup_generated,
-            total_questions=len(session_data.questions)
+            total_questions_asked=len(session_data.questions_asked),
+            completion_reason=completion_reason,
+            poor_answer_count=poor_count
         )
+    
+    # Generate next question based on conversation history
+    next_question = await generate_next_question(
+        jd=session_data.jd_text,
+        resume=session_data.resume_text,
+        previous_qa=session_data.responses,
+        candidate_name=session_data.candidate_name
+    )
+    
+    # Add to questions asked
+    session_data.questions_asked.append(next_question)
     
     # Generate audio for next question (returns signed URL)
     next_question_audio_url = await text_to_speech(
-        session_data.questions[next_index].question,
+        next_question.question,
         session_data.session_id,
-        next_index
+        session_data.current_question_index
     )
     
     return ProcessAnswerResponse(
         status="in_progress",
-        next_question=session_data.questions[next_index].question,
+        next_question=next_question,
         next_question_audio_url=next_question_audio_url,
-        next_question_index=next_index,
-        followup_generated=followup_generated,
-        total_questions=len(session_data.questions),
-        question_type=session_data.questions[next_index].type
+        next_question_index=session_data.current_question_index,
+        total_questions_asked=len(session_data.questions_asked),
+        poor_answer_count=poor_count
     )
 
 
-async def process_voice_answer(request: ProcessVoiceAnswerRequest) -> ProcessAnswerResponse:
-    
+async def process_voice_answer(request: ProcessVoiceAnswerRequest) -> ProcessAnswerResponse: 
     # Get signed URL for audio
     audio_signed_url = storage_client.get_url(request.audio_blob_name, expiration=1)
     if not audio_signed_url:
@@ -245,8 +263,7 @@ async def process_voice_answer(request: ProcessVoiceAnswerRequest) -> ProcessAns
     # Process as text answer
     text_request = ProcessTextAnswerRequest(
         session_id=request.session_id,
-        answer_text=transcription,
-        current_question_index=request.current_question_index
+        answer_text=transcription
     )
     
     result = await process_text_answer(text_request)
@@ -256,7 +273,6 @@ async def process_voice_answer(request: ProcessVoiceAnswerRequest) -> ProcessAns
 
 
 async def generate_final_report(request: GenerateReportRequest) -> GenerateReportResponse:
-    
     # Get session data
     if request.session_id not in active_sessions:
         raise ValueError(f"Session {request.session_id} not found")
@@ -267,7 +283,7 @@ async def generate_final_report(request: GenerateReportRequest) -> GenerateRepor
     report = await generate_interview_report(
         jd=session_data.jd_text,
         resume=session_data.resume_text,
-        questions=session_data.questions,
+        questions=session_data.questions_asked,
         responses=session_data.responses,
         candidate_name=session_data.candidate_name or "Unknown",
         position=session_data.position or "Unknown Position",
