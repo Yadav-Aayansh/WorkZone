@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
-import { RecruiterPortalLayout } from "@/components/tenant/recruiter-portal-layout";
+import { ModernRecruiterLayout } from "@/components/common/layout/ModernRecruiterLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -841,9 +841,9 @@ function JobDetailsContent() {
 export default function JobDetailsPage() {
   return (
     <TenantProtectedRoute allowedRoles={["recruiter"]}>
-      <RecruiterPortalLayout>
+      <ModernRecruiterLayout>
         <JobDetailsContent />
-      </RecruiterPortalLayout>
+      </ModernRecruiterLayout>
     </TenantProtectedRoute>
   );
 }

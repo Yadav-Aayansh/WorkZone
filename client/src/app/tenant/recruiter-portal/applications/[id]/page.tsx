@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
-import { RecruiterPortalLayout } from "@/components/tenant/recruiter-portal-layout";
+import { ModernRecruiterLayout } from "@/components/common/layout/ModernRecruiterLayout";
 import {
   tenantApplicationAPI,
   tenantJobAPI,
@@ -669,9 +669,9 @@ function ApplicationDetailContent() {
 export default function ApplicationDetailPage() {
   return (
     <TenantProtectedRoute requiredRole="RECRUITER">
-      <RecruiterPortalLayout>
+      <ModernRecruiterLayout>
         <ApplicationDetailContent />
-      </RecruiterPortalLayout>
+      </ModernRecruiterLayout>
     </TenantProtectedRoute>
   );
 }

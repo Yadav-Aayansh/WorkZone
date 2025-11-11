@@ -77,6 +77,50 @@
     --sidebar-accent-foreground: oklch(0.98 0.02 285);
     --sidebar-border: oklch(0.9 0.03 285);
     --sidebar-ring: oklch(0.55 0.25 290);
+
+    /* ========== EXTENDED COLORS FOR NEW UI ========== */
+    /* Dashboard Gradients */
+    --gradient-purple-light: oklch(0.95 0.05 290);
+    --gradient-purple-dark: oklch(0.90 0.08 285);
+    --gradient-blue-light: oklch(0.95 0.05 240);
+    --gradient-blue-dark: oklch(0.90 0.08 235);
+    --gradient-pink-light: oklch(0.95 0.05 330);
+    --gradient-pink-dark: oklch(0.90 0.08 325);
+    --gradient-green-light: oklch(0.95 0.05 150);
+    --gradient-green-dark: oklch(0.90 0.08 145);
+    --gradient-orange-light: oklch(0.95 0.05 60);
+    --gradient-orange-dark: oklch(0.90 0.08 55);
+    
+    /* Chart Colors */
+    --chart-purple: oklch(0.55 0.23 290);
+    --chart-blue: oklch(0.6 0.18 235);
+    --chart-green: oklch(0.65 0.17 145);
+    --chart-yellow: oklch(0.75 0.15 85);
+    --chart-red: oklch(0.6 0.22 25);
+    --chart-orange: oklch(0.7 0.18 55);
+    
+    /* Status Colors */
+    --status-pending: oklch(0.75 0.15 85);
+    --status-pending-bg: oklch(0.95 0.05 85);
+    --status-approved: oklch(0.65 0.17 145);
+    --status-approved-bg: oklch(0.95 0.05 145);
+    --status-rejected: oklch(0.6 0.22 25);
+    --status-rejected-bg: oklch(0.95 0.05 25);
+    
+    /* Sidebar Dimensions */
+    --sidebar-width-collapsed: 64px;
+    --sidebar-width-expanded: 240px;
+    
+    /* Glass Effect */
+    --glass-background: oklch(1 0 0 / 0.6);
+    --glass-border: oklch(0.92 0.02 285 / 0.5);
+    
+    /* Shadows */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
 }
 
 /* ======================
@@ -117,6 +161,46 @@
     --sidebar-accent-foreground: oklch(0.98 0.02 285);
     --sidebar-border: oklch(0.3 0.04 285);
     --sidebar-ring: oklch(0.75 0.22 300);
+
+    /* ========== EXTENDED COLORS FOR NEW UI (DARK) ========== */
+    /* Dashboard Gradients */
+    --gradient-purple-light: oklch(0.25 0.08 290);
+    --gradient-purple-dark: oklch(0.20 0.10 285);
+    --gradient-blue-light: oklch(0.25 0.08 240);
+    --gradient-blue-dark: oklch(0.20 0.10 235);
+    --gradient-pink-light: oklch(0.25 0.08 330);
+    --gradient-pink-dark: oklch(0.20 0.10 325);
+    --gradient-green-light: oklch(0.25 0.08 150);
+    --gradient-green-dark: oklch(0.20 0.10 145);
+    --gradient-orange-light: oklch(0.25 0.08 60);
+    --gradient-orange-dark: oklch(0.20 0.10 55);
+    
+    /* Chart Colors (brighter for dark mode) */
+    --chart-purple: oklch(0.65 0.23 290);
+    --chart-blue: oklch(0.7 0.18 235);
+    --chart-green: oklch(0.75 0.17 145);
+    --chart-yellow: oklch(0.8 0.15 85);
+    --chart-red: oklch(0.7 0.22 25);
+    --chart-orange: oklch(0.75 0.18 55);
+    
+    /* Status Colors */
+    --status-pending: oklch(0.8 0.15 85);
+    --status-pending-bg: oklch(0.25 0.08 85);
+    --status-approved: oklch(0.75 0.17 145);
+    --status-approved-bg: oklch(0.25 0.08 145);
+    --status-rejected: oklch(0.7 0.22 25);
+    --status-rejected-bg: oklch(0.25 0.08 25);
+    
+    /* Glass Effect */
+    --glass-background: oklch(0.2 0.04 275 / 0.6);
+    --glass-border: oklch(0.3 0.04 275 / 0.5);
+    
+    /* Shadows (deeper) */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.35);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5);
 }
 
 /* ======================

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
-import { RecruiterPortalLayout } from "@/components/tenant/recruiter-portal-layout";
+import { ModernRecruiterLayout } from "@/components/common/layout/ModernRecruiterLayout";
 import {
   Card,
   CardContent,
@@ -582,9 +582,9 @@ function InterviewsContent() {
 export default function InterviewsPage() {
   return (
     <TenantProtectedRoute allowedRoles={["recruiter"]}>
-      <RecruiterPortalLayout>
+      <ModernRecruiterLayout>
         <InterviewsContent />
-      </RecruiterPortalLayout>
+      </ModernRecruiterLayout>
     </TenantProtectedRoute>
   );
 }

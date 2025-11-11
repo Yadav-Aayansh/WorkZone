@@ -6,7 +6,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 // import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
-import { RecruiterPortalLayout } from "@/components/tenant/recruiter-portal-layout";
+import { ModernRecruiterLayout } from "@/components/common/layout/ModernRecruiterLayout";
 import {
   Card,
   CardContent,
@@ -505,8 +505,8 @@ function AIInterviewReportContent() {
 
 export default function AIInterviewReportPage() {
   return (
-    <RecruiterPortalLayout>
+    <ModernRecruiterLayout>
       <AIInterviewReportContent />
-    </RecruiterPortalLayout>
+    </ModernRecruiterLayout>
   );
 }

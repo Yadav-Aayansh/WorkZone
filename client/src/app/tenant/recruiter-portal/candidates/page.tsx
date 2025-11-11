@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
-import { RecruiterPortalLayout } from "@/components/tenant/recruiter-portal-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ModernRecruiterLayout } from "@/components/common/layout/ModernRecruiterLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -35,10 +35,11 @@ import {
   Download,
   CheckCircle,
   XCircle,
-  Calendar,
   MoreVertical,
   Loader2,
   Users,
+  Eye,
+  Calendar,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -207,269 +208,277 @@ function CandidatesContent() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Candidates</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage and review all job applicants
-          </p>
-        </div>
-        <Button onClick={handleExport}>
-          <Download className="mr-2 h-4 w-4" />
-          Export
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Candidates
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.total}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Shortlisted
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-              {stats.shortlisted}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pending Review
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
-              {stats.pending}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Rejected
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-red-600 dark:text-red-400">
-              {stats.rejected}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5 text-muted-foreground" />
-              <h3 className="font-semibold">Filters</h3>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search candidates..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* Job Filter */}
-              <Select value={jobFilter} onValueChange={setJobFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Jobs" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Jobs</SelectItem>
-                  {jobs.map((job) => (
-                    <SelectItem key={job.id} value={job.id}>
-                      {job.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Status Filter */}
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value={ApplicationStatus.PENDING}>
-                    Pending Review
-                  </SelectItem>
-                  <SelectItem value={ApplicationStatus.SHORTLISTED}>
-                    Shortlisted
-                  </SelectItem>
-                  <SelectItem value={ApplicationStatus.OFFERED}>
-                    Offered
-                  </SelectItem>
-                  <SelectItem value={ApplicationStatus.HIRED}>Hired</SelectItem>
-                  <SelectItem value={ApplicationStatus.REJECTED}>
-                    Rejected
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Empty placeholder for 4th column */}
-              <div></div>
-            </div>
+    <ModernRecruiterLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Candidates</h1>
+            <p className="text-muted-foreground mt-1">
+              Manage and review all job applicants
+            </p>
           </div>
-        </CardHeader>
-        <CardContent>
-          {filteredCandidates.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No candidates found</p>
-              <p className="text-sm mt-2">Try adjusting your filters</p>
+          <Button onClick={handleExport}>
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Candidates
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats.total}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Shortlisted
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                {stats.shortlisted}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Pending Review
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                {stats.pending}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Rejected
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-red-600 dark:text-red-400">
+                {stats.rejected}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters and Search */}
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <Filter className="h-5 w-5 text-muted-foreground" />
+                <h3 className="font-semibold">Filters</h3>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search candidates..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                {/* Job Filter */}
+                <Select value={jobFilter} onValueChange={setJobFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Jobs" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Jobs</SelectItem>
+                    {jobs.map((job) => (
+                      <SelectItem key={job.id} value={job.id}>
+                        {job.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Status Filter */}
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value={ApplicationStatus.PENDING}>
+                      Pending Review
+                    </SelectItem>
+                    <SelectItem value={ApplicationStatus.SHORTLISTED}>
+                      Shortlisted
+                    </SelectItem>
+                    <SelectItem value={ApplicationStatus.OFFERED}>
+                      Offered
+                    </SelectItem>
+                    <SelectItem value={ApplicationStatus.HIRED}>
+                      Hired
+                    </SelectItem>
+                    <SelectItem value={ApplicationStatus.REJECTED}>
+                      Rejected
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Empty placeholder for 4th column */}
+                <div></div>
+              </div>
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Candidate</TableHead>
-                  <TableHead>Job Applied</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Applied Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCandidates.length === 0 ? (
+          </CardHeader>
+          <CardContent>
+            {filteredCandidates.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No candidates found</p>
+                <p className="text-sm mt-2">Try adjusting your filters</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
-                      <div className="text-muted-foreground">
-                        No candidates found matching your criteria
-                      </div>
-                    </TableCell>
+                    <TableHead>Candidate</TableHead>
+                    <TableHead>Job Applied</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Applied Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ) : (
-                  filteredCandidates.map((candidate) => (
-                    <TableRow
-                      key={candidate.id}
-                      className="cursor-pointer hover:bg-accent/50"
-                      onClick={() =>
-                        router.push(
-                          `/tenant/recruiter-portal/applications/${candidate.id}`
-                        )
-                      }
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                              {candidate.user_id.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-semibold">
-                              Applicant #{candidate.user_id.substring(0, 8)}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              ID: {candidate.user_id.substring(0, 12)}...
-                            </div>
-                          </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredCandidates.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        <div className="text-muted-foreground">
+                          No candidates found matching your criteria
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="max-w-[250px]">
-                          <div className="font-medium truncate">
-                            {candidate.job?.title || "Unknown Position"}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {candidate.job?.department} •{" "}
-                            {candidate.job?.location}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {getCandidateStatusBadge(candidate.status)}
-                      </TableCell>
-                      <TableCell>{formatDate(candidate.applied_on)}</TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            asChild
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(
-                                  `/tenant/recruiter-portal/applications/${candidate.id}`
-                                );
-                              }}
-                            >
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={(e) => handleShortlist(candidate.id, e)}
-                            >
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Shortlist
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) =>
-                                handleScheduleInterview(candidate.id, e)
-                              }
-                            >
-                              <Calendar className="mr-2 h-4 w-4" />
-                              Schedule Interview
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={(e) => handleReject(candidate.id, e)}
-                              className="text-destructive"
-                            >
-                              <XCircle className="mr-2 h-4 w-4" />
-                              Reject
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                  ) : (
+                    filteredCandidates.map((candidate) => (
+                      <TableRow
+                        key={candidate.id}
+                        className="cursor-pointer hover:bg-accent/50"
+                        onClick={() =>
+                          router.push(
+                            `/tenant/recruiter-portal/applications/${candidate.id}`
+                          )
+                        }
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                                {candidate.user_id
+                                  .substring(0, 2)
+                                  .toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-semibold">
+                                Applicant #{candidate.user_id.substring(0, 8)}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                ID: {candidate.user_id.substring(0, 12)}...
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="max-w-[250px]">
+                            <div className="font-medium truncate">
+                              {candidate.job?.title || "Unknown Position"}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {candidate.job?.department} •{" "}
+                              {candidate.job?.location}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {getCandidateStatusBadge(candidate.status)}
+                        </TableCell>
+                        <TableCell>
+                          {formatDate(candidate.applied_on)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              asChild
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(
+                                    `/tenant/recruiter-portal/applications/${candidate.id}`
+                                  );
+                                }}
+                              >
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={(e) =>
+                                  handleShortlist(candidate.id, e)
+                                }
+                              >
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Shortlist
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) =>
+                                  handleScheduleInterview(candidate.id, e)
+                                }
+                              >
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Schedule Interview
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={(e) => handleReject(candidate.id, e)}
+                                className="text-destructive"
+                              >
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Reject
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </ModernRecruiterLayout>
   );
 }
 
 export default function CandidatesPage() {
   return (
     <TenantProtectedRoute allowedRoles={["recruiter"]}>
-      <RecruiterPortalLayout>
-        <CandidatesContent />
-      </RecruiterPortalLayout>
+      <CandidatesContent />
     </TenantProtectedRoute>
   );
 }

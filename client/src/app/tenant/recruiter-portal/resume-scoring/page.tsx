@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 // import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
-import { RecruiterPortalLayout } from "@/components/tenant/recruiter-portal-layout";
+import { ModernRecruiterLayout } from "@/components/common/layout/ModernRecruiterLayout";
 import {
   Card,
   CardContent,
@@ -615,8 +615,8 @@ function ResumeScoringContent() {
 
 export default function ResumeScoringPage() {
   return (
-    <RecruiterPortalLayout>
+    <ModernRecruiterLayout>
       <ResumeScoringContent />
-    </RecruiterPortalLayout>
+    </ModernRecruiterLayout>
   );
 }

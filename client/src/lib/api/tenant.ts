@@ -521,6 +521,28 @@ export const tenantJobAPI = {
       method: 'DELETE',
     }, 2, true);
   },
+
+  /**
+   * Close a job posting (requires RECRUITER role and must be creator)
+   * Sets is_open to false to stop accepting new applications
+   */
+  async closeJob(jobId: string): Promise<JobResponse> {
+    return tenantApiRequest<JobResponse>(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_open: false }),
+    }, 2, true);
+  },
+
+  /**
+   * Reopen a job posting (requires RECRUITER role and must be creator)
+   * Sets is_open to true to resume accepting applications
+   */
+  async reopenJob(jobId: string): Promise<JobResponse> {
+    return tenantApiRequest<JobResponse>(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_open: true }),
+    }, 2, true);
+  },
 };
 
 // ============ APPLICATION API ============
