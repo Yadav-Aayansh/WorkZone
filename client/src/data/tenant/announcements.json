@@ -1,0 +1,112 @@
+[
+  {
+    "id": "ann-001",
+    "title": "Diwali Celebration - Office Party",
+    "content": "Join us for our annual Diwali celebration on November 10th at 5 PM in the cafeteria. There will be traditional food, music, and games. Everyone is encouraged to wear traditional attire. Don't miss the exciting gifts and prizes!",
+    "category": "event",
+    "priority": "high",
+    "postedBy": "HR Team",
+    "postedDate": "2025-11-01T10:00:00Z",
+    "attachments": [],
+    "isImportant": true
+  },
+  {
+    "id": "ann-002",
+    "title": "New Leave Policy Update - Effective December 2025",
+    "content": "We are pleased to announce updates to our leave policy. Key changes include: 1) Increase in casual leave from 12 to 15 days annually, 2) Introduction of work-from-home days (2 per month), 3) Extended paternity leave to 15 days. Please review the complete policy document attached. These changes will be effective from December 1st, 2025.",
+    "category": "policy",
+    "priority": "high",
+    "postedBy": "HR Department",
+    "postedDate": "2025-10-30T14:30:00Z",
+    "attachments": ["leave-policy-2025.pdf"],
+    "isImportant": true
+  },
+  {
+    "id": "ann-003",
+    "title": "Q3 All Hands Meeting - November 8th",
+    "content": "Our quarterly all-hands meeting is scheduled for November 8th at 3 PM in the main conference hall. The leadership team will share company performance, future roadmap, and answer your questions. Attendance is mandatory for all employees. Remote employees can join via the Teams link that will be shared.",
+    "category": "company",
+    "priority": "normal",
+    "postedBy": "CEO Office",
+    "postedDate": "2025-10-28T09:00:00Z",
+    "attachments": [],
+    "isImportant": false
+  },
+  {
+    "id": "ann-004",
+    "title": "Employee of the Month - October 2025",
+    "content": "Congratulations to Amit Singh from the Sales team for being selected as Employee of the Month for October! Amit has consistently exceeded his targets and shown exceptional dedication. He will be awarded a certificate and gift voucher worth ₹10,000. Well done, Amit!",
+    "category": "celebration",
+    "priority": "normal",
+    "postedBy": "HR Team",
+    "postedDate": "2025-10-25T11:00:00Z",
+    "attachments": [],
+    "isImportant": false
+  },
+  {
+    "id": "ann-005",
+    "title": "Office Timings Change - Winter Schedule",
+    "content": "Starting November 15th, office timings will be adjusted for the winter season. New timings: 9:30 AM to 6:30 PM (Monday to Friday). Core working hours remain 10 AM to 4 PM. Please ensure you mark attendance accordingly. This schedule will be in effect until February 2026.",
+    "category": "important",
+    "priority": "high",
+    "postedBy": "Admin Department",
+    "postedDate": "2025-10-22T15:45:00Z",
+    "attachments": [],
+    "isImportant": true
+  },
+  {
+    "id": "ann-006",
+    "title": "Team Building Activity - November 18th",
+    "content": "Join us for an exciting team building day on November 18th at Wonderla Adventure Park. Activities include team games, lunch, and park rides. Transportation will be provided from office at 8 AM. Registration deadline: November 10th. Limited spots available!",
+    "category": "event",
+    "priority": "normal",
+    "postedBy": "HR Team",
+    "postedDate": "2025-10-20T10:30:00Z",
+    "attachments": [],
+    "isImportant": false
+  },
+  {
+    "id": "ann-007",
+    "title": "Health Insurance Annual Enrollment",
+    "content": "It's time for annual health insurance enrollment! Review your current coverage and make changes if needed. You can add/remove dependents, upgrade plans, or continue with existing coverage. The enrollment window is open from November 1st to November 15th. Contact HR for assistance.",
+    "category": "important",
+    "priority": "normal",
+    "postedBy": "HR Team",
+    "postedDate": "2025-10-15T09:00:00Z",
+    "attachments": ["insurance-plans-2025.pdf"],
+    "isImportant": false
+  },
+  {
+    "id": "ann-008",
+    "title": "New Parking Policy - Effective Immediately",
+    "content": "Due to increased staff, we're implementing a new parking policy. Reserved spots will be allocated based on department rotation. Weekly schedules will be shared via email. Carpooling is encouraged with dedicated carpool parking. Bicycle parking area has been expanded.",
+    "category": "policy",
+    "priority": "normal",
+    "postedBy": "Admin Department",
+    "postedDate": "2025-10-12T14:00:00Z",
+    "attachments": [],
+    "isImportant": false
+  },
+  {
+    "id": "ann-009",
+    "title": "IT System Maintenance - November 5th Night",
+    "content": "Our IT systems will undergo scheduled maintenance on November 5th from 10 PM to 2 AM. During this time, email, intranet, and other internal systems will be unavailable. Please save your work and plan accordingly. Emergency contact: IT Helpdesk +91 80-12345678.",
+    "category": "important",
+    "priority": "high",
+    "postedBy": "IT Department",
+    "postedDate": "2025-10-10T16:00:00Z",
+    "attachments": [],
+    "isImportant": true
+  },
+  {
+    "id": "ann-010",
+    "title": "Congratulations - Company Milestone!",
+    "content": "We're thrilled to announce that WorkZone has crossed 10,000 active clients! This incredible milestone wouldn't have been possible without your hard work and dedication. Thank you all for being part of this journey. Special celebration lunch next Friday!",
+    "category": "celebration",
+    "priority": "normal",
+    "postedBy": "CEO",
+    "postedDate": "2025-10-05T12:00:00Z",
+    "attachments": [],
+    "isImportant": false
+  }
+]
