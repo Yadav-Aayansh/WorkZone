@@ -1,0 +1,85 @@
+{
+  "dashboardKPIs": {
+    "activeJobs": 3,
+    "candidatesInPipeline": 47,
+    "interviewsToday": 2,
+    "offersThisMonth": 3
+  },
+  "applicationsThisWeek": [
+    { "day": "Mon", "applications": 12 },
+    { "day": "Tue", "applications": 15 },
+    { "day": "Wed", "applications": 8 },
+    { "day": "Thu", "applications": 18 },
+    { "day": "Fri", "applications": 14 },
+    { "day": "Sat", "applications": 5 },
+    { "day": "Sun", "applications": 3 }
+  ],
+  "recentApplicants": [
+    {
+      "id": "cand-1",
+      "name": "Rahul Sharma",
+      "job": "Senior Full Stack Developer",
+      "appliedDate": "2025-10-16T10:30:00Z",
+      "status": "shortlisted",
+      "score": 87
+    },
+    {
+      "id": "cand-4",
+      "name": "Sneha Reddy",
+      "job": "Product Manager",
+      "appliedDate": "2025-10-21T09:30:00Z",
+      "status": "shortlisted",
+      "score": 82
+    },
+    {
+      "id": "cand-5",
+      "name": "Vikram Singh",
+      "job": "UX/UI Designer",
+      "appliedDate": "2025-10-26T14:15:00Z",
+      "status": "under_review",
+      "score": 79
+    },
+    {
+      "id": "cand-2",
+      "name": "Priya Patel",
+      "job": "Senior Full Stack Developer",
+      "appliedDate": "2025-10-17T15:45:00Z",
+      "status": "under_review",
+      "score": 75
+    }
+  ],
+  "jobAnalytics": {
+    "job-1": {
+      "views": 523,
+      "applications": 47,
+      "applicationsByDate": [
+        { "date": "2025-10-16", "count": 5 },
+        { "date": "2025-10-17", "count": 8 },
+        { "date": "2025-10-18", "count": 6 },
+        { "date": "2025-10-19", "count": 4 },
+        { "date": "2025-10-20", "count": 7 },
+        { "date": "2025-10-21", "count": 9 },
+        { "date": "2025-10-22", "count": 8 }
+      ],
+      "sourceBreakdown": [
+        { "source": "Direct", "count": 20 },
+        { "source": "LinkedIn", "count": 15 },
+        { "source": "Referral", "count": 8 },
+        { "source": "Job Board", "count": 4 }
+      ],
+      "statusBreakdown": [
+        { "status": "Under Review", "count": 15 },
+        { "status": "Shortlisted", "count": 12 },
+        { "status": "Rejected", "count": 20 }
+      ]
+    }
+  },
+  "hiringFunnel": {
+    "applied": 107,
+    "screening": 45,
+    "shortlisted": 26,
+    "interviewed": 15,
+    "offered": 5,
+    "hired": 3
+  }
+}
