@@ -1,11 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-/* eslint-disable */
-
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-// import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
+import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { RecruiterPortalLayout } from "@/components/tenant/recruiter-portal-layout";
 import {
   Card,
@@ -505,8 +501,10 @@ function AIInterviewReportContent() {
 
 export default function AIInterviewReportPage() {
   return (
-    <RecruiterPortalLayout>
-      <AIInterviewReportContent />
-    </RecruiterPortalLayout>
+    <TenantProtectedRoute allowedRoles={["recruiter"]}>
+      <RecruiterPortalLayout>
+        <AIInterviewReportContent />
+      </RecruiterPortalLayout>
+    </TenantProtectedRoute>
   );
 }
