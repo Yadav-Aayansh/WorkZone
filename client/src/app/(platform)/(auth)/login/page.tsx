@@ -11,7 +11,6 @@ import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "@/components/logo";
-// import { authAPI, APIError } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 
@@ -41,187 +40,127 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
 
-    // MOCK: No backend call - accept any credentials for peer review
     setTimeout(() => {
       showToast({
         type: "success",
         title: "Welcome back!",
         message: "Successfully logged in.",
       });
-
-      // Redirect to dashboard
       redirectAfterAuth("ACTIVE");
       setIsLoading(false);
     }, 500);
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-900 via-accent/80 to-purple-900 p-4 md:p-8">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-900 p-4 md:p-8">
+      {/* Animated gradient orbs */}
+      <div className="absolute top-[-100px] left-[-100px] w-[300px] h-[300px] bg-purple-500/40 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-[-120px] right-[-100px] w-[350px] h-[350px] bg-pink-500/30 rounded-full blur-3xl animate-[pulse_6s_ease-in-out_infinite]" />
+      <div className="absolute top-[30%] right-[20%] w-40 h-40 bg-indigo-400/20 rounded-full blur-3xl animate-[float_8s_ease-in-out_infinite]" />
+
+      {/* Floating sparkles */}
+      <motion.div
+        animate={{ y: [0, -10, 0], opacity: [0.6, 1, 0.6] }}
+        transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+        className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08)_0%,transparent_70%)]"
+      />
+
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-5xl flex rounded-[2.5rem] overflow-hidden shadow-2xl bg-card border"
+        transition={{ duration: 0.7 }}
+        className="relative w-full max-w-5xl flex rounded-[2.5rem] overflow-hidden shadow-[0_0_80px_rgba(128,0,255,0.25)] border border-purple-300/20 bg-white/10 backdrop-blur-2xl"
       >
-        {/* Left Side - Image */}
-        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-purple-950 via-accent/90 to-purple-950">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(200,100,255,0.3),transparent_70%)]" />
+        {/* Animated border glow */}
+        <div className="absolute inset-0 rounded-[2.5rem] border-2 border-transparent bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 animate-[spin_6s_linear_infinite] bg-[length:400%_400%] opacity-20" />
 
+        {/* Left Side */}
+        <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-center items-center text-white overflow-hidden">
+          {/* Subtle animated glow */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative z-10 flex flex-col justify-center px-12 text-white"
-          >
-            <div className="mb-8">
-              <Logo className="w-32" />
-            </div>
-
-            <h1 className="text-4xl font-bold mb-4">Welcome Back!</h1>
-
-            <p className="text-lg text-white/90 mb-8 leading-relaxed">
-              Access your HR dashboard and manage your workforce efficiently
-            </p>
-
-            <div className="space-y-4">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-                className="flex items-center gap-3"
-              >
-                <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-sm text-white/90">
-                  Real-time workforce insights
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 }}
-                className="flex items-center gap-3"
-              >
-                <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-sm text-white/90">Secure & encrypted data</p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 }}
-                className="flex items-center gap-3"
-              >
-                <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-sm text-white/90">
-                  24/7 system availability
-                </p>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Right Side - Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-12 bg-white dark:bg-card">
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
+            className="absolute inset-0 bg-gradient-to-b from-purple-800/60 via-indigo-900/60 to-purple-950/70"
+          />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 1 }}
+            className="relative z-10 text-center px-10"
+          >
+            <Logo className="w-32 mx-auto mb-8" />
+            <motion.h1
+              animate={{ y: [0, -5, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              className="text-5xl font-extrabold bg-gradient-to-r from-purple-200 to-pink-200 bg-clip-text text-transparent drop-shadow-lg mb-4"
+            >
+              Welcome Back 👋
+            </motion.h1>
+            <p className="text-lg text-purple-100/90 leading-relaxed max-w-md mx-auto">
+              Manage, track, and empower your workforce — all from one beautiful
+              dashboard.
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Right Side */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-12 bg-white/90 backdrop-blur-lg relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
             className="w-full max-w-md"
           >
-            <div className="lg:hidden mb-6 flex justify-center">
-              <Logo />
-            </div>
-
             <Link
-              href="/client/public"
-              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8"
+              href="/"
+              className="inline-flex items-center text-sm text-purple-600 hover:text-purple-800 mb-8 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
+              Back
             </Link>
 
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold mb-2">Log in</h2>
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl font-extrabold text-purple-800 mb-2">
+                Log in
+              </h2>
               <p className="text-sm text-muted-foreground">
-                Don&#39;t have an account?{" "}
+                Don’t have an account?{" "}
                 <Link
                   href="/signup"
-                  className="text-foreground hover:underline font-medium"
+                  className="text-purple-700 font-semibold hover:underline"
                 >
-                  Create an Account
+                  Create one
                 </Link>
               </p>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <p className="text-sm text-destructive">{error}</p>
+              <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-lg text-sm text-red-700">
+                {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              <div>
-                <Label htmlFor="email" className="text-sm font-medium">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <motion.div whileHover={{ scale: 1.02 }}>
+                <Label htmlFor="email" className="text-sm font-semibold">
                   Email Address
                 </Label>
                 <Input
                   id="email"
                   type="email"
                   {...register("email")}
-                  placeholder="john52martinez@gmail.com"
-                  className="mt-1.5 h-12 text-sm rounded-full"
+                  placeholder="you@example.com"
+                  className="mt-1.5 h-12 text-sm rounded-xl border-purple-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-400/40 transition-all"
                 />
                 {errors.email && (
-                  <p className="text-xs text-destructive mt-1">
+                  <p className="text-xs text-red-600 mt-1">
                     {errors.email.message}
                   </p>
                 )}
-              </div>
+              </motion.div>
 
-              <div>
-                <Label htmlFor="password" className="text-sm font-medium">
+              <motion.div whileHover={{ scale: 1.02 }}>
+                <Label htmlFor="password" className="text-sm font-semibold">
                   Password
                 </Label>
                 <div className="relative mt-1.5">
@@ -229,13 +168,13 @@ export default function LoginPage() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     {...register("password")}
-                    placeholder="Password"
-                    className="h-12 pr-10 text-sm rounded-full"
+                    placeholder="••••••••"
+                    className="h-12 pr-10 text-sm rounded-xl border-purple-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-400/40 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-purple-500 hover:text-purple-700"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" />
@@ -245,105 +184,122 @@ export default function LoginPage() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-xs text-destructive mt-1">
+                  <p className="text-xs text-red-600 mt-1">
                     {errors.password.message}
                   </p>
                 )}
-              </div>
+              </motion.div>
 
               <div className="flex items-center justify-end">
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-foreground hover:underline font-medium"
+                  className="text-sm text-purple-700 hover:underline font-medium"
                 >
                   Forgot Password?
                 </Link>
               </div>
 
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-12 text-sm font-medium bg-foreground text-background hover:bg-foreground/90 rounded-full"
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 300 }}
               >
-                {isLoading ? "Logging in..." : "Log in"}
-              </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 text-sm font-semibold rounded-xl bg-gradient-to-r from-purple-700 via-fuchsia-600 to-indigo-600 text-white shadow-lg relative overflow-hidden"
+                >
+                  <span className="relative z-10">
+                    {isLoading ? "Logging in..." : "Log in"}
+                  </span>
+                  <motion.div
+                    animate={{ x: ["-100%", "100%"] }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 2.5,
+                      ease: "linear",
+                    }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  />
+                </Button>
+              </motion.div>
             </form>
 
-            <div className="mt-6">
-              <div className="flex items-center gap-2 text-xs">
-                <input
-                  type="checkbox"
-                  id="terms"
-                  className="w-3.5 h-3.5 rounded border-border"
-                />
-                <label htmlFor="terms" className="text-muted-foreground">
-                  I agree to the{" "}
-                  <Link
-                    href="/terms"
-                    className="text-foreground hover:underline"
-                  >
-                    Terms & Condition
-                  </Link>
-                </label>
+            <div className="mt-6 flex items-center gap-2 text-xs">
+              <input
+                type="checkbox"
+                id="terms"
+                className="w-3.5 h-3.5 rounded border-purple-300 text-purple-600 focus:ring-purple-500"
+              />
+              <label htmlFor="terms" className="text-muted-foreground">
+                I agree to the{" "}
+                <Link
+                  href="/terms"
+                  className="text-purple-700 hover:underline"
+                >
+                  Terms & Conditions
+                </Link>
+              </label>
+            </div>
+
+            <div className="mt-8">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-purple-200" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white/90 px-3 text-muted-foreground">
+                  or continue with
+                </span>
               </div>
             </div>
 
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border" />
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-white dark:bg-card px-3 text-muted-foreground">
-                    or
-                  </span>
-                </div>
-              </div>
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              {/* Google Button  */}
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 text-sm rounded-xl border-purple-300 hover:bg-purple-50 text-purple-700 flex items-center justify-center"
+              >
+                <svg className="w-5 h-5 mr-2" viewBox="0 0 48 48">
+                  <path
+                    fill="#EA4335"
+                    d="M24 9.5c3.54 0 6.7 1.22 9.18 3.6l6.83-6.83C36.09 2.64 30.43 0 24 0 14.64 0 6.4 5.34 2.45 13.11l7.91 6.14C12.1 13.08 17.56 9.5 24 9.5z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M46.15 24.55c0-1.6-.15-3.13-.43-4.55H24v8.61h12.44c-.54 2.77-2.16 5.13-4.6 6.72l7.11 5.52c4.16-3.83 6.6-9.47 6.6-16.3z"
+                  />
+                  <path
+                    fill="#4A90E2"
+                    d="M9.36 28.25A14.5 14.5 0 0 1 9 24c0-1.47.25-2.88.71-4.2l-7.91-6.14A23.98 23.98 0 0 0 0 24c0 3.91.94 7.6 2.58 10.86l7.78-6.61z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M24 48c6.48 0 11.91-2.13 15.88-5.79l-7.11-5.52C30.69 38.74 27.51 40 24 40c-6.45 0-11.91-3.58-14.64-8.75l-7.78 6.61C6.4 42.66 14.64 48 24 48z"
+                  />
+                </svg>
+                Google
+              </Button>
 
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 text-sm rounded-full"
-                  onClick={() => {}}
+              {/* Facebook Button */}
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 text-sm rounded-xl border-purple-300 hover:bg-purple-50 text-purple-700 flex items-center justify-center"
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                    />
-                    <path
-                      fill="currentColor"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    />
-                  </svg>
-                  Continue with Google
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 text-sm rounded-full"
-                  onClick={() => {}}
-                >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                  Continue with Facebook
-                </Button>
-              </div>
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                Facebook
+              </Button>
             </div>
+          </div>
+
           </motion.div>
         </div>
       </motion.div>
