@@ -25,7 +25,7 @@ async def interview(websocket: WebSocket, interview_id: str):
     await websocket.accept()  # REQUIRED
     
     try:
-        from src.genai.schemas.hr_interview_schemas import StartInterviewRequest, ProcessTextAnswerRequest
+        from src.genai.schemas import StartInterviewRequest, ProcessTextAnswerRequest
         
         start_res = await start_interview(
             StartInterviewRequest(
