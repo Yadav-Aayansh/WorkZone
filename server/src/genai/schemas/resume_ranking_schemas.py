@@ -12,7 +12,7 @@ class ScoringDetails(BaseModel):
     keyword_match_count: str
 
 class RankedCandidate(BaseModel):
-    resume_id: str
+    application_id: str
     final_score: float
     details: ScoringDetails
     feedback: str = Field(default="", description="LLM-generated feedback for the candidate")
