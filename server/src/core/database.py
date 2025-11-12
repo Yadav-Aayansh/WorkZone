@@ -1,9 +1,9 @@
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, sessionmaker, Session
 from sqlalchemy import text, MetaData, create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.schema import CreateSchema
 from .config import Config
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Generator
 
 class PublicBase(DeclarativeBase):
     metadata = MetaData(schema="public")
@@ -27,7 +27,7 @@ async def get_public_db() -> AsyncGenerator[AsyncSession, None]:
         yield sesion 
 
 async def get_schema(tenant_id: str) -> AsyncGenerator[AsyncSession, None]:
-    if not tenant_id.isalnum():
+    if not tenant_id.isidentifier():
         raise ValueError("Invalid tenant ID")
     
     async with AsyncSessionLocal() as session:
@@ -41,9 +41,29 @@ async def get_schema(tenant_id: str) -> AsyncGenerator[AsyncSession, None]:
 
 
 sync_engine = create_engine(url=Config.SYNC_DATABASE_URL, echo=True)
+SyncSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=sync_engine)
 
 def create_tenant_schema(tenant_id: str):
     with sync_engine.begin() as conn:
         conn.execute(CreateSchema(tenant_id, if_not_exists=True))
         conn.execute(text(f"SET search_path TO {tenant_id}"))
         TenantBase.metadata.create_all(bind=conn)
+
+def get_public_db_sync() -> Generator[Session, None, None]:
+    for sesion in get_tenant_db_sync("public"):
+        yield sesion 
+
+def get_tenant_db_sync(tenant_id: str) -> Generator[Session, None, None]:
+    if not tenant_id.isidentifier():
+        raise ValueError("Invalid tenant ID")
+    
+    session = SyncSessionLocal()
+    try:
+        session.execute(text(f"SET search_path TO {tenant_id}"))
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
