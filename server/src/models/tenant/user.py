@@ -26,3 +26,4 @@ class User(TenantBase):
     manager = relationship("Manager", back_populates="user", uselist=False, cascade="all, delete-orphan")
     recruiter = relationship("Recruiter", back_populates="user", uselist=False, cascade="all, delete-orphan")
     applicant = relationship("Applicant", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    applicantions = relationship("Applicantions", back_populates="user", cascade="all, delete-orphan")

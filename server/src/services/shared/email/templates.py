@@ -10,3 +10,5 @@ def render_invite(invite_link: str) -> str:
     template_str = load_template("invite")
     template = Template(template_str)
     return template.render(invite_link=invite_link)
+
+# def render_shortlist()

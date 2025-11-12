@@ -7,7 +7,7 @@ from src.exceptions.tenant import UserAlreadyExistsError
 from src.exceptions.platform import TenantNotFoundError
 from src.core.security import create_access_token
 from src.core.config import Config
-from src.tasks.email import send_invite_email
+from src.tasks import send_invite_email
 from src.core.database import get_schema
 
 class WorkspaceService:
