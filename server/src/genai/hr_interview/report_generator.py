@@ -2,7 +2,7 @@ import json
 from typing import List
 from src.genai.llm_client import llm_client
 from src.genai.hr_interview.answer_analyzer import analyze_answer_quality
-from src.genai.schemas.hr_interview_schemas import InterviewQuestion, QuestionResponse, InterviewReport, DetailedQA
+from src.genai.schemas.hr_interview import InterviewQuestion, QuestionResponse, InterviewReport, DetailedQA
 
 
 async def generate_interview_report(

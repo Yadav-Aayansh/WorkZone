@@ -20,10 +20,10 @@ except Exception as e:
     print(f"Warning: Storage client not available: {e}")
 
 # Import shared HTTP client
-try:
-    from src.core.http_client import http_client
-except ImportError:
-    from http_client import http_client  # Fallback for testing
+# try:
+from src.genai.http_client import http_client
+# except ImportError:
+#     from http_client import http_client  # Fallback for testing
 
 
 async def extract_text_from_pdf(pdf_url: str) -> str:

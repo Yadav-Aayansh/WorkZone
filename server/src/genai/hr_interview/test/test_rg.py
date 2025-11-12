@@ -7,7 +7,7 @@ import asyncio
 # sys.path.append(ROOT_DIR)
 
 from src.genai.hr_interview.report_generator import generate_interview_report
-from src.genai.schemas.hr_interview_schemas import (
+from src.genai.schemas.hr_interview import (
     InterviewQuestion,
     QuestionResponse
 )

@@ -3,7 +3,7 @@ import re
 from typing import List, Optional
 from src.genai.llm_client import llm_client
 from src.genai.hr_interview.text_cleaner import clean_text_for_speech
-from src.genai.schemas.hr_interview_schemas import InterviewQuestion, QuestionResponse
+from src.genai.schemas.hr_interview import InterviewQuestion, QuestionResponse
 
 
 async def generate_next_question(

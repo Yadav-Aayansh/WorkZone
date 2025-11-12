@@ -1,182 +1,3 @@
-# import os
-# import sys
-# import asyncio
-
-# # Import main functions & schemas
-# from src.genai.hr_interview.main import (
-#     start_interview,
-#     process_text_answer,
-#     generate_final_report,
-#     active_sessions
-# )
-
-# from src.genai.schemas.hr_interview_schemas import (
-#     StartInterviewRequest,
-#     ProcessTextAnswerRequest,
-#     GenerateReportRequest,
-# )
-
-# TEST_RESUME_BLOB = "resumes/resume.pdf"
-# SESSION_ID = "local_test_session_001"
-
-# # Sample markdown JD
-# TEST_JD_MARKDOWN = """
-# # Backend Developer Position
-
-# ## Role Overview
-# We are seeking an experienced Backend Developer to join our engineering team.
-
-# ## Required Skills
-# - 3+ years of Python development experience
-# - Strong experience with FastAPI or Flask
-# - Experience with MongoDB or PostgreSQL
-# - REST API design and development
-# - Docker and containerization
-
-# ## Nice to Have
-# - Experience with microservices architecture
-# - Knowledge of AWS/GCP
-# - CI/CD pipeline experience
-# - Machine learning basics
-
-# ## Responsibilities
-# - Design and develop scalable backend services
-# - Write clean, maintainable code
-# - Collaborate with frontend team
-# - Participate in code reviews
-# """
-
-
-# # FULL INTERVIEW FLOW (INTERACTIVE WITH DYNAMIC QUESTIONS)
-
-# if __name__ == "__main__":
-#     print("\n" + "="*70)
-#     print("AI INTERVIEW ASSISTANT – FULL INTERVIEW TEST (DYNAMIC QUESTIONS)")
-#     print("="*70)
-
-#     print("\n[STEP 1] Starting Interview")
-#     print("-" * 70)
-
-#     start_req = StartInterviewRequest(
-#         session_id=SESSION_ID,
-#         resume_blob_name=TEST_RESUME_BLOB,
-#         jd_text=TEST_JD_MARKDOWN,  # Now using markdown directly
-#         candidate_name="Test Candidate",
-#         position="Backend Developer"
-#     )
-
-#     try:
-#         start_res = asyncio.run(start_interview(start_req))
-#         print("✓ Interview Started")
-#         print("Session ID:", start_res.session_id)
-#         print("First Question:", start_res.first_question.question)
-#         print("Question Type:", start_res.first_question.type)
-#         print("Focus Area:", start_res.first_question.focus_area)
-#         print("First Question Audio URL:", start_res.first_question_audio_url)
-#     except Exception as e:
-#         print("✗ Error starting interview:", e)
-#         import traceback
-#         traceback.print_exc()
-#         exit(1)
-
-    
-#     # STEP 2 – INTERACTIVE QUESTION LOOP WITH DYNAMIC GENERATION
-    
-#     print("\n[STEP 2] Answer Questions (Questions Generated Dynamically)")
-#     print("-" * 70)
-#     print("Note: Each question is generated based on your previous answers")
-#     print("-" * 70)
-
-#     current_index = 0
-
-#     # First question from start response
-#     print(f"\nQ{current_index + 1}: {start_res.first_question.question}")
-#     print(f"   Type: {start_res.first_question.type} | Focus: {start_res.first_question.focus_area}")
-
-#     while True:
-#         # Ask user for answer
-#         user_answer = input("Your Answer: ")
-
-#         # Build request - no longer need current_question_index
-#         req = ProcessTextAnswerRequest(
-#             session_id=SESSION_ID,
-#             answer_text=user_answer
-#         )
-
-#         # Process answer
-#         try:
-#             res = asyncio.run(process_text_answer(req))
-#         except Exception as e:
-#             print("✗ Error processing answer:", e)
-#             import traceback
-#             traceback.print_exc()
-#             exit(1)
-
-#         # Check if interview is complete
-#         if res.status == "completed":
-#             print("\n✓ Interview Completed!")
-#             print(f"Total Questions Asked: {res.total_questions_asked}")
-#             break
-
-#         # Display next dynamically generated question
-#         current_index = res.next_question_index
-#         print(f"\n→ Next question generated based on your answer...")
-#         print(f"Q{current_index + 1}: {res.next_question.question}")
-#         print(f"   Type: {res.next_question.type} | Focus: {res.next_question.focus_area}")
-#         print(f"   Total Questions So Far: {res.total_questions_asked}")
-
-#     # STEP 3 – GENERATE FINAL MARKDOWN REPORT
-#     print("\n" + "-" * 70)
-#     print("[STEP 3] Generating Final Report")
-#     print("-" * 70)
-
-#     report_req = GenerateReportRequest(session_id=SESSION_ID)
-
-#     try:
-#         report_res = asyncio.run(generate_final_report(report_req))
-#         report = report_res.report
-#     except Exception as e:
-#         print("✗ Error generating report:", e)
-#         import traceback
-#         traceback.print_exc()
-#         exit(1)
-
-#     print("\n✓ REPORT GENERATED!")
-#     print("Candidate:", report.candidate_name)
-#     print("Position:", report.position)
-#     print("Score:", report.overall_score)
-
-#     print("\nStrengths:")
-#     for s in report.strengths:
-#         print(" •", s)
-
-#     print("\nWeaknesses:")
-#     for w in report.weaknesses:
-#         print(" •", w)
-
-#     print("\nTechnical Fit:")
-#     print(report.technical_fit)
-
-#     print("\nCommunication Assessment:")
-#     print(report.communication_assessment)
-
-#     print("\nRecommendations:")
-#     print(report.recommendations)
-
-#     print("\n✓ Markdown Report uploaded to GCP:")
-#     print(report_res.markdown_url)
-
-#     print("\nDetailed Q&A:")
-#     for i, qa in enumerate(report.detailed_qa, 1):
-#         print(f"\nQ{i}: {qa.question}")
-#         print(f"A{i}: {qa.answer}")
-#         print(f"Score: {qa.score}/10")
-
-#     print("\n" + "="*70)
-#     print("FULL INTERVIEW TEST COMPLETED SUCCESSFULLY")
-#     print("="*70 + "\n")
-
-
 import os
 import sys
 import asyncio
@@ -185,15 +6,17 @@ import asyncio
 from src.genai.hr_interview.main import (
     start_interview,
     process_text_answer,
-    generate_final_report,
-    active_sessions
+    generate_final_report
 )
 
-from src.genai.schemas.hr_interview_schemas import (
+from src.genai.schemas.hr_interview import (
     StartInterviewRequest,
     ProcessTextAnswerRequest,
     GenerateReportRequest,
 )
+
+# Import Redis client for cleanup
+from src.core.redis import redis_client
 
 TEST_RESUME_BLOB = "resumes/resume.pdf"
 SESSION_ID = "local_test_session_001"
@@ -226,12 +49,46 @@ We are seeking an experienced Backend Developer to join our engineering team.
 """
 
 
+def cleanup_test_session():
+    """Clean up test session from Redis before starting"""
+    try:
+        if redis_client.session_exists(SESSION_ID):
+            redis_client.delete_session(SESSION_ID)
+            print("✓ Cleaned up existing test session")
+    except Exception as e:
+        print(f"⚠ Warning: Could not clean up session: {e}")
+
+
+def verify_redis_connection():
+    """Verify Redis is connected and accessible"""
+    try:
+        redis_client.client.ping()
+        print("✓ Redis connection verified")
+        return True
+    except Exception as e:
+        print(f"✗ Redis connection failed: {e}")
+        print("\nPlease ensure Redis is running:")
+        print("  Docker: docker run -d -p 6379:6379 redis:latest")
+        print("  Local: redis-server")
+        return False
+
+
 # FULL INTERVIEW FLOW (INTERACTIVE WITH DYNAMIC QUESTIONS)
 
 if __name__ == "__main__":
     print("\n" + "="*70)
-    print("AI INTERVIEW ASSISTANT – FULL INTERVIEW TEST (DYNAMIC QUESTIONS)")
+    print("AI INTERVIEW ASSISTANT – FULL INTERVIEW TEST (REDIS + DYNAMIC)")
     print("="*70)
+
+    # Verify Redis connection
+    print("\n[PRE-CHECK] Verifying Redis Connection")
+    print("-" * 70)
+    if not verify_redis_connection():
+        print("\n✗ Test cannot proceed without Redis connection")
+        exit(1)
+
+    # Clean up any existing test session
+    cleanup_test_session()
 
     print("\n[STEP 1] Starting Interview")
     print("-" * 70)
@@ -239,19 +96,25 @@ if __name__ == "__main__":
     start_req = StartInterviewRequest(
         session_id=SESSION_ID,
         resume_blob_name=TEST_RESUME_BLOB,
-        jd_text=TEST_JD_MARKDOWN,  # Now using markdown directly
+        jd_text=TEST_JD_MARKDOWN,
         candidate_name="Test Candidate",
         position="Backend Developer"
     )
 
     try:
         start_res = asyncio.run(start_interview(start_req))
-        print("✓ Interview Started")
+        print("✓ Interview Started (Session saved to Redis)")
         print("Session ID:", start_res.session_id)
         print("First Question:", start_res.first_question.question)
         print("Question Type:", start_res.first_question.type)
         print("Focus Area:", start_res.first_question.focus_area)
         print("First Question Audio URL:", start_res.first_question_audio_url)
+        
+        # Verify session exists in Redis
+        if redis_client.session_exists(SESSION_ID):
+            print("✓ Session verified in Redis")
+        else:
+            print("✗ Warning: Session not found in Redis")
     except Exception as e:
         print("✗ Error starting interview:", e)
         import traceback
@@ -261,7 +124,7 @@ if __name__ == "__main__":
     
     # STEP 2 – INTERACTIVE QUESTION LOOP WITH DYNAMIC GENERATION
     
-
+    print("\n[STEP 2] Interactive Q&A Session")
     print("-" * 70)
 
     current_index = 0
@@ -274,7 +137,7 @@ if __name__ == "__main__":
         # Ask user for answer
         user_answer = input("Your Answer: ")
 
-        # Build request - no longer need current_question_index
+        # Build request
         req = ProcessTextAnswerRequest(
             session_id=SESSION_ID,
             answer_text=user_answer
@@ -283,6 +146,7 @@ if __name__ == "__main__":
         # Process answer
         try:
             res = asyncio.run(process_text_answer(req))
+            print("✓ Answer processed (Session updated in Redis)")
         except Exception as e:
             print("✗ Error processing answer:", e)
             import traceback
@@ -311,8 +175,7 @@ if __name__ == "__main__":
         if res.poor_answer_count and res.poor_answer_count > 0:
             print(f"\n⚠ Warning: {res.poor_answer_count} poor answer(s) detected. Interview may end early after 3.")
         
-      
-        print(f"Q{current_index + 1}: {res.next_question.question}")
+        print(f"\nQ{current_index + 1}: {res.next_question.question}")
         print(f"   Type: {res.next_question.type} | Focus: {res.next_question.focus_area}")
         print(f"   Total Questions So Far: {res.total_questions_asked}")
 
@@ -326,42 +189,75 @@ if __name__ == "__main__":
     try:
         report_res = asyncio.run(generate_final_report(report_req))
         report = report_res.report
+        print("✓ Report generated (Session retrieved from Redis)")
     except Exception as e:
         print("✗ Error generating report:", e)
         import traceback
         traceback.print_exc()
         exit(1)
 
-    print("\n✓ REPORT GENERATED!")
+    print("\n" + "="*70)
+    print("INTERVIEW REPORT")
+    print("="*70)
+    
+    print("\n📊 OVERALL ASSESSMENT")
     print("Candidate:", report.candidate_name)
     print("Position:", report.position)
-    print("Score:", report.overall_score)
+    print("Overall Score:", f"{report.overall_score}/100")
 
-    print("\nStrengths:")
+    print("\n✨ STRENGTHS:")
     for s in report.strengths:
         print(" •", s)
 
-    print("\nWeaknesses:")
+    print("\n⚠ WEAKNESSES:")
     for w in report.weaknesses:
         print(" •", w)
 
-    print("\nTechnical Fit:")
+    print("\n🔧 TECHNICAL FIT:")
     print(report.technical_fit)
 
-    print("\nCommunication Assessment:")
+    print("\n💬 COMMUNICATION ASSESSMENT:")
     print(report.communication_assessment)
 
-    print("\nRecommendations:")
+    print("\n📋 RECOMMENDATIONS:")
     print(report.recommendations)
 
-    print("\n✓ Markdown Report uploaded to GCP:")
-    print(report_res.markdown_url)
+    print("\n📄 MARKDOWN REPORT:")
+    if report_res.markdown_url:
+        print(f"URL: {report_res.markdown_url}")
+    else:
+        print("✓ Markdown report returned in response (not uploaded to GCP)")
+        print(f"Length: {len(report_res.markdown_report)} characters")
 
-    print("\nDetailed Q&A:")
+    print("\n📝 DETAILED Q&A:")
     for i, qa in enumerate(report.detailed_qa, 1):
-        print(f"\nQ{i}: {qa.question}")
-        print(f"A{i}: {qa.answer}")
-        print(f"Score: {qa.score}/10")
+        print(f"\n--- Question {i} (Score: {qa.score}/10) ---")
+        print(f"Q: {qa.question}")
+        print(f"A: {qa.answer}")
+        print(f"✓ Strength: {qa.strength}")
+        print(f"⚠ Weakness: {qa.weakness}")
+
+    # Optional: Display markdown report preview
+    print("\n" + "-" * 70)
+    print("[MARKDOWN REPORT PREVIEW - First 500 chars]")
+    print("-" * 70)
+    print(report_res.markdown_report[:500] + "...")
+
+    # Session cleanup option
+    print("\n" + "-" * 70)
+    print("[POST-TEST CLEANUP]")
+    print("-" * 70)
+    cleanup_choice = input("Delete test session from Redis? (y/n): ").lower()
+    if cleanup_choice == 'y':
+        try:
+            redis_client.delete_session(SESSION_ID)
+            print("✓ Test session deleted from Redis")
+        except Exception as e:
+            print(f"✗ Error deleting session: {e}")
+    else:
+        print("ℹ Test session retained in Redis")
+        print(f"  Key: interview_session:{SESSION_ID}")
+        print(f"  TTL: ~24 hours")
 
     print("\n" + "="*70)
     print("FULL INTERVIEW TEST COMPLETED SUCCESSFULLY")
