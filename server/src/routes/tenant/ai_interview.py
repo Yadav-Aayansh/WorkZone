@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.di import get_tenant_db
 from src.models.tenant import AiInterview
-from src.genai.hr_interview.main import start_interview
+from src.genai.hr_interview.main import start_interview, process_text_answer, generate_interview_report
 from src.core.logger import logger
 
 ai_interview_router = APIRouter(tags=["Tenant AI Interview"])
@@ -25,14 +25,13 @@ async def interview(websocket: WebSocket, interview_id: str):
     await websocket.accept()  # REQUIRED
     
     try:
-        from src.genai.schemas.hr_interview_schemas import StartInterviewRequest
+        from src.genai.schemas.hr_interview_schemas import StartInterviewRequest, ProcessTextAnswerRequest
         
         start_res = await start_interview(
             StartInterviewRequest(
                 session_id=interview_id,
                 resume_blob_name="Aayansh Yadav October.pdf",
-                jd_type="text",
-                jd_content="""
+                jd_text="""
 # Backend Developer (2+ Years Experience)
 
 ## About the Role
@@ -73,8 +72,7 @@ We’re looking for a **Backend Developer** with at least 2 years of hands-on ex
 
 """,
                 candidate_name="Test User",
-                position="Backend Dev",
-                num_questions=10
+                position="Backend Dev"
             )
         )
 
@@ -83,9 +81,15 @@ We’re looking for a **Backend Developer** with at least 2 years of hands-on ex
         
         # Simple echo test
         while True:
-            data = await websocket.receive_text()
-            logger.info(f"Received: {data}")
-            await websocket.send_text(f"Echo: {data}")
+            response = await websocket.receive_text()
+            logger.info(f"Received: {response}")
+            request = ProcessTextAnswerRequest(session_id=interview_id, answer_text=response)
+            llm_reply = await process_text_answer(request=request)
+            await websocket.send_json(llm_reply.model_dump())
+
+            generate_interview_report()
+            
+
             
     except Exception as e:
         logger.error(f"Error: {e}")
