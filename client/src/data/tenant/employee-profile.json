@@ -1,0 +1,55 @@
+{
+  "id": "emp-001",
+  "name": "Priya Sharma",
+  "email": "priya.sharma@workzone.tech",
+  "phone": "+91 98765 43210",
+  "employeeId": "WZ001",
+  "department": "Engineering",
+  "designation": "Senior Software Engineer",
+  "joinDate": "2023-01-15",
+  "reportingManager": "Rajesh Kumar",
+  "reportingManagerId": "emp-050",
+  "location": "Bangalore",
+  "workLocation": "Hybrid",
+  "employmentType": "Full-time",
+  "status": "Active",
+  "profilePhoto": "/avatars/priya.jpg",
+  "dateOfBirth": "1995-06-20",
+  "gender": "Female",
+  "maritalStatus": "Single",
+  "bloodGroup": "O+",
+  "currentAddress": {
+    "street": "123, MG Road",
+    "city": "Bangalore",
+    "state": "Karnataka",
+    "pincode": "560001",
+    "country": "India"
+  },
+  "permanentAddress": {
+    "street": "456, Gandhi Nagar",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "pincode": "400001",
+    "country": "India"
+  },
+  "emergencyContact": {
+    "name": "Amit Sharma",
+    "relationship": "Father",
+    "phone": "+91 99887 76655"
+  },
+  "bankDetails": {
+    "bankName": "HDFC Bank",
+    "accountNumber": "50100123456789",
+    "ifscCode": "HDFC0001234",
+    "branch": "MG Road, Bangalore"
+  },
+  "skills": ["React", "Node.js", "TypeScript", "AWS", "Docker"],
+  "education": [
+    {
+      "degree": "B.Tech in Computer Science",
+      "institution": "IIT Delhi",
+      "year": 2017,
+      "percentage": "8.5 CGPA"
+    }
+  ]
+}

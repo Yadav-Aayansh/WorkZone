@@ -1,9 +1,6 @@
 "use client";
 
-import { useTenant } from "@/providers/tenant-provider";
-import { useTenantAuth } from "@/providers/tenant-auth-provider";
-import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
-import { Button } from "@/components/ui/button";
+import { EmployeePortalLayout } from "@/components/tenant/employee-portal-layout";
 import {
   Card,
   CardContent,
@@ -11,107 +8,245 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
-import { LogOut, User, Calendar, FileText, BarChart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Megaphone,
+  Search,
+  AlertCircle,
+  Calendar,
+  User,
+  Paperclip,
+} from "lucide-react";
+import announcementsData from "@/data/tenant/announcements.json";
+import { useState } from "react";
 
-function EmployeePortalContent() {
-  const { tenant } = useTenant();
-  const { logout, userRole } = useTenantAuth();
-  const router = useRouter();
+export default function AnnouncementsPage() {
+  const [filter, setFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const handleLogout = async () => {
-    await logout();
-    router.push("/login");
+  const filteredAnnouncements = announcementsData.filter((announcement) => {
+    const matchesFilter = filter === "all" || announcement.category === filter;
+    const matchesSearch =
+      announcement.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      announcement.content.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  const featuredAnnouncement =
+    announcementsData.find((a) => a.isImportant) || announcementsData[0];
+
+  const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      event:
+        "bg-purple-100 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400",
+      policy:
+        "bg-blue-100 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400",
+      company:
+        "bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400",
+      celebration:
+        "bg-pink-100 dark:bg-pink-950/30 text-pink-700 dark:text-pink-400",
+      important: "bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400",
+    };
+    return (
+      colors[category] ||
+      "bg-gray-100 dark:bg-gray-950/30 text-gray-700 dark:text-gray-400"
+    );
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold">Employee Portal</h1>
-            <p className="text-muted-foreground">
-              Welcome to {tenant?.brandName || "your"} employee portal
-            </p>
-          </div>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
-        </div>
+    <EmployeePortalLayout>
+      <div className="space-y-6">
+        {/* Featured Announcement */}
+        <Card className="border-2 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <div className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-lg">
+                <Megaphone className="h-8 w-8 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div>
+                    <Badge variant="destructive" className="mb-2">
+                      Featured
+                    </Badge>
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
+                      {featuredAnnouncement.title}
+                    </h2>
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <User className="h-4 w-4" />
+                        {featuredAnnouncement.postedBy}
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(
+                          featuredAnnouncement.postedDate
+                        ).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                  <Badge
+                    className={getCategoryColor(featuredAnnouncement.category)}
+                  >
+                    {featuredAnnouncement.category}
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  {featuredAnnouncement.content}
+                </p>
+                {featuredAnnouncement.attachments &&
+                  featuredAnnouncement.attachments.length > 0 && (
+                    <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+                      <Paperclip className="h-4 w-4" />
+                      <span>
+                        {featuredAnnouncement.attachments.length} attachment(s)
+                      </span>
+                    </div>
+                  )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Role Badge */}
-        <div className="flex items-center gap-2">
-          <User className="h-5 w-5 text-primary" />
-          <span className="text-sm font-medium capitalize">
-            Role: {userRole}
-          </span>
-        </div>
-
-        {/* Quick Actions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <Calendar className="h-8 w-8 text-primary mb-2" />
-              <CardTitle>Leave Management</CardTitle>
-              <CardDescription>
-                Request leave, check balance, view history
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full">Request Leave</Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <FileText className="h-8 w-8 text-primary mb-2" />
-              <CardTitle>Payslips</CardTitle>
-              <CardDescription>
-                Download payslips and tax documents
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full">View Payslips</Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <BarChart className="h-8 w-8 text-primary mb-2" />
-              <CardTitle>Performance</CardTitle>
-              <CardDescription>
-                View reviews, goals, and feedback
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full">View Performance</Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Info Alert */}
-        <Card className="border-primary/50">
+        {/* Filters */}
+        <Card>
           <CardHeader>
-            <CardTitle className="text-lg">🎉 Welcome!</CardTitle>
+            <CardTitle>All Announcements</CardTitle>
+            <CardDescription>
+              Stay updated with company news and updates
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              This is a test employee portal page. Protected route is working
-              correctly! Only employees can access this page.
-            </p>
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search announcements..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="event">Events</SelectItem>
+                  <SelectItem value="policy">Policies</SelectItem>
+                  <SelectItem value="company">Company</SelectItem>
+                  <SelectItem value="celebration">Celebrations</SelectItem>
+                  <SelectItem value="important">Important</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-4">
+              {filteredAnnouncements.map((announcement) => (
+                <div
+                  key={announcement.id}
+                  className="flex items-start gap-4 p-6 rounded-xl border border-border hover:bg-muted/50 transition-all duration-200 hover:shadow-md"
+                >
+                  <div
+                    className={`p-3 rounded-lg ${
+                      announcement.priority === "high"
+                        ? "bg-red-100 dark:bg-red-950/30"
+                        : "bg-blue-100 dark:bg-blue-950/30"
+                    }`}
+                  >
+                    {announcement.isImportant ? (
+                      <AlertCircle
+                        className={`h-6 w-6 ${
+                          announcement.priority === "high"
+                            ? "text-red-600 dark:text-red-400"
+                            : "text-blue-600 dark:text-blue-400"
+                        }`}
+                      />
+                    ) : (
+                      <Megaphone className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h4 className="font-bold text-foreground text-lg">
+                        {announcement.title}
+                      </h4>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {announcement.isImportant && (
+                          <Badge variant="destructive">Important</Badge>
+                        )}
+                        <Badge
+                          className={getCategoryColor(announcement.category)}
+                        >
+                          {announcement.category}
+                        </Badge>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground leading-relaxed mb-3">
+                      {announcement.content}
+                    </p>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <User className="h-4 w-4" />
+                        {announcement.postedBy}
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(announcement.postedDate).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          }
+                        )}
+                      </span>
+                      {announcement.attachments &&
+                        announcement.attachments.length > 0 && (
+                          <>
+                            <span>•</span>
+                            <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                              <Paperclip className="h-4 w-4" />
+                              {announcement.attachments.length} attachment(s)
+                            </span>
+                          </>
+                        )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {filteredAnnouncements.length === 0 && (
+              <div className="text-center py-12">
+                <Megaphone className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  No announcements found
+                </h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your search or filter criteria
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
-}
-
-export default function EmployeePortalPage() {
-  return (
-    <TenantProtectedRoute allowedRoles={["employee"]}>
-      <EmployeePortalContent />
-    </TenantProtectedRoute>
+    </EmployeePortalLayout>
   );
 }

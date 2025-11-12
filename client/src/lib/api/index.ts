@@ -34,11 +34,14 @@ export {
   tenantAuthAPI,
   tenantConfigAPI,
   tenantTestAPI,
+  tenantJobAPI,
+  tenantApplicationAPI,
   TenantAPIError,
   getTenantSubdomain,
   getTenantTokens,
   setTenantTokens,
   clearTenantTokens,
+  ApplicationStatus,
 } from './tenant';
 
 export type {
@@ -50,6 +53,11 @@ export type {
   TenantUserRefreshRequest,
   TenantUserRefreshResponse,
   TenantConfig,
+  CreateJobRequest,
+  UpdateJobRequest,
+  JobResponse,
+  ListJobsRequest,
+  ApplicationResponse,
 } from './tenant';
 
 // Backwards compatibility - import for creating combined API

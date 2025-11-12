@@ -1,0 +1,179 @@
+[
+  {
+    "id": "job-1",
+    "title": "Senior Full Stack Developer",
+    "department": "Engineering",
+    "location": "Bangalore, India",
+    "type": "Full-time",
+    "experience": "5-8 years",
+    "salary": {
+      "min": 2000000,
+      "max": 3500000,
+      "currency": "INR"
+    },
+    "skills": ["React", "Node.js", "TypeScript", "PostgreSQL", "AWS"],
+    "status": "active",
+    "applications": 47,
+    "description": "We are looking for an experienced Full Stack Developer to join our engineering team. You will work on building scalable web applications using modern technologies.",
+    "requirements": [
+      "5+ years of experience in full-stack development",
+      "Strong proficiency in React and Node.js",
+      "Experience with TypeScript and modern JavaScript",
+      "Knowledge of PostgreSQL or similar databases",
+      "Experience with cloud platforms (AWS/Azure/GCP)"
+    ],
+    "responsibilities": [
+      "Design and develop scalable web applications",
+      "Collaborate with cross-functional teams",
+      "Write clean, maintainable code",
+      "Participate in code reviews",
+      "Mentor junior developers"
+    ],
+    "createdAt": "2025-10-15T10:30:00Z",
+    "closingDate": "2025-11-30T23:59:59Z",
+    "postedBy": "John Doe",
+    "shortlistedCount": 12,
+    "rejectedCount": 20,
+    "interviewsScheduled": 8
+  },
+  {
+    "id": "job-2",
+    "title": "Product Manager",
+    "department": "Product",
+    "location": "Remote",
+    "type": "Full-time",
+    "experience": "3-5 years",
+    "salary": {
+      "min": 1800000,
+      "max": 2800000,
+      "currency": "INR"
+    },
+    "skills": ["Product Strategy", "Agile", "Data Analysis", "Stakeholder Management"],
+    "status": "active",
+    "applications": 32,
+    "description": "Join our product team to drive the vision and execution of our core products. You'll work closely with engineering, design, and business teams.",
+    "requirements": [
+      "3+ years of product management experience",
+      "Strong analytical and problem-solving skills",
+      "Experience with Agile methodologies",
+      "Excellent communication skills"
+    ],
+    "responsibilities": [
+      "Define product roadmap and strategy",
+      "Gather and prioritize requirements",
+      "Work with engineering teams",
+      "Analyze metrics and user feedback"
+    ],
+    "createdAt": "2025-10-20T14:20:00Z",
+    "closingDate": "2025-12-15T23:59:59Z",
+    "postedBy": "Sarah Johnson",
+    "shortlistedCount": 8,
+    "rejectedCount": 15,
+    "interviewsScheduled": 5
+  },
+  {
+    "id": "job-3",
+    "title": "UX/UI Designer",
+    "department": "Design",
+    "location": "Mumbai, India",
+    "type": "Full-time",
+    "experience": "2-4 years",
+    "salary": {
+      "min": 1200000,
+      "max": 2000000,
+      "currency": "INR"
+    },
+    "skills": ["Figma", "User Research", "Prototyping", "Design Systems"],
+    "status": "active",
+    "applications": 28,
+    "description": "We're seeking a talented UX/UI Designer to create beautiful and intuitive user experiences for our products.",
+    "requirements": [
+      "2+ years of UX/UI design experience",
+      "Proficiency in Figma or similar tools",
+      "Strong portfolio demonstrating design skills",
+      "Understanding of user-centered design"
+    ],
+    "responsibilities": [
+      "Create wireframes and prototypes",
+      "Conduct user research",
+      "Design user interfaces",
+      "Maintain design systems"
+    ],
+    "createdAt": "2025-10-25T09:15:00Z",
+    "closingDate": "2025-12-01T23:59:59Z",
+    "postedBy": "Mike Chen",
+    "shortlistedCount": 6,
+    "rejectedCount": 10,
+    "interviewsScheduled": 4
+  },
+  {
+    "id": "job-4",
+    "title": "DevOps Engineer",
+    "department": "Engineering",
+    "location": "Hyderabad, India",
+    "type": "Full-time",
+    "experience": "4-6 years",
+    "salary": {
+      "min": 1800000,
+      "max": 2800000,
+      "currency": "INR"
+    },
+    "skills": ["Docker", "Kubernetes", "CI/CD", "AWS", "Terraform"],
+    "status": "closed",
+    "applications": 52,
+    "description": "Looking for a DevOps Engineer to manage our infrastructure and improve deployment processes.",
+    "requirements": [
+      "4+ years of DevOps experience",
+      "Strong knowledge of containerization",
+      "Experience with Kubernetes",
+      "Knowledge of Infrastructure as Code"
+    ],
+    "responsibilities": [
+      "Manage cloud infrastructure",
+      "Implement CI/CD pipelines",
+      "Monitor system performance",
+      "Ensure security best practices"
+    ],
+    "createdAt": "2025-09-10T11:00:00Z",
+    "closingDate": "2025-10-31T23:59:59Z",
+    "postedBy": "John Doe",
+    "shortlistedCount": 15,
+    "rejectedCount": 30,
+    "interviewsScheduled": 10
+  },
+  {
+    "id": "job-5",
+    "title": "Data Scientist",
+    "department": "Data",
+    "location": "Bangalore, India",
+    "type": "Full-time",
+    "experience": "3-5 years",
+    "salary": {
+      "min": 2000000,
+      "max": 3200000,
+      "currency": "INR"
+    },
+    "skills": ["Python", "Machine Learning", "SQL", "TensorFlow", "Data Visualization"],
+    "status": "draft",
+    "applications": 0,
+    "description": "Join our data team to build machine learning models and derive insights from data.",
+    "requirements": [
+      "3+ years of data science experience",
+      "Strong programming skills in Python",
+      "Experience with ML frameworks",
+      "Knowledge of statistical analysis"
+    ],
+    "responsibilities": [
+      "Build predictive models",
+      "Analyze large datasets",
+      "Create data visualizations",
+      "Collaborate with product teams"
+    ],
+    "createdAt": "2025-10-28T16:45:00Z",
+    "closingDate": null,
+    "postedBy": "Sarah Johnson",
+    "shortlistedCount": 0,
+    "rejectedCount": 0,
+    "interviewsScheduled": 0
+  }
+]

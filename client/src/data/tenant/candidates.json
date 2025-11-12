@@ -1,0 +1,286 @@
+[
+  {
+    "id": "cand-1",
+    "name": "Rahul Sharma",
+    "email": "rahul.sharma@email.com",
+    "phone": "+91 98765 43210",
+    "location": "Bangalore, India",
+    "jobId": "job-1",
+    "jobTitle": "Senior Full Stack Developer",
+    "appliedDate": "2025-10-16T10:30:00Z",
+    "status": "shortlisted",
+    "aiScore": 87,
+    "experience": "6 years",
+    "currentCompany": "TechCorp India",
+    "expectedSalary": 3000000,
+    "noticePeriod": "2 months",
+    "skills": ["React", "Node.js", "TypeScript", "MongoDB", "AWS", "Docker"],
+    "education": {
+      "degree": "B.Tech in Computer Science",
+      "university": "IIT Delhi",
+      "year": 2017
+    },
+    "resumeUrl": "/resumes/rahul-sharma.pdf",
+    "aiAnalysis": {
+      "strengths": [
+        "Strong match with required tech stack (React, Node.js, TypeScript)",
+        "Excellent experience with cloud platforms (AWS)",
+        "Good leadership experience managing teams",
+        "Strong problem-solving skills demonstrated in projects"
+      ],
+      "weaknesses": [
+        "Limited experience with PostgreSQL (mainly worked with MongoDB)",
+        "Could benefit from more experience with microservices architecture"
+      ],
+      "skillMatch": 87,
+      "experienceMatch": 95,
+      "educationMatch": 90,
+      "overallFit": "Excellent",
+      "recommendation": "Strongly recommend for interview. Candidate has strong technical skills and relevant experience."
+    },
+    "timeline": [
+      {
+        "status": "applied",
+        "date": "2025-10-16T10:30:00Z",
+        "note": "Application submitted"
+      },
+      {
+        "status": "screening",
+        "date": "2025-10-17T14:20:00Z",
+        "note": "AI Resume scoring completed"
+      },
+      {
+        "status": "shortlisted",
+        "date": "2025-10-18T09:15:00Z",
+        "note": "Shortlisted for interview by John Doe"
+      }
+    ],
+    "interviewScheduled": true,
+    "interviewDate": "2025-11-05T10:00:00Z",
+    "interviewType": "ai"
+  },
+  {
+    "id": "cand-2",
+    "name": "Priya Patel",
+    "email": "priya.patel@email.com",
+    "phone": "+91 98765 43211",
+    "location": "Mumbai, India",
+    "jobId": "job-1",
+    "jobTitle": "Senior Full Stack Developer",
+    "appliedDate": "2025-10-17T15:45:00Z",
+    "status": "under_review",
+    "aiScore": 75,
+    "experience": "5 years",
+    "currentCompany": "StartupXYZ",
+    "expectedSalary": 2500000,
+    "noticePeriod": "1 month",
+    "skills": ["React", "Node.js", "JavaScript", "MySQL", "Git"],
+    "education": {
+      "degree": "M.Tech in Software Engineering",
+      "university": "BITS Pilani",
+      "year": 2018
+    },
+    "resumeUrl": "/resumes/priya-patel.pdf",
+    "aiAnalysis": {
+      "strengths": [
+        "Good experience with React and Node.js",
+        "Strong educational background with M.Tech",
+        "Good team collaboration skills"
+      ],
+      "weaknesses": [
+        "Limited TypeScript experience",
+        "No AWS experience mentioned",
+        "Experience is slightly below the 5-8 years range"
+      ],
+      "skillMatch": 72,
+      "experienceMatch": 68,
+      "educationMatch": 85,
+      "overallFit": "Good",
+      "recommendation": "Recommend for phone screening. Candidate shows potential but needs assessment of TypeScript and cloud skills."
+    },
+    "timeline": [
+      {
+        "status": "applied",
+        "date": "2025-10-17T15:45:00Z",
+        "note": "Application submitted"
+      },
+      {
+        "status": "screening",
+        "date": "2025-10-18T10:30:00Z",
+        "note": "AI Resume scoring completed"
+      }
+    ],
+    "interviewScheduled": false
+  },
+  {
+    "id": "cand-3",
+    "name": "Amit Kumar",
+    "email": "amit.kumar@email.com",
+    "phone": "+91 98765 43212",
+    "location": "Delhi, India",
+    "jobId": "job-1",
+    "jobTitle": "Senior Full Stack Developer",
+    "appliedDate": "2025-10-18T11:20:00Z",
+    "status": "rejected",
+    "aiScore": 52,
+    "experience": "3 years",
+    "currentCompany": "SmallTech Solutions",
+    "expectedSalary": 1800000,
+    "noticePeriod": "Immediate",
+    "skills": ["HTML", "CSS", "JavaScript", "jQuery", "PHP"],
+    "education": {
+      "degree": "B.Sc in Computer Science",
+      "university": "Delhi University",
+      "year": 2020
+    },
+    "resumeUrl": "/resumes/amit-kumar.pdf",
+    "aiAnalysis": {
+      "strengths": [
+        "Enthusiastic and eager to learn",
+        "Good foundational knowledge of web technologies"
+      ],
+      "weaknesses": [
+        "Experience below required range (3 years vs 5-8 years)",
+        "Missing key skills: React, Node.js, TypeScript",
+        "No experience with modern frameworks or cloud platforms",
+        "Technology stack is outdated (jQuery, PHP)"
+      ],
+      "skillMatch": 35,
+      "experienceMatch": 40,
+      "educationMatch": 65,
+      "overallFit": "Poor",
+      "recommendation": "Not recommended for this position. Suggest courses in React, Node.js, and TypeScript. Consider junior positions instead."
+    },
+    "timeline": [
+      {
+        "status": "applied",
+        "date": "2025-10-18T11:20:00Z",
+        "note": "Application submitted"
+      },
+      {
+        "status": "screening",
+        "date": "2025-10-19T09:00:00Z",
+        "note": "AI Resume scoring completed"
+      },
+      {
+        "status": "rejected",
+        "date": "2025-10-19T14:30:00Z",
+        "note": "Rejected - skills and experience don't match requirements"
+      }
+    ],
+    "interviewScheduled": false
+  },
+  {
+    "id": "cand-4",
+    "name": "Sneha Reddy",
+    "email": "sneha.reddy@email.com",
+    "phone": "+91 98765 43213",
+    "location": "Hyderabad, India",
+    "jobId": "job-2",
+    "jobTitle": "Product Manager",
+    "appliedDate": "2025-10-21T09:30:00Z",
+    "status": "shortlisted",
+    "aiScore": 82,
+    "experience": "4 years",
+    "currentCompany": "ProductHub",
+    "expectedSalary": 2200000,
+    "noticePeriod": "2 months",
+    "skills": ["Product Strategy", "Agile", "JIRA", "Data Analysis", "SQL", "A/B Testing"],
+    "education": {
+      "degree": "MBA",
+      "university": "IIM Bangalore",
+      "year": 2019
+    },
+    "resumeUrl": "/resumes/sneha-reddy.pdf",
+    "aiAnalysis": {
+      "strengths": [
+        "Strong product management experience",
+        "Excellent educational background (IIM)",
+        "Good data analysis skills",
+        "Experience with Agile methodologies"
+      ],
+      "weaknesses": [
+        "Experience slightly below mid-range (4 years)",
+        "Limited B2B product experience"
+      ],
+      "skillMatch": 85,
+      "experienceMatch": 78,
+      "educationMatch": 95,
+      "overallFit": "Excellent",
+      "recommendation": "Highly recommended for interview. Strong candidate with relevant skills and education."
+    },
+    "timeline": [
+      {
+        "status": "applied",
+        "date": "2025-10-21T09:30:00Z",
+        "note": "Application submitted"
+      },
+      {
+        "status": "screening",
+        "date": "2025-10-22T11:00:00Z",
+        "note": "AI Resume scoring completed"
+      },
+      {
+        "status": "shortlisted",
+        "date": "2025-10-23T10:15:00Z",
+        "note": "Shortlisted by Sarah Johnson"
+      }
+    ],
+    "interviewScheduled": true,
+    "interviewDate": "2025-11-06T15:00:00Z",
+    "interviewType": "ai"
+  },
+  {
+    "id": "cand-5",
+    "name": "Vikram Singh",
+    "email": "vikram.singh@email.com",
+    "phone": "+91 98765 43214",
+    "location": "Remote",
+    "jobId": "job-3",
+    "jobTitle": "UX/UI Designer",
+    "appliedDate": "2025-10-26T14:15:00Z",
+    "status": "under_review",
+    "aiScore": 79,
+    "experience": "3 years",
+    "currentCompany": "DesignStudio",
+    "expectedSalary": 1500000,
+    "noticePeriod": "1 month",
+    "skills": ["Figma", "Adobe XD", "User Research", "Prototyping", "Wireframing", "Design Systems"],
+    "education": {
+      "degree": "B.Des in Product Design",
+      "university": "NID Ahmedabad",
+      "year": 2020
+    },
+    "resumeUrl": "/resumes/vikram-singh.pdf",
+    "aiAnalysis": {
+      "strengths": [
+        "Excellent design tools proficiency (Figma, Adobe XD)",
+        "Strong portfolio with diverse projects",
+        "Good understanding of user research",
+        "Prestigious design education (NID)"
+      ],
+      "weaknesses": [
+        "Experience at mid-range of requirement",
+        "Limited experience with large-scale design systems"
+      ],
+      "skillMatch": 88,
+      "experienceMatch": 70,
+      "educationMatch": 90,
+      "overallFit": "Good",
+      "recommendation": "Recommend for portfolio review and interview. Strong design background."
+    },
+    "timeline": [
+      {
+        "status": "applied",
+        "date": "2025-10-26T14:15:00Z",
+        "note": "Application submitted"
+      },
+      {
+        "status": "screening",
+        "date": "2025-10-27T10:00:00Z",
+        "note": "AI Resume scoring completed"
+      }
+    ],
+    "interviewScheduled": false
+  }
+]

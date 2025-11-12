@@ -1,0 +1,123 @@
+[
+  {
+    "id": "interview-1",
+    "candidateId": "cand-1",
+    "candidateName": "Rahul Sharma",
+    "jobId": "job-1",
+    "jobTitle": "Senior Full Stack Developer",
+    "type": "ai",
+    "scheduledDate": "2025-11-05T10:00:00Z",
+    "duration": 45,
+    "status": "scheduled",
+    "interviewerName": "AI Assistant",
+    "meetingLink": null,
+    "notes": "First round AI screening"
+  },
+  {
+    "id": "interview-2",
+    "candidateId": "cand-4",
+    "candidateName": "Sneha Reddy",
+    "jobId": "job-2",
+    "jobTitle": "Product Manager",
+    "type": "ai",
+    "scheduledDate": "2025-11-06T15:00:00Z",
+    "duration": 45,
+    "status": "scheduled",
+    "interviewerName": "AI Assistant",
+    "meetingLink": null,
+    "notes": "AI interview for product thinking assessment"
+  },
+  {
+    "id": "interview-3",
+    "candidateId": "cand-6",
+    "candidateName": "Arjun Mehta",
+    "jobId": "job-1",
+    "jobTitle": "Senior Full Stack Developer",
+    "type": "ai",
+    "scheduledDate": "2025-11-03T14:00:00Z",
+    "duration": 45,
+    "status": "completed",
+    "interviewerName": "AI Assistant",
+    "meetingLink": null,
+    "notes": "AI screening completed",
+    "report": {
+      "overallScore": 8.2,
+      "communicationScore": 8.5,
+      "technicalScore": 8.0,
+      "problemSolvingScore": 8.3,
+      "strengths": [
+        "Excellent communication skills and articulation",
+        "Strong understanding of React and Node.js fundamentals",
+        "Good problem-solving approach with structured thinking",
+        "Demonstrated experience with scalable architecture",
+        "Confident in discussing past projects and technical decisions"
+      ],
+      "weaknesses": [
+        "Limited knowledge of advanced TypeScript features",
+        "Could improve understanding of security best practices",
+        "Needs more exposure to system design patterns"
+      ],
+      "keyInsights": [
+        "Candidate showed strong enthusiasm for the role",
+        "Good cultural fit based on communication style",
+        "Ready to take on leadership responsibilities",
+        "Open to learning and adapting to new technologies"
+      ],
+      "technicalAssessment": {
+        "reactJs": "Advanced",
+        "nodeJs": "Advanced",
+        "typescript": "Intermediate",
+        "databases": "Advanced",
+        "cloudPlatforms": "Intermediate",
+        "systemDesign": "Intermediate"
+      },
+      "recommendation": "Proceed to HR Round",
+      "recommendationReason": "Strong technical foundation with good communication skills. Candidate demonstrates readiness for senior role with some areas for growth.",
+      "suggestedNextSteps": [
+        "Schedule technical round with team lead",
+        "Focus on system design discussion",
+        "Assess TypeScript skills with coding exercise"
+      ],
+      "transcript": [
+        {
+          "speaker": "AI",
+          "message": "Hello Arjun! Welcome to the interview. Let's start with you telling me about your experience with React and Node.js.",
+          "timestamp": "2025-11-03T14:00:00Z"
+        },
+        {
+          "speaker": "Candidate",
+          "message": "Thank you! I've been working with React for about 5 years now. I've built several large-scale applications using React with hooks, context API, and Redux for state management. On the Node.js side, I've developed RESTful APIs and worked extensively with Express.js...",
+          "timestamp": "2025-11-03T14:01:15Z"
+        }
+      ]
+    }
+  },
+  {
+    "id": "interview-4",
+    "candidateId": "cand-7",
+    "candidateName": "Maya Iyer",
+    "jobId": "job-1",
+    "jobTitle": "Senior Full Stack Developer",
+    "type": "manual",
+    "scheduledDate": "2025-11-04T11:00:00Z",
+    "duration": 60,
+    "status": "scheduled",
+    "interviewerName": "John Doe",
+    "meetingLink": "https://meet.google.com/abc-defg-hij",
+    "notes": "Technical round - focus on system design"
+  },
+  {
+    "id": "interview-5",
+    "candidateId": "cand-8",
+    "candidateName": "Rohan Verma",
+    "jobId": "job-2",
+    "jobTitle": "Product Manager",
+    "type": "manual",
+    "scheduledDate": "2025-11-07T10:00:00Z",
+    "duration": 60,
+    "status": "scheduled",
+    "interviewerName": "Sarah Johnson",
+    "meetingLink": "https://meet.google.com/xyz-uvwx-rst",
+    "notes": "Behavioral and product case study round"
+  }
+]

@@ -429,6 +429,233 @@ export const tenantTestAPI = {
   },
 };
 
+// ============ Tenant Job Types ============
+export interface CreateJobRequest {
+  title: string; // max 50 chars
+  description: string;
+  department: string; // max 50 chars
+  location: string; // max 25 chars
+}
+
+export interface UpdateJobRequest {
+  title?: string; // max 50 chars
+  description?: string;
+  department?: string; // max 50 chars
+  location?: string; // max 25 chars
+  is_open?: boolean;
+}
+
+export interface JobResponse {
+  id: string;
+  title: string;
+  description: string;
+  department: string;
+  location: string;
+  is_open: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ListJobsRequest {
+  search?: string;
+  department?: string;
+  location?: string;
+  is_open?: boolean;
+}
+
+// ============ Tenant Job API ============
+export const tenantJobAPI = {
+  /**
+   * Create a new job posting (requires RECRUITER role)
+   */
+  async createJob(data: CreateJobRequest): Promise<JobResponse> {
+    return tenantApiRequest<JobResponse>(`${getTenantBackendUrl()}/api/tenant/jobs`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, 2, true);
+  },
+
+  /**
+   * List all job postings with optional filters
+   */
+  async listJobs(params?: ListJobsRequest): Promise<JobResponse[]> {
+    const queryParams = new URLSearchParams();
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.department) queryParams.append('department', params.department);
+    if (params?.location) queryParams.append('location', params.location);
+    if (params?.is_open !== undefined) queryParams.append('is_open', String(params.is_open));
+
+    const url = queryParams.toString() 
+      ? `${getTenantBackendUrl()}/api/tenant/jobs?${queryParams.toString()}`
+      : `${getTenantBackendUrl()}/api/tenant/jobs`;
+
+    return tenantApiRequest<JobResponse[]>(url, {
+      method: 'GET',
+    }, 2, false);
+  },
+
+  /**
+   * Get a specific job by ID
+   */
+  async getJob(jobId: string): Promise<JobResponse> {
+    return tenantApiRequest<JobResponse>(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}`, {
+      method: 'GET',
+    }, 2, false);
+  },
+
+  /**
+   * Update a job posting (requires RECRUITER role and must be creator)
+   */
+  async updateJob(jobId: string, data: UpdateJobRequest): Promise<JobResponse> {
+    return tenantApiRequest<JobResponse>(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }, 2, true);
+  },
+
+  /**
+   * Delete a job posting (requires RECRUITER role and must be creator)
+   */
+  async deleteJob(jobId: string): Promise<void> {
+    return tenantApiRequest<void>(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}`, {
+      method: 'DELETE',
+    }, 2, true);
+  },
+
+  /**
+   * Close a job posting (requires RECRUITER role and must be creator)
+   * Sets is_open to false to stop accepting new applications
+   */
+  async closeJob(jobId: string): Promise<JobResponse> {
+    return tenantApiRequest<JobResponse>(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_open: false }),
+    }, 2, true);
+  },
+
+  /**
+   * Reopen a job posting (requires RECRUITER role and must be creator)
+   * Sets is_open to true to resume accepting applications
+   */
+  async reopenJob(jobId: string): Promise<JobResponse> {
+    return tenantApiRequest<JobResponse>(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_open: true }),
+    }, 2, true);
+  },
+};
+
+// ============ APPLICATION API ============
+
+/**
+ * Application Status Enum
+ * Represents the lifecycle of a job application
+ */
+export enum ApplicationStatus {
+  PENDING = "pending",
+  SHORTLISTED = "shortlisted",
+  AI_INTERVIEW_COMPLETED = "ai_interview_completed",
+  HUMAN_INTERVIEW_SCHEDULED = "human_interview_scheduled",
+  HUMAN_INTERVIEW_COMPLETED = "human_interview_completed",
+  OFFERED = "offered",
+  REJECTED = "rejected",
+  HIRED = "hired",
+  WITHDRAWN = "withdrawn",
+}
+
+/**
+ * Application Response
+ */
+export interface ApplicationResponse {
+  id: string;
+  job_id: string;
+  user_id: string;
+  status: ApplicationStatus;
+  resume: string; // S3/Cloud storage path
+  applied_on: string; // ISO datetime string
+}
+
+/**
+ * Application API
+ * Handles job application submission and management
+ */
+export const tenantApplicationAPI = {
+  /**
+   * Submit a job application with resume upload
+   * Requires APPLICANT or EMPLOYEE role
+   * @param jobId - UUID of the job to apply for
+   * @param resume - Resume file (PDF, DOC, DOCX)
+   */
+  async applyToJob(jobId: string, resume: File): Promise<ApplicationResponse> {
+    const formData = new FormData();
+    formData.append('resume', resume);
+
+    // Note: Don't set Content-Type header - browser will set it with boundary for multipart/form-data
+    const tokens = getTenantTokens();
+    if (!tokens?.accessToken) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}/apply`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${tokens.accessToken}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Failed to apply for job' }));
+      throw new Error(error.detail || 'Failed to apply for job');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * List all applications for a specific job
+   * Requires RECRUITER role
+   * @param jobId - UUID of the job
+   */
+  async listJobApplications(jobId: string): Promise<ApplicationResponse[]> {
+    return tenantApiRequest<ApplicationResponse[]>(
+      `${getTenantBackendUrl()}/api/tenant/jobs/${jobId}/applications`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get details of a specific application
+   * APPLICANT/EMPLOYEE: Can view own applications
+   * RECRUITER: Can view all applications for their jobs
+   * @param applicationId - UUID of the application
+   */
+  async getApplication(applicationId: string): Promise<ApplicationResponse> {
+    return tenantApiRequest<ApplicationResponse>(
+      `${getTenantBackendUrl()}/api/tenant/applications/${applicationId}`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Withdraw a submitted application
+   * Requires APPLICANT or EMPLOYEE role (own application only)
+   * @param applicationId - UUID of the application to withdraw
+   */
+  async withdrawApplication(applicationId: string): Promise<ApplicationResponse> {
+    return tenantApiRequest<ApplicationResponse>(
+      `${getTenantBackendUrl()}/api/tenant/applications/${applicationId}/withdraw`,
+      { method: 'DELETE' },
+      2,
+      true
+    );
+  },
+};
+
 // Export utility functions for use in other files
 export { getTenantSubdomain, getTenantTokens, setTenantTokens, clearTenantTokens };
 

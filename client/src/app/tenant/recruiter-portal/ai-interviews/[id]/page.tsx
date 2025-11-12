@@ -5,7 +5,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-// import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
+import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { ModernRecruiterLayout } from "@/components/common/layout/ModernRecruiterLayout";
 import {
   Card,
@@ -505,8 +505,10 @@ function AIInterviewReportContent() {
 
 export default function AIInterviewReportPage() {
   return (
-    <ModernRecruiterLayout>
-      <AIInterviewReportContent />
-    </ModernRecruiterLayout>
+    <TenantProtectedRoute allowedRoles={["recruiter"]}>
+      <ModernRecruiterLayout>
+        <AIInterviewReportContent />
+      </ModernRecruiterLayout>
+    </TenantProtectedRoute>
   );
 }
