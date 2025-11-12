@@ -129,7 +129,7 @@ class ResumeRanker:
         )
 
         return RankedCandidate(
-            resume_id=resume_data.id,
+            application_id=resume_data.id,
             final_score=final_score,
             details=scoring_details,
         )
@@ -152,13 +152,13 @@ class ResumeRanker:
 
         print("Generating LLM-powered feedback for all candidates...")
         for candidate in shortlisted:
-            candidate_sections = resume_sections_map[candidate.resume_id]
+            candidate_sections = resume_sections_map[candidate.application_id]
             candidate.feedback = self._get_llm_feedback(
                 candidate, jd_sections, candidate_sections, is_shortlisted=True
             )
 
         for candidate in rejected:
-            candidate_sections = resume_sections_map[candidate.resume_id]
+            candidate_sections = resume_sections_map[candidate.application_id]
             candidate.feedback = self._get_llm_feedback(
                 candidate, jd_sections, candidate_sections, is_shortlisted=False
             )
