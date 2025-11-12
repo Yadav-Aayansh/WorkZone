@@ -26,5 +26,6 @@ class Application(TenantBase):
     resume_score = Column(Float, nullable=True)
     applied_on = Column(DateTime(timezone=True), default=get_indian_time, nullable=False)
 
+    user = relationship("User", back_populates="applications", uselist=False, lazy=True)
     job = relationship("Job", back_populates="applications", uselist=False, lazy=True)
     ai_interview = relationship("AiInterview", back_populates="application", uselist=False)
