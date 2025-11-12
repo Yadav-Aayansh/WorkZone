@@ -53,7 +53,7 @@ export default function InviteEmployee() {
     try {
       const response = await platformClientAPI.inviteUser({
         email: formData.email,
-        name: formData.name || undefined,
+        name: formData.name,
         role: formData.role,
       });
 

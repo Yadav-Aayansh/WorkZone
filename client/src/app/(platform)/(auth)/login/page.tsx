@@ -40,38 +40,38 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     setError("");
-    
+
     try {
       const response = await authAPI.login({
         email: data.email,
         password: data.password,
       });
-      
+
       // Store tokens and update auth state
       await login(response);
-      
+
       showToast({
-        type: 'success',
-        title: 'Welcome back!',
-        message: 'Successfully logged in.',
+        type: "success",
+        title: "Welcome back!",
+        message: "Successfully logged in.",
       });
-      
+
       // Redirect based on account status
       redirectAfterAuth(response.account_status);
     } catch (err) {
       if (err instanceof APIError) {
         setError(err.message);
         showToast({
-          type: 'error',
-          title: 'Login failed',
+          type: "error",
+          title: "Login failed",
           message: err.message,
         });
       } else {
         const errorMessage = "An unexpected error occurred. Please try again.";
         setError(errorMessage);
         showToast({
-          type: 'error',
-          title: 'Login failed',
+          type: "error",
+          title: "Login failed",
           message: errorMessage,
         });
       }
@@ -91,7 +91,7 @@ export default function LoginPage() {
         {/* Left Side - Image */}
         <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-purple-950 via-accent/90 to-purple-950">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(200,100,255,0.3),transparent_70%)]" />
-          
+
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -101,11 +101,9 @@ export default function LoginPage() {
             <div className="mb-8">
               <Logo className="w-32" />
             </div>
-            
-            <h1 className="text-4xl font-bold mb-4">
-              Welcome Back!
-            </h1>
-            
+
+            <h1 className="text-4xl font-bold mb-4">Welcome Back!</h1>
+
             <p className="text-lg text-white/90 mb-8 leading-relaxed">
               Access your HR dashboard and manage your workforce efficiently
             </p>
@@ -118,11 +116,23 @@ export default function LoginPage() {
                 className="flex items-center gap-3"
               >
                 <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
                   </svg>
                 </div>
-                <p className="text-sm text-white/90">Real-time workforce insights</p>
+                <p className="text-sm text-white/90">
+                  Real-time workforce insights
+                </p>
               </motion.div>
 
               <motion.div
@@ -132,8 +142,18 @@ export default function LoginPage() {
                 className="flex items-center gap-3"
               >
                 <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
                   </svg>
                 </div>
                 <p className="text-sm text-white/90">Secure & encrypted data</p>
@@ -146,11 +166,23 @@ export default function LoginPage() {
                 className="flex items-center gap-3"
               >
                 <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                 </div>
-                <p className="text-sm text-white/90">24/7 system availability</p>
+                <p className="text-sm text-white/90">
+                  24/7 system availability
+                </p>
               </motion.div>
             </div>
           </motion.div>
@@ -168,7 +200,10 @@ export default function LoginPage() {
               <Logo />
             </div>
 
-            <Link href="/client/public" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8">
+            <Link
+              href="/client/public"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8"
+            >
               <ArrowLeft className="w-4 h-4 mr-1" />
             </Link>
 
@@ -176,7 +211,10 @@ export default function LoginPage() {
               <h2 className="text-3xl font-bold mb-2">Log in</h2>
               <p className="text-sm text-muted-foreground">
                 Don&#39;t have an account?{" "}
-                <Link href="/signup" className="text-foreground hover:underline font-medium">
+                <Link
+                  href="/signup"
+                  className="text-foreground hover:underline font-medium"
+                >
                   Create an Account
                 </Link>
               </p>
@@ -224,7 +262,11 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
                 {errors.password && (
@@ -261,7 +303,10 @@ export default function LoginPage() {
                 />
                 <label htmlFor="terms" className="text-muted-foreground">
                   I agree to the{" "}
-                  <Link href="/terms" className="text-foreground hover:underline">
+                  <Link
+                    href="/terms"
+                    className="text-foreground hover:underline"
+                  >
                     Terms & Condition
                   </Link>
                 </label>
@@ -313,7 +358,11 @@ export default function LoginPage() {
                   className="h-11 text-sm rounded-full"
                   onClick={() => {}}
                 >
-                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
                   Continue with Facebook

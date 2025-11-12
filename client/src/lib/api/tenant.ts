@@ -4,6 +4,40 @@
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
+/**
+ * Get tenant-specific backend URL
+ * Returns URL with tenant subdomain (e.g., http://sandesh12.localhost:8000)
+ * Backend extracts tenant_id from hostname
+ */
+function getTenantBackendUrl(): string {
+  if (typeof window === 'undefined') return BASE_URL;
+
+  const subdomain = getTenantSubdomain();
+  if (!subdomain) return BASE_URL;
+
+  // Parse BASE_URL to add subdomain
+  try {
+    const url = new URL(BASE_URL);
+    
+    // For localhost: subdomain.localhost:8000
+    if (url.hostname === 'localhost') {
+      return `${url.protocol}//${subdomain}.${url.hostname}:${url.port}`;
+    }
+    
+    // For production: subdomain.api.workzone.tech or subdomain.workzone.tech
+    // Check if hostname already has subdomain
+    const parts = url.hostname.split('.');
+    if (parts.length >= 2) {
+      return `${url.protocol}//${subdomain}.${url.hostname}${url.port ? ':' + url.port : ''}`;
+    }
+    
+    return BASE_URL;
+  } catch (error) {
+    console.error('Failed to construct tenant backend URL:', error);
+    return BASE_URL;
+  }
+}
+
 // ============ Type Definitions ============
 
 // Auth Types
@@ -286,7 +320,7 @@ export const tenantAuthAPI = {
    * Signup for tenant user (requires invitation for certain roles)
    */
   async signup(data: TenantUserSignupRequest): Promise<TenantUserSignupResponse> {
-    return tenantApiRequest<TenantUserSignupResponse>(`${BASE_URL}/api/tenant/auth/signup`, {
+    return tenantApiRequest<TenantUserSignupResponse>(`${getTenantBackendUrl()}/api/tenant/auth/signup`, {
       method: 'POST',
       body: JSON.stringify(data),
     }, 2, false);
@@ -296,7 +330,7 @@ export const tenantAuthAPI = {
    * Signup with invitation token
    */
   async signupInvited(data: TenantUserSignupInvitedRequest): Promise<TenantUserSignupResponse> {
-    return tenantApiRequest<TenantUserSignupResponse>(`${BASE_URL}/api/tenant/auth/signup/invited`, {
+    return tenantApiRequest<TenantUserSignupResponse>(`${getTenantBackendUrl()}/api/tenant/auth/signup/invited`, {
       method: 'POST',
       body: JSON.stringify(data),
     }, 2, false);
@@ -306,7 +340,7 @@ export const tenantAuthAPI = {
    * Login for tenant user
    */
   async login(data: TenantUserLoginRequest): Promise<TenantUserLoginResponse> {
-    return tenantApiRequest<TenantUserLoginResponse>(`${BASE_URL}/api/tenant/auth/login`, {
+    return tenantApiRequest<TenantUserLoginResponse>(`${getTenantBackendUrl()}/api/tenant/auth/login`, {
       method: 'POST',
       body: JSON.stringify(data),
     }, 2, false);
@@ -322,7 +356,7 @@ export const tenantAuthAPI = {
       throw new TenantAPIError(401, 'No refresh token available', null, true);
     }
 
-    return tenantApiRequest<TenantUserRefreshResponse>(`${BASE_URL}/api/tenant/auth/refresh`, {
+    return tenantApiRequest<TenantUserRefreshResponse>(`${getTenantBackendUrl()}/api/tenant/auth/refresh`, {
       method: 'POST',
       body: JSON.stringify({ refresh_token: refreshToken }),
     }, 1, false);
@@ -363,13 +397,33 @@ export const tenantAuthAPI = {
   },
 };
 
+// ============ Tenant Config Types ============
+export interface TenantConfig {
+  tenant_id: string;
+  brand_name: string;
+  logo: string | null;
+  domain: string | null;
+}
+
+// ============ Tenant Config API ============
+export const tenantConfigAPI = {
+  /**
+   * Get tenant configuration (brand name, logo, theme, etc.)
+   */
+  async getConfig(): Promise<TenantConfig> {
+    return tenantApiRequest<TenantConfig>(`${getTenantBackendUrl()}/api/tenant/config`, {
+      method: 'GET',
+    }, 2, false);
+  },
+};
+
 // ============ Tenant Test API ============
 export const tenantTestAPI = {
   /**
    * Test endpoint to verify tenant detection
    */
   async test(): Promise<string> {
-    return tenantApiRequest<string>(`${BASE_URL}/api/tenant/test`, {
+    return tenantApiRequest<string>(`${getTenantBackendUrl()}/api/tenant/test`, {
       method: 'GET',
     }, 1, false);
   },

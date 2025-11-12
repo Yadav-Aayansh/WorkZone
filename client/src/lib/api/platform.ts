@@ -410,9 +410,9 @@ export interface TenantAvailabilityResponse {
 }
 
 export interface InviteUserRequest {
+  name: string;
   email: string;
   role: 'employee' | 'manager' | 'recruiter';
-  name?: string;
 }
 
 export interface InviteUserResponse {

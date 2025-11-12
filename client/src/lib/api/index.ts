@@ -32,6 +32,7 @@ export type {
 // Tenant API exports
 export {
   tenantAuthAPI,
+  tenantConfigAPI,
   tenantTestAPI,
   TenantAPIError,
   getTenantSubdomain,
@@ -48,6 +49,7 @@ export type {
   TenantUserLoginResponse,
   TenantUserRefreshRequest,
   TenantUserRefreshResponse,
+  TenantConfig,
 } from './tenant';
 
 // Backwards compatibility - import for creating combined API

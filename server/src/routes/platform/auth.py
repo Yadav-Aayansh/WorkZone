@@ -3,7 +3,7 @@ from src.schemas.platform import (
     ClientSignupRequest, ClientSignupResponse, ClientLoginRequest,
     ClientLoginResponse, ClientRefreshRequest
 )
-from src.core.di import get_client_service, get_current_user
+from src.core.di import get_client_service
 from src.services.platform import ClientService
 from src.exceptions.platform import (
     InvalidClientCredentialsError, ClientAlreadyExistsError,

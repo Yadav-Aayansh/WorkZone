@@ -7,6 +7,7 @@ import {
   useState,
   ReactNode,
 } from "react";
+import { tenantConfigAPI, TenantAPIError } from "@/lib/api";
 
 // Tenant configuration interface
 export interface TenantConfig {
@@ -71,45 +72,16 @@ export function TenantProvider({ children }: TenantProviderProps) {
       setIsTenantRoute(true);
 
       // Fetch tenant configuration from backend
-      // The backend will validate tenant exists via Host header
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tenant/test`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      // The backend validates tenant exists via Host header
+      const configResponse = await tenantConfigAPI.getConfig();
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("Tenant not found");
-        }
-        throw new Error("Failed to load tenant configuration");
-      }
-
-      const message = await response.text();
-      console.log("Tenant test response:", message);
-
-      // Extract tenant_id from response like "Hi from sandesh"
-      const tenantIdMatch = message.match(/Hi from (\w+)/);
-      const tenantId = tenantIdMatch ? tenantIdMatch[1] : subdomain;
-
-      // TODO: Backend needs to add /api/tenant/config endpoint that returns:
-      // - tenant_id
-      // - brand_name
-      // - logo URL (signed URL from GCS)
-      // - theme colors
-      //
-      // For now, we use the tenant_id and default branding
-      // The tenant is verified to exist via the test endpoint above
-
-      // Create tenant config with available data
+      // Create tenant config with real backend data
       const config: TenantConfig = {
-        id: tenantId,
+        id: configResponse.tenant_id,
         subdomain: subdomain,
-        brandName: tenantId.charAt(0).toUpperCase() + tenantId.slice(1), // Capitalize first letter as placeholder
-        logo: "/assets/logos/default-tenant-logo.png", // Placeholder until backend provides logo URL
+        brandName: configResponse.brand_name,
+        logo: configResponse.logo || "/assets/logos/default-tenant-logo.png",
+        domain: configResponse.domain || undefined,
         theme: {
           primaryColor: "#6366f1",
           secondaryColor: "#8b5cf6",
@@ -118,16 +90,23 @@ export function TenantProvider({ children }: TenantProviderProps) {
 
       setTenant(config);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      let errorMessage = "Unknown error";
+
+      if (err instanceof TenantAPIError) {
+        errorMessage = err.message;
+        // 404 means tenant not found
+        if (err.status === 404) {
+          errorMessage = "Tenant not found";
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
       setError(errorMessage);
       console.error("Error fetching tenant config:", err);
 
-      // If tenant not found, redirect to platform
-      if (errorMessage === "Tenant not found") {
-        const platformUrl =
-          process.env.NEXT_PUBLIC_PLATFORM_URL || "http://localhost:3000";
-        window.location.href = `${platformUrl}?error=tenant-not-found`;
-      }
+      // Don't redirect - let the tenant route handle displaying "not found" page
+      // The tenant layout will check error state and show appropriate UI
     } finally {
       setIsLoading(false);
     }
