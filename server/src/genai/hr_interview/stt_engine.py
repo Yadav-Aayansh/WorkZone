@@ -8,10 +8,10 @@ except ImportError:
     print("Warning: Google Cloud STT not available")
 
 # Import shared HTTP client
-try:
-    from src.core.http_client import http_client
-except ImportError:
-    from http_client import http_client  # Fallback for testing
+# try:
+from src.genai.http_client import http_client
+# except ImportError:
+#     from http_client import http_client  # Fallback for testing
 
 
 def initialize_stt_client():

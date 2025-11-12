@@ -2,7 +2,7 @@ from typing import Dict, List
 from src.utils.datetime import get_indian_time
 
 # Import schemas
-from src.genai.schemas.hr_interview_schemas import (
+from src.genai.schemas.hr_interview import (
     StartInterviewRequest,
     StartInterviewResponse,
     ProcessTextAnswerRequest,
@@ -23,30 +23,22 @@ from src.genai.hr_interview.tts_engine import text_to_speech
 from src.genai.hr_interview.stt_engine import speech_to_text
 from src.core.storage import storage_client
 
+# Import Redis client
+from src.core.redis import redis_client
 
-# upload markdown report to GCP Storage
-def upload_markdown_report(markdown_content: str, session_id: str) -> str:
-    import io
-    
-    # Create a file-like object from markdown string
-    filename = f"{session_id}_report.md"
-    markdown_bytes = markdown_content.encode('utf-8')
-    markdown_file_obj = io.BytesIO(markdown_bytes)
-    
-    # Create a simple file-like object with required attributes
-    class MarkdownFile:
-        def __init__(self, filename, content):
-            self.filename = filename
-            self.file = io.BytesIO(content)
-            self.content_type = "text/markdown"
-    
-    markdown_file = MarkdownFile(filename, markdown_bytes)
-    
-    # Upload to GCP Storage
-    folder = f"interview_reports/{session_id}"
-    blob_name, signed_url = storage_client.upload(markdown_file, folder, expiration=30)  # 30 days expiration
-    
-    return signed_url
+def save_session_to_redis(session_data: SessionData) -> bool:
+    session_dict = session_data.model_dump(mode='json')
+    return redis_client.set_session(session_data.session_id, session_dict)
+
+def get_session_from_redis(session_id: str) -> SessionData:
+    session_dict = redis_client.get_session(session_id)
+    if not session_dict:
+        raise ValueError(f"Session {session_id} not found")
+    return SessionData(**session_dict)
+
+def update_session_in_redis(session_data: SessionData) -> bool:
+    session_dict = session_data.model_dump(mode='json')
+    return redis_client.update_session(session_data.session_id, session_dict)
 
 
 # generate markdown report
@@ -108,22 +100,17 @@ def generate_markdown_report(report) -> str:
     return markdown
 
 
-# In-memory session storage (replace with Redis/DB in production)
-active_sessions: Dict[str, SessionData] = {}
-
-
 async def start_interview(request: StartInterviewRequest) -> StartInterviewResponse:
-    # Get signed URL for resume and extract text
     resume_signed_url = storage_client.get_url(request.resume_blob_name, expiration=1)
     if not resume_signed_url:
         raise ValueError(f"Resume not found: {request.resume_blob_name}")
     
     resume_text = await extract_text_from_pdf(resume_signed_url)
     
-    # JD is now directly provided as markdown text
+    # JD in markdown text
     jd_text = request.jd_text
     
-    # Use session_id from request (provided by backend)
+    # Use session_id from backend
     session_id = request.session_id
     
     # Create session data (with empty questions list initially)
@@ -138,8 +125,8 @@ async def start_interview(request: StartInterviewRequest) -> StartInterviewRespo
         current_question_index=0
     )
     
-    # Store session
-    active_sessions[session_id] = session_data
+    # Save session to Redis
+    save_session_to_redis(session_data)
     
     # Generate first question
     first_question = await generate_next_question(
@@ -151,6 +138,9 @@ async def start_interview(request: StartInterviewRequest) -> StartInterviewRespo
     
     # Add to questions asked
     session_data.questions_asked.append(first_question)
+    
+    # Update session in Redis
+    update_session_in_redis(session_data)
     
     # Generate audio for first question (returns signed URL)
     first_question_audio_url = await text_to_speech(
@@ -172,11 +162,8 @@ async def start_interview(request: StartInterviewRequest) -> StartInterviewRespo
 
 
 async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswerResponse: 
-    # Get session data
-    if request.session_id not in active_sessions:
-        raise ValueError(f"Session {request.session_id} not found")
-    
-    session_data = active_sessions[request.session_id]
+    # Get session data from Redis
+    session_data = get_session_from_redis(request.session_id)
     
     # Get current question
     current_question = session_data.questions_asked[session_data.current_question_index]
@@ -192,6 +179,9 @@ async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswe
     
     # Move to next question index
     session_data.current_question_index += 1
+    
+    # Update session in Redis
+    update_session_in_redis(session_data)
     
     # Check if interview should continue
     should_continue = await should_continue_interview(
@@ -234,6 +224,9 @@ async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswe
     # Add to questions asked
     session_data.questions_asked.append(next_question)
     
+    # Update session in Redis
+    update_session_in_redis(session_data)
+    
     # Generate audio for next question (returns signed URL)
     next_question_audio_url = await text_to_speech(
         next_question.question,
@@ -273,11 +266,8 @@ async def process_voice_answer(request: ProcessVoiceAnswerRequest) -> ProcessAns
 
 
 async def generate_final_report(request: GenerateReportRequest) -> GenerateReportResponse:
-    # Get session data
-    if request.session_id not in active_sessions:
-        raise ValueError(f"Session {request.session_id} not found")
-    
-    session_data = active_sessions[request.session_id]
+    # Get session data from Redis
+    session_data = get_session_from_redis(request.session_id)
     
     # Generate report
     report = await generate_interview_report(
@@ -293,11 +283,9 @@ async def generate_final_report(request: GenerateReportRequest) -> GenerateRepor
     # Generate markdown report
     markdown_report = generate_markdown_report(report)
     
-    # Upload markdown to GCP Storage
-    markdown_signed_url = upload_markdown_report(markdown_report, session_data.session_id)
-    
+    # Return response without uploading to GCP
     return GenerateReportResponse(
         report=report,
         markdown_report=markdown_report,
-        markdown_url=markdown_signed_url
+        markdown_url=""  # Empty string since we're not uploading
     )

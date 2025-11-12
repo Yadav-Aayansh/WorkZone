@@ -1,6 +1,6 @@
 import json
 from src.genai.llm_client import llm_client
-from src.genai.schemas.hr_interview_schemas import AnswerAnalysis
+from src.genai.schemas.hr_interview import AnswerAnalysis
 
 
 async def analyze_answer_quality(

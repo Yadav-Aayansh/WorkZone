@@ -99,7 +99,7 @@ class InterviewReport(BaseModel):
 class GenerateReportResponse(BaseModel):
     report: InterviewReport
     markdown_report: str = Field(..., description="Markdown formatted report")
-    markdown_url: str
+    markdown_url: str = Field(default="", description="Markdown URL (empty when not uploading to storage)")
 
 # SESSION DATA SCHEMA 
 

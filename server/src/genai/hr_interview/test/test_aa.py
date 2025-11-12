@@ -3,7 +3,7 @@ import sys
 import os
 
 from src.genai.hr_interview.answer_analyzer import analyze_answer_quality
-from src.genai.schemas.hr_interview_schemas import AnswerAnalysis
+from src.genai.schemas.hr_interview import AnswerAnalysis
 
 async def test_answer_analysis():
     print("\n=== Test: Answer Quality Analysis ===")
