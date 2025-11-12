@@ -2,14 +2,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.tenant import Job
 from src.core.logger import logger
 from sqlalchemy import select, exists, or_
+from sqlalchemy.orm import joinedload
 from typing import Optional
 
 class JobRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_job_by_id(self, id: str) -> Job | None:
-        result = await self.db.execute(select(Job).where(Job.id==id))
+    async def get_job_by_id(self, id: str, with_applications: bool = False) -> Job | None:
+        query = await select(Job).where(Job.id == id)
+        if with_applications:
+            query = query.options(joinedload(Job.applications))
+        result = self.db.execute(query)
         return result.scalar_one_or_none()
 
     async def create_job(self, title: str, description: str, department: str, location: str, posted_by: str):
@@ -31,13 +35,6 @@ class JobRepository:
             logger.exception(f"Unexpected error creating job: {e}")
             raise
 
-    async def get_job(self, id: str):
-        try:
-            result = await self.db.execute(select(Job).where(Job.id==id))
-            return result.scalar_one_or_none()
-        except Exception as e:
-            logger.exception(f"Error fetching job: {e}")
-            raise
 
     async def list_jobs(self, department: Optional[str], location: Optional[str], is_open: Optional[bool], search: Optional[str]):
         try:

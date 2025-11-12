@@ -3,7 +3,7 @@ import uuid
 from src.utils.datetime import get_indian_time
 from src.core.database import TenantBase
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, UUID, String, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, UUID, String, DateTime, ForeignKey, Enum, Float
 
 class ApplicationStatus(enum.Enum):
     PENDING = "pending"
@@ -23,6 +23,7 @@ class Application(TenantBase):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     status = Column(Enum(ApplicationStatus), default=ApplicationStatus.PENDING)
     resume = Column(String(500), nullable=False)
+    resume_score = Column(Float, nullable=True)
     applied_on = Column(DateTime(timezone=True), default=get_indian_time, nullable=False)
 
     job = relationship("Job", back_populates="applications", uselist=False, lazy=True)
