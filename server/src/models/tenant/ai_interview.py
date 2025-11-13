@@ -8,8 +8,7 @@ class AiInterview(TenantBase):
     __tablename__ = "ai_interviews"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     application_id = Column(UUID(as_uuid=True), ForeignKey("applications.id"), nullable=False, unique=True)
-    job_id = Column(String(255), nullable=False)
-    overall_score = Column(Numeric(5, 2))
+    score = Column(Numeric(5, 2))
     report = Column(Text)
     created_at = Column(DateTime(timezone=True), default=get_indian_time)
     completed_at = Column(DateTime(timezone=True))

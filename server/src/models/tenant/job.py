@@ -16,4 +16,5 @@ class Job(TenantBase):
     created_at = Column(DateTime(timezone=True), default=get_indian_time, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=get_indian_time, onupdate=get_indian_time, nullable=False)
 
-    applications = relationship("Application", back_populates="job", lazy=True, cascade="all, delete-orphan")
+    applications = relationship("Application", back_populates="job", cascade="all, delete-orphan")
+    user = relationship("User", back_populates="jobs")
