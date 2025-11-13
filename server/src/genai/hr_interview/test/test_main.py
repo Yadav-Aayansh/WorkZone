@@ -49,20 +49,23 @@ We are seeking an experienced Backend Developer to join our engineering team.
 """
 
 
-def cleanup_test_session():
+async def cleanup_test_session():
     """Clean up test session from Redis before starting"""
     try:
-        if redis_client.session_exists(SESSION_ID):
-            redis_client.delete_session(SESSION_ID)
+        # Check if session exists
+        session_data = await redis_client.get_session(SESSION_ID)
+        if session_data:
+            await redis_client.delete_session(SESSION_ID)
             print("✓ Cleaned up existing test session")
     except Exception as e:
         print(f"⚠ Warning: Could not clean up session: {e}")
 
 
-def verify_redis_connection():
+async def verify_redis_connection():
     """Verify Redis is connected and accessible"""
     try:
-        redis_client.client.ping()
+        # Test connection by trying to get a non-existent key
+        await redis_client.client.ping()
         print("✓ Redis connection verified")
         return True
     except Exception as e:
@@ -73,22 +76,21 @@ def verify_redis_connection():
         return False
 
 
-# FULL INTERVIEW FLOW (INTERACTIVE WITH DYNAMIC QUESTIONS)
-
-if __name__ == "__main__":
+async def run_interview_test():
+    """Main async interview test flow"""
+    
     print("\n" + "="*70)
-    print("AI INTERVIEW ASSISTANT – FULL INTERVIEW TEST (REDIS + DYNAMIC)")
     print("="*70)
 
     # Verify Redis connection
     print("\n[PRE-CHECK] Verifying Redis Connection")
     print("-" * 70)
-    if not verify_redis_connection():
+    if not await verify_redis_connection():
         print("\n✗ Test cannot proceed without Redis connection")
-        exit(1)
+        return
 
     # Clean up any existing test session
-    cleanup_test_session()
+    await cleanup_test_session()
 
     print("\n[STEP 1] Starting Interview")
     print("-" * 70)
@@ -102,7 +104,7 @@ if __name__ == "__main__":
     )
 
     try:
-        start_res = asyncio.run(start_interview(start_req))
+        start_res = await start_interview(start_req)
         print("✓ Interview Started (Session saved to Redis)")
         print("Session ID:", start_res.session_id)
         print("First Question:", start_res.first_question.question)
@@ -111,7 +113,8 @@ if __name__ == "__main__":
         print("First Question Audio URL:", start_res.first_question_audio_url)
         
         # Verify session exists in Redis
-        if redis_client.session_exists(SESSION_ID):
+        session_data = await redis_client.get_session(SESSION_ID)
+        if session_data:
             print("✓ Session verified in Redis")
         else:
             print("✗ Warning: Session not found in Redis")
@@ -119,7 +122,7 @@ if __name__ == "__main__":
         print("✗ Error starting interview:", e)
         import traceback
         traceback.print_exc()
-        exit(1)
+        return
 
     
     # STEP 2 – INTERACTIVE QUESTION LOOP WITH DYNAMIC GENERATION
@@ -145,13 +148,13 @@ if __name__ == "__main__":
 
         # Process answer
         try:
-            res = asyncio.run(process_text_answer(req))
+            res = await process_text_answer(req)
             print("✓ Answer processed (Session updated in Redis)")
         except Exception as e:
             print("✗ Error processing answer:", e)
             import traceback
             traceback.print_exc()
-            exit(1)
+            return
 
         # Check if interview is complete
         if res.status == "completed":
@@ -187,14 +190,14 @@ if __name__ == "__main__":
     report_req = GenerateReportRequest(session_id=SESSION_ID)
 
     try:
-        report_res = asyncio.run(generate_final_report(report_req))
+        report_res = await generate_final_report(report_req)
         report = report_res.report
         print("✓ Report generated (Session retrieved from Redis)")
     except Exception as e:
         print("✗ Error generating report:", e)
         import traceback
         traceback.print_exc()
-        exit(1)
+        return
 
     print("\n" + "="*70)
     print("INTERVIEW REPORT")
@@ -250,7 +253,7 @@ if __name__ == "__main__":
     cleanup_choice = input("Delete test session from Redis? (y/n): ").lower()
     if cleanup_choice == 'y':
         try:
-            redis_client.delete_session(SESSION_ID)
+            await redis_client.delete_session(SESSION_ID)
             print("✓ Test session deleted from Redis")
         except Exception as e:
             print(f"✗ Error deleting session: {e}")
@@ -262,3 +265,9 @@ if __name__ == "__main__":
     print("\n" + "="*70)
     print("FULL INTERVIEW TEST COMPLETED SUCCESSFULLY")
     print("="*70 + "\n")
+
+
+# ENTRY POINT
+if __name__ == "__main__":
+    # Run the async interview test
+    asyncio.run(run_interview_test())
