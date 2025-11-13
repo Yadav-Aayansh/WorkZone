@@ -129,7 +129,113 @@ Return ONLY a JSON object:
         return fallback_questions[min(question_count, len(fallback_questions) - 1)]
 
 
-def is_poor_answer(answer: str, question: str = "") -> bool:
+async def is_clarifying_question(answer: str, question: str) -> bool:
+
+    answer_lower = answer.lower().strip()
+    
+    # Must contain a question mark or question words
+    has_question_indicator = '?' in answer or any(
+        word in answer_lower 
+        for word in ['what', 'which', 'how', 'when', 'where', 'who', 'could you', 'can you', 'do you mean']
+    )
+    
+    if not has_question_indicator:
+        return False
+    
+    try:
+        prompt = f"""Determine if the candidate is asking a GENUINE clarifying question about the interview question.
+
+Interview Question: {question}
+Candidate's Response: {answer}
+
+A GENUINE clarifying question:
+- Asks for more details about the question itself
+- Seeks to understand what's being asked
+- Shows engagement and interest
+- Examples: "Which services?", "Could you clarify what you mean by scalability?", "Are you asking about specific tools?"
+
+NOT a clarifying question (these are poor answers):
+- Deflecting or avoiding the question
+- Being dismissive
+- Refusing to answer
+- Examples: "What about it?", "Why should I tell you?", "Which choices?" (when it's obvious)
+
+Respond with ONLY "CLARIFYING" or "NOT_CLARIFYING" - nothing else."""
+
+        messages = [
+            {
+                "role": "system",
+                "content": "You are an expert at detecting genuine clarifying questions. Respond with only 'CLARIFYING' or 'NOT_CLARIFYING'."
+            },
+            {"role": "user", "content": prompt}
+        ]
+        
+        response = llm_client.call_llm(messages, temperature=0.1)
+        response_clean = response.strip().upper()
+        
+        return "CLARIFYING" in response_clean
+            
+    except Exception as e:
+        print(f"Clarifying question detection error: {e}")
+        # Fallback: basic heuristics
+        # If it's short (< 10 words) and has question words, likely clarifying
+        word_count = len(answer.split())
+        clarifying_patterns = [
+            'which', 'what do you mean', 'could you clarify', 
+            'can you elaborate', 'specifically', 'you mean'
+        ]
+        
+        return word_count < 10 and any(pattern in answer_lower for pattern in clarifying_patterns)
+
+
+async def generate_clarification(question: str, candidate_answer: str) -> str:
+    try:
+        prompt = f"""The candidate asked for clarification about your interview question. Provide a brief, helpful clarification.
+
+Your Original Question: {question}
+Candidate's Clarifying Question: {candidate_answer}
+
+Provide a clear, concise clarification (2-3 sentences max) that helps the candidate understand what you're asking for. Be specific and helpful.
+
+Respond with ONLY the clarification text - no preamble, no labels."""
+
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a helpful interviewer providing clarifications. Be clear and concise."
+            },
+            {"role": "user", "content": prompt}
+        ]
+        
+        response = llm_client.call_llm(messages, temperature=0.5)
+        
+        # Clean up the response
+        clarification = response.strip()
+        
+        # Remove common prefixes if present
+        prefixes_to_remove = [
+            "Clarification:", "Sure,", "Of course,", "Let me clarify:",
+            "I'm asking about", "I mean", "Specifically,"
+        ]
+        
+        for prefix in prefixes_to_remove:
+            if clarification.startswith(prefix):
+                clarification = clarification[len(prefix):].strip()
+        
+        return clarification
+        
+    except Exception as e:
+        print(f"Clarification generation error: {e}")
+        return "I'm asking about your specific experience and approach with the technologies mentioned. Please share relevant details from your work."
+
+
+async def is_poor_answer(answer: str, question: str = "") -> bool:
+
+    # First check if it's a clarifying question
+    if question and await is_clarifying_question(answer, question):
+        return False  # Clarifying questions are NOT poor answers
+    
+    # Quick checks first (very short answers are obviously poor)
     answer_stripped = answer.strip()
     word_count = len(answer_stripped.split())
     
@@ -157,6 +263,8 @@ A good answer:
 - Shows knowledge or experience
 - Addresses the question asked
 - Has reasonable detail
+
+NOTE: If the candidate is asking for clarification, that is NOT a poor answer.
 
 Respond with ONLY "POOR" or "GOOD" - nothing else."""
 
@@ -211,10 +319,10 @@ def _fallback_poor_detection(answer: str, question: str = "") -> bool:
     return False
 
 
-def count_poor_answers(previous_qa: List[QuestionResponse]) -> int:
+async def count_poor_answers(previous_qa: List[QuestionResponse]) -> int:
     poor_count = 0
     for qa in previous_qa:
-        if is_poor_answer(qa.answer, qa.question):
+        if await is_poor_answer(qa.answer, qa.question):
             poor_count += 1
     return poor_count
 
@@ -228,18 +336,14 @@ async def should_continue_interview(
     
     question_count = len(previous_qa)
     
-    # Check for too many poor answers - END INTERVIEW EARLY
-    poor_answer_count = count_poor_answers(previous_qa)
+    poor_answer_count = await count_poor_answers(previous_qa)
     if poor_answer_count >= max_poor_answers:
         return False  # Stop interview due to too many poor answers
     
-    # Always continue if we haven't reached minimum (unless too many poor answers)
     if question_count < min_questions:
         return True
     
-    # Stop if we've reached maximum
     if question_count >= max_questions:
         return False
     
-    # Between min and max, continue
     return True
