@@ -17,12 +17,6 @@ class ProcessTextAnswerRequest(BaseModel):
     session_id: str = Field(..., description="Interview session ID")
     answer_text: str = Field(..., min_length=1, description="Candidate's text answer")
 
-
-class ProcessVoiceAnswerRequest(BaseModel):
-    session_id: str = Field(..., description="Interview session ID")
-    audio_blob_name: str = Field(..., description="GCP storage blob name for audio file")
-
-
 class GenerateReportRequest(BaseModel):
     session_id: str = Field(..., description="Interview session ID")
 

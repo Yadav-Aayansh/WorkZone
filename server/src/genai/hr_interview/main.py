@@ -1,12 +1,10 @@
 from typing import Dict, List
 from src.utils.datetime import get_indian_time
 
-# Import schemas
 from src.genai.schemas.hr_interview import (
     StartInterviewRequest,
     StartInterviewResponse,
     ProcessTextAnswerRequest,
-    ProcessVoiceAnswerRequest,
     ProcessAnswerResponse,
     GenerateReportRequest,
     GenerateReportResponse,
@@ -100,7 +98,7 @@ def generate_markdown_report(report) -> str:
 
 
 async def start_interview(request: StartInterviewRequest) -> StartInterviewResponse:
-    # Get signed URL for resume and extract text
+
     resume_signed_url = storage_client.get_url(request.resume_blob_name, expiration=1)
     if not resume_signed_url:
         raise ValueError(f"Resume not found: {request.resume_blob_name}")
@@ -110,9 +108,7 @@ async def start_interview(request: StartInterviewRequest) -> StartInterviewRespo
     # JD markdown text
     jd_text = request.jd_text
     
-    # Use session_id from request (provided by backend)
     session_id = request.session_id
-    
     # Create session data (with empty questions list initially)
     session_data = SessionData(
         session_id=session_id,
@@ -125,10 +121,8 @@ async def start_interview(request: StartInterviewRequest) -> StartInterviewRespo
         current_question_index=0
     )
     
-    # Save session to Redis (now async)
     await save_session_to_redis(session_data)
     
-    # Generate first question
     first_question = await generate_next_question(
         jd=jd_text,
         resume=resume_text,
@@ -136,7 +130,6 @@ async def start_interview(request: StartInterviewRequest) -> StartInterviewRespo
         candidate_name=request.candidate_name
     )
     
-    # Add to questions asked
     session_data.questions_asked.append(first_question)
     
     await update_session_in_redis(session_data)
@@ -241,18 +234,12 @@ async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswe
     )
 
 
-async def process_voice_answer(request: ProcessVoiceAnswerRequest) -> ProcessAnswerResponse: 
-    # Get signed URL for audio
-    audio_signed_url = storage_client.get_url(request.audio_blob_name, expiration=1)
-    if not audio_signed_url:
-        raise ValueError(f"Audio file not found: {request.audio_blob_name}")
-    
-    # Convert speech to text
-    transcription = await speech_to_text(audio_signed_url)
+async def process_voice_answer(session_id: str, audio_data: bytes) -> ProcessAnswerResponse: 
+    transcription = await speech_to_text(audio_data)
     
     # Process as text answer
     text_request = ProcessTextAnswerRequest(
-        session_id=request.session_id,
+        session_id=session_id,
         answer_text=transcription
     )
     

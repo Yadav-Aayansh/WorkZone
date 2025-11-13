@@ -44,23 +44,25 @@ Resume:
 Guidance: {question_type_guidance}
 
 Requirements:
-- Generate ONE clear, single-sentence question
-- Make it conversational and natural
+- Generate ONE clear, direct question WITHOUT any AI prefixes or preambles
+- DO NOT start with phrases like "AI:", "Assistant:", "Question:", or any meta-commentary
+- Make it conversational and natural, as if speaking directly to the candidate
 - Build on previous answers if relevant
 - Avoid repeating topics already covered
 - The question should help assess the candidate's fit for the role
+- The question must be standalone - no explanations, no context, just the question itself
 
 Return ONLY a JSON object:
 {{
   "type": "technical|experience|behavioral|introduction",
-  "question": "Your question here?",
+  "question": "Your direct question here?",
   "focus_area": "specific_skill|experience|soft_skills|general"
 }}"""
 
     messages = [
         {
             "role": "system",
-            "content": "You are a concise technical recruiter conducting a conversational interview. Return only valid JSON with a clear, single-sentence question."
+            "content": "You are a concise technical recruiter conducting a conversational interview. Return only valid JSON with a clear, direct question. Never include AI prefixes, labels, or meta-commentary in the question text."
         },
         {"role": "user", "content": prompt}
     ]
@@ -73,6 +75,24 @@ Return ONLY a JSON object:
         end = response.rfind('}') + 1
         json_str = response[start:end]
         question_data = json.loads(json_str)
+        
+        # Remove AI prefixes and clean question
+        question_text = question_data['question']
+        
+        # Remove common AI prefixes
+        ai_prefixes = [
+            r'^AI:\s*',
+            r'^Assistant:\s*',
+            r'^Question:\s*',
+            r'^Q:\s*',
+            r'^Interview Question:\s*',
+            r'^\[\w+\]:\s*',
+        ]
+        
+        for prefix in ai_prefixes:
+            question_text = re.sub(prefix, '', question_text, flags=re.IGNORECASE)
+        
+        question_data['question'] = question_text.strip()
         
         # Clean question for speech
         question_data['question'] = clean_text_for_speech(question_data['question'])
@@ -109,39 +129,84 @@ Return ONLY a JSON object:
         return fallback_questions[min(question_count, len(fallback_questions) - 1)]
 
 
-def is_poor_answer(answer: str) -> bool:
-    # Normalize answer for comparison
+def is_poor_answer(answer: str, question: str = "") -> bool:
+    answer_stripped = answer.strip()
+    word_count = len(answer_stripped.split())
+    
+    if word_count < 3:
+        return True
+    
+    # Use LLM for semantic understanding
+    try:
+        prompt = f"""Analyze if this interview answer is poor quality.
+
+Question: {question}
+Answer: {answer}
+
+A poor answer includes:
+- Refusing to answer (e.g., "I won't answer", "do what you want")
+- Not knowing (e.g., "I don't know", "no idea", "not sure")
+- Being evasive or dismissive (e.g., "whatever", "who cares")
+- Off-topic or irrelevant responses
+- Just filler words (e.g., "um", "uh", "hmm")
+- Too vague with no substance
+- One-word responses like "yes", "no", "maybe"
+
+A good answer:
+- Provides relevant information
+- Shows knowledge or experience
+- Addresses the question asked
+- Has reasonable detail
+
+Respond with ONLY "POOR" or "GOOD" - nothing else."""
+
+        messages = [
+            {
+                "role": "system",
+                "content": "You are an expert interviewer who can detect poor quality answers. Respond with only 'POOR' or 'GOOD'."
+            },
+            {"role": "user", "content": prompt}
+        ]
+        
+        response = llm_client.call_llm(messages, temperature=0.1)
+        response_clean = response.strip().upper()
+        
+        # Check if response contains POOR
+        if "POOR" in response_clean:
+            return True
+        elif "GOOD" in response_clean:
+            return False
+        else:
+            # Fallback to basic heuristics if LLM response is unclear
+            return _fallback_poor_detection(answer, question)
+            
+    except Exception as e:
+        print(f"LLM poor answer detection error: {e}")
+        # Fallback to basic heuristics
+        return _fallback_poor_detection(answer, question)
+
+
+def _fallback_poor_detection(answer: str, question: str = "") -> bool:
     answer_lower = answer.lower().strip()
+    word_count = len(answer.split())
     
-    # Remove extra whitespace
-    answer_lower = re.sub(r'\s+', ' ', answer_lower)
+    # Very short answers
+    if word_count < 5:
+        return True
     
-    # Patterns indicating "I don't know" responses
-    poor_answer_patterns = [
-        r'\bi don\'?t know\b',
-        r'\bno idea\b',
-        r'\bnot sure\b',
-        r'\bdon\'?t remember\b',
-        r'\bcan\'?t recall\b',
-        r'\bno experience\b',
-        r'\bnever (done|worked|used)\b',
-        r'\bno clue\b',
-        r'\bdon\'?t have (any |much )?experience\b',
-        r'\bnot familiar\b',
-        r'\bhaven\'?t (done|worked|used)\b',
-        r'\bsorry,? (but )?i\b',
+    # Common explicit poor patterns
+    poor_keywords = [
+        "i don't know", "i dont know",
+        "no idea", "not sure",
+        "don't remember", "can't recall",
+        "no experience", "not familiar",
+        "not going to answer", "won't answer",
+        "do what you want", "do what you can"
     ]
     
-    # Check if answer matches any poor answer pattern
-    for pattern in poor_answer_patterns:
-        if re.search(pattern, answer_lower):
+    for keyword in poor_keywords:
+        if keyword in answer_lower:
             return True
-    
-    # Check if answer is too short (less than 5 words) and doesn't seem substantial
-    word_count = len(answer.split())
-    if word_count < 5:
-        # If very short, likely not a good answer unless it's a simple factual response
-        return True
     
     return False
 
@@ -149,7 +214,7 @@ def is_poor_answer(answer: str) -> bool:
 def count_poor_answers(previous_qa: List[QuestionResponse]) -> int:
     poor_count = 0
     for qa in previous_qa:
-        if is_poor_answer(qa.answer):
+        if is_poor_answer(qa.answer, qa.question):
             poor_count += 1
     return poor_count
 

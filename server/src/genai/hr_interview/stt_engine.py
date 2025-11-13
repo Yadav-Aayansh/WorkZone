@@ -7,12 +7,6 @@ except ImportError:
     STT_AVAILABLE = False
     print("Warning: Google Cloud STT not available")
 
-# Import shared HTTP client
-# try:
-from src.genai.http_client import http_client
-# except ImportError:
-#     from http_client import http_client  # Fallback for testing
-
 
 def initialize_stt_client():
     if not STT_AVAILABLE:
@@ -43,32 +37,14 @@ def initialize_stt_client():
 stt_client = initialize_stt_client()
 
 
-async def speech_to_text(audio_signed_url: str) -> str:
+async def speech_to_text(audio_data: bytes) -> str:
     if not stt_client:
         raise Exception(
             "Google Cloud STT not configured. Set GOOGLE_APPLICATION_CREDENTIALS"
         )
     
     try:
-        # Download audio from signed URL using shared httpx client
-        client = http_client.get_client()
-        response = await client.get(audio_signed_url)
-        response.raise_for_status()
-        audio_data = response.content
-        
-        # Detect encoding based on URL extension
-        ext = audio_signed_url.split("?")[0].split(".")[-1].lower()
-        
-        encoding_map = {
-            "wav": speech.RecognitionConfig.AudioEncoding.LINEAR16,
-            "flac": speech.RecognitionConfig.AudioEncoding.FLAC,
-            "mp3": speech.RecognitionConfig.AudioEncoding.MP3
-        }
-        
-        encoding = encoding_map.get(
-            ext,
-            speech.RecognitionConfig.AudioEncoding.ENCODING_UNSPECIFIED
-        )
+        encoding = speech.RecognitionConfig.AudioEncoding.MP3
         
         # Configure recognition
         audio = speech.RecognitionAudio(content=audio_data)
