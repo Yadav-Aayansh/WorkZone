@@ -9,11 +9,8 @@ class JobRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_job_by_id(self, id: str, with_applications: bool = False) -> Job | None:
-        query = await select(Job).where(Job.id == id)
-        if with_applications:
-            query = query.options(joinedload(Job.applications))
-        result = self.db.execute(query)
+    async def get_job_by_id(self, id: str) -> Job | None:
+        result = await self.db.execute(select(Job).where(Job.id == id))
         return result.scalar_one_or_none()
 
     async def create_job(self, title: str, description: str, department: str, location: str, posted_by: str):
