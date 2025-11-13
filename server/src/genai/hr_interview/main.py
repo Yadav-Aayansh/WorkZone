@@ -15,7 +15,6 @@ from src.genai.schemas.hr_interview import (
     InterviewQuestion
 )
 
-# Import modules
 from src.genai.hr_interview.pdf_processor import extract_text_from_pdf
 from src.genai.hr_interview.question_generator import generate_next_question, should_continue_interview
 from src.genai.hr_interview.report_generator import generate_interview_report
@@ -23,25 +22,25 @@ from src.genai.hr_interview.tts_engine import text_to_speech
 from src.genai.hr_interview.stt_engine import speech_to_text
 from src.core.storage import storage_client
 
-# Import Redis client
 from src.core.redis import redis_client
 
-def save_session_to_redis(session_data: SessionData) -> bool:
+async def save_session_to_redis(session_data: SessionData) -> None:
     session_dict = session_data.model_dump(mode='json')
-    return redis_client.set_session(session_data.session_id, session_dict)
+    await redis_client.set_session(session_data.session_id, session_dict)
 
-def get_session_from_redis(session_id: str) -> SessionData:
-    session_dict = redis_client.get_session(session_id)
+
+async def get_session_from_redis(session_id: str) -> SessionData:
+    session_dict = await redis_client.get_session(session_id)
     if not session_dict:
         raise ValueError(f"Session {session_id} not found")
     return SessionData(**session_dict)
 
-def update_session_in_redis(session_data: SessionData) -> bool:
+
+async def update_session_in_redis(session_data: SessionData) -> None:
     session_dict = session_data.model_dump(mode='json')
-    return redis_client.update_session(session_data.session_id, session_dict)
+    await redis_client.update_session(session_data.session_id, session_dict)
 
 
-# generate markdown report
 def generate_markdown_report(report) -> str:
     markdown = f"""# Interview Report
 
@@ -101,16 +100,17 @@ def generate_markdown_report(report) -> str:
 
 
 async def start_interview(request: StartInterviewRequest) -> StartInterviewResponse:
+    # Get signed URL for resume and extract text
     resume_signed_url = storage_client.get_url(request.resume_blob_name, expiration=1)
     if not resume_signed_url:
         raise ValueError(f"Resume not found: {request.resume_blob_name}")
     
     resume_text = await extract_text_from_pdf(resume_signed_url)
     
-    # JD in markdown text
+    # JD markdown text
     jd_text = request.jd_text
     
-    # Use session_id from backend
+    # Use session_id from request (provided by backend)
     session_id = request.session_id
     
     # Create session data (with empty questions list initially)
@@ -125,8 +125,8 @@ async def start_interview(request: StartInterviewRequest) -> StartInterviewRespo
         current_question_index=0
     )
     
-    # Save session to Redis
-    save_session_to_redis(session_data)
+    # Save session to Redis (now async)
+    await save_session_to_redis(session_data)
     
     # Generate first question
     first_question = await generate_next_question(
@@ -139,8 +139,7 @@ async def start_interview(request: StartInterviewRequest) -> StartInterviewRespo
     # Add to questions asked
     session_data.questions_asked.append(first_question)
     
-    # Update session in Redis
-    update_session_in_redis(session_data)
+    await update_session_in_redis(session_data)
     
     # Generate audio for first question (returns signed URL)
     first_question_audio_url = await text_to_speech(
@@ -161,9 +160,8 @@ async def start_interview(request: StartInterviewRequest) -> StartInterviewRespo
     )
 
 
-async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswerResponse: 
-    # Get session data from Redis
-    session_data = get_session_from_redis(request.session_id)
+async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswerResponse:
+    session_data = await get_session_from_redis(request.session_id)
     
     # Get current question
     current_question = session_data.questions_asked[session_data.current_question_index]
@@ -180,8 +178,7 @@ async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswe
     # Move to next question index
     session_data.current_question_index += 1
     
-    # Update session in Redis
-    update_session_in_redis(session_data)
+    await update_session_in_redis(session_data)
     
     # Check if interview should continue
     should_continue = await should_continue_interview(
@@ -224,8 +221,8 @@ async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswe
     # Add to questions asked
     session_data.questions_asked.append(next_question)
     
-    # Update session in Redis
-    update_session_in_redis(session_data)
+   
+    await update_session_in_redis(session_data)
     
     # Generate audio for next question (returns signed URL)
     next_question_audio_url = await text_to_speech(
@@ -266,8 +263,7 @@ async def process_voice_answer(request: ProcessVoiceAnswerRequest) -> ProcessAns
 
 
 async def generate_final_report(request: GenerateReportRequest) -> GenerateReportResponse:
-    # Get session data from Redis
-    session_data = get_session_from_redis(request.session_id)
+    session_data = await get_session_from_redis(request.session_id)
     
     # Generate report
     report = await generate_interview_report(
