@@ -39,6 +39,14 @@ class ApplicationRepository:
             logger.exception(f"Error fetching applications: {e}")
             raise
 
+    async def get_applications_by_user_id(self, user_id: str) -> list[Application]:
+        try:
+            result = await self.db.execute(select(Application).where(Application.user_id==user_id))
+            return result.scalars().all()
+        except Exception as e:
+            logger.exception(f"Error fetching applications: {e}")
+            raise
+
     async def withdraw_application(self, id: str) -> Application | None:
         try:
             result = await self.db.execute(select(Application).where(Application.id==id))
