@@ -1,4 +1,4 @@
-import os
+from src.core.logger import logger
 
 try:
     from google.cloud import speech
@@ -44,12 +44,14 @@ async def speech_to_text(audio_data: bytes) -> str:
         )
     
     try:
-        encoding = speech.RecognitionConfig.AudioEncoding.MP3
+        encoding = speech.RecognitionConfig.AudioEncoding.WEBM_OPUS
         
         # Configure recognition
         audio = speech.RecognitionAudio(content=audio_data)
         config = speech.RecognitionConfig(
             encoding=encoding,
+            sample_rate_hertz=48000,
+            audio_channel_count=2,
             language_code="en-IN",
             enable_automatic_punctuation=True,
             model="default",
@@ -66,4 +68,5 @@ async def speech_to_text(audio_data: bytes) -> str:
         return transcription.strip()
     
     except Exception as e:
-        raise Exception(f"STT error: {str(e)}")
+        logger.error(f"STT failed: {e}")  # ← at least log it
+        raise
