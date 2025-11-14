@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.di import get_tenant_db
 from src.models.tenant import AiInterview
-from src.genai.hr_interview.main import start_interview, process_text_answer, generate_interview_report
+from src.genai.hr_interview.main import start_interview, process_text_answer, process_voice_answer, generate_final_report
 from src.core.logger import logger
 
 ai_interview_router = APIRouter(tags=["Tenant AI Interview"])
@@ -25,7 +25,7 @@ async def interview(websocket: WebSocket, interview_id: str):
     await websocket.accept()  # REQUIRED
     
     try:
-        from src.genai.schemas import StartInterviewRequest, ProcessTextAnswerRequest
+        from src.genai.schemas import StartInterviewRequest, ProcessTextAnswerRequest, ProcessVoiceAnswerRequest, GenerateReportRequest
         
         start_res = await start_interview(
             StartInterviewRequest(
@@ -85,11 +85,14 @@ We’re looking for a **Backend Developer** with at least 2 years of hands-on ex
             logger.info(f"Received: {response}")
             request = ProcessTextAnswerRequest(session_id=interview_id, answer_text=response)
             llm_reply = await process_text_answer(request=request)
-            await websocket.send_json(llm_reply.model_dump())
 
-            generate_interview_report()
-            
+            # ProcessVoiceAnswerRequest(session_id=interview_id, blo)
 
+            if llm_reply.status == "in_progress":
+                await websocket.send_json(llm_reply.model_dump())
+            else:
+                report = generate_final_report(GenerateReportRequest(interview_id))
+                await websocket.send_text(report.markdown_report)
             
     except Exception as e:
         logger.error(f"Error: {e}")
