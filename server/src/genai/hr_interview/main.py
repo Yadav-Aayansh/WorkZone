@@ -1,5 +1,6 @@
 from typing import Dict, List
 from src.utils.datetime import get_indian_time
+from src.core.logger import logger
 
 from src.genai.schemas.hr_interview import (
     StartInterviewRequest,
@@ -267,6 +268,7 @@ async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswe
 
 async def process_voice_answer(session_id: str, audio_data: bytes) -> ProcessAnswerResponse: 
     transcription = await speech_to_text(audio_data)
+    logger.info(transcription)
     
     text_request = ProcessTextAnswerRequest(
         session_id=session_id,

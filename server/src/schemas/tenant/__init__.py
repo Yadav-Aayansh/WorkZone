@@ -10,3 +10,11 @@ from .job import (
 from .application import (
     ApplicationResponse, 
 )
+
+from .employee import EmployeeProfileResponse
+
+from .applicant import ApplicantProfileResponse
+
+from .manager import ManagerProfileResponse
+
+from .recruiter import RecruiterProfileResponse
