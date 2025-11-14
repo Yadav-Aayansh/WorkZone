@@ -4,6 +4,8 @@ from src.exceptions.tenant import JobNotFoundError, UnauthorizedAccessError, App
 from src.core.storage import storage_client
 from src.core.context import tenant_context
 from src.core.logger import logger
+from src.models.tenant import Application
+from sqlalchemy.orm import selectinload
 
 class ApplicationService:
     def __init__(self, job_repo: JobRepository, application_repo: ApplicationRepository):
@@ -32,7 +34,7 @@ class ApplicationService:
         return await self.application_repo.get_applications_by_job_id(job_id)
     
     async def get_application(self, id: str, user_id: str, is_recruiter: bool = False):
-        application = await self.application_repo.get_application_by_id(id)
+        application = await self.application_repo.get_application_by_id(id, options=[selectinload(Application.job)])
         if not application:
             raise ApplicationNotFoundError("Application not found")
     

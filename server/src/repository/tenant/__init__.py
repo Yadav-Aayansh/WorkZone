@@ -5,3 +5,4 @@ from .employee import EmployeeRepository
 from .applicant import ApplicantRepository
 from .job import JobRepository
 from .application import ApplicationRepository
+from .ai_interview import AiInterviewRepository
