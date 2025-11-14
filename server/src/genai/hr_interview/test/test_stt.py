@@ -11,7 +11,7 @@ from src.genai.hr_interview.stt_engine import (
 
 async def test_stt_module():
     print("\n" + "="*70)
-    print("TEST: Speech-to-Text Module (with httpx)")
+    print("TEST: Speech-to-Text Module (with direct audio bytes)")
     print("="*70)
 
     if not STT_AVAILABLE:
@@ -48,9 +48,19 @@ async def test_stt_module():
             return
 
         print("✓ Signed URL generated")
-        print("\nDownloading audio using httpx and transcribing...")
+        print("\nDownloading audio bytes using httpx...")
+        
+        # Download audio bytes
+        from src.genai.http_client import http_client
+        client = http_client.get_client()
+        response = await client.get(signed_url)
+        response.raise_for_status()
+        audio_data = response.content
+        
+        print(f"✓ Downloaded {len(audio_data)} bytes")
+        print("\nTranscribing audio bytes...")
 
-        transcription = await speech_to_text(signed_url)
+        transcription = await speech_to_text(audio_data)
 
         print("\n" + "="*70)
         print("✓ TRANSCRIPTION SUCCESSFUL")
@@ -78,6 +88,7 @@ async def test_stt_with_different_formats():
 
     try:
         from src.core.storage import storage_client
+        from src.genai.http_client import http_client
 
         # Test different formats
         test_files = [
@@ -96,7 +107,13 @@ async def test_stt_with_different_formats():
                 continue
 
             try:
-                transcription = await speech_to_text(signed_url)
+                # Download audio bytes
+                client = http_client.get_client()
+                response = await client.get(signed_url)
+                response.raise_for_status()
+                audio_data = response.content
+                
+                transcription = await speech_to_text(audio_data)
                 print(f"  ✓ Success: {transcription[:100]}...")
             except Exception as e:
                 print(f"  ✗ Failed: {e}")

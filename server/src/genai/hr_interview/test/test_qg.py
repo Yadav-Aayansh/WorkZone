@@ -323,55 +323,89 @@ async def test_avoid_repetition():
 
 
 async def test_poor_answer_detection():
-    """Test detection of 'I don't know' type answers"""
-    print("\n=== Test: Poor Answer Detection ===")
+    """Test detection of 'I don't know' type answers, refusals, and off-topic responses"""
+    print("\n=== Test: Poor Answer Detection (Enhanced with Refusal Detection) ===")
     
     from src.genai.hr_interview.question_generator import is_poor_answer, count_poor_answers
     
     test_answers = [
-        ("I don't know", True, "Direct 'I don't know'"),
-        ("I'm not sure about that", True, "Not sure"),
-        ("No idea", True, "No idea"),
-        ("I don't have experience with that", True, "No experience"),
-        ("Sorry, I can't recall", True, "Can't recall"),
-        ("I have 5 years of Python experience building APIs", False, "Good answer"),
-        ("I worked on multiple projects using FastAPI and Django", False, "Detailed answer"),
-        ("Yes", True, "Too short"),
-        ("No", True, "Too short"),
-        ("I think so", True, "Vague and short"),
+        # Screenshot examples
+        ("no i am not going to answer this question , do what you can do", 
+         "Could you start by telling me a bit about your journey?", 
+         True, "Refusal to answer (screenshot case)"),
+        ("i dont know", 
+         "Can you walk me through FastAPI?", 
+         True, "Direct 'I don't know' (screenshot case)"),
+        
+        # Explicit "I don't know" patterns
+        ("I don't know", "What's your experience?", True, "Direct 'I don't know'"),
+        ("I'm not sure about that", "Tell me about Python", True, "Not sure"),
+        ("No idea", "Your MongoDB experience?", True, "No idea"),
+        ("I don't have experience with that", "Any Docker experience?", True, "No experience"),
+        ("Sorry, I can't recall", "Previous projects?", True, "Can't recall"),
+        
+        # Refusal patterns
+        ("I'm not going to tell you that", "What's your experience?", True, "Won't tell"),
+        ("Do whatever you want", "Describe projects", True, "Do whatever"),
+        ("not gonna answer", "Tell about skills", True, "Not gonna answer"),
+        ("I refuse to answer this", "What frameworks?", True, "Refuse to answer"),
+        ("won't discuss that", "Tell me about Python", True, "Won't discuss"),
+        
+        # Good answers
+        ("I have 5 years of Python experience building APIs", "Tell me about your experience", False, "Good answer"),
+        ("I worked on multiple projects using FastAPI and Django", "What frameworks have you used?", False, "Detailed answer"),
+        ("I designed a FastAPI service with async workers and Redis caching", "FastAPI experience?", False, "Technical answer"),
+        
+        # Short/vague answers
+        ("Yes", "Do you know Python?", True, "Too short"),
+        ("No", "Have you used Docker?", True, "Too short"),
+        ("I think so", "Are you familiar with APIs?", True, "Vague and short"),
+        ("um uh hmm", "Tell me about your skills", True, "Just filler words"),
+        ("okay", "Can you explain your approach?", True, "One word response"),
+        ("what?", "What's your experience with FastAPI?", True, "Confusion"),
+        
+        # Off-topic
+        ("I like pizza and movies", "What's your Python experience?", True, "Completely off-topic"),
+        ("whatever", "Tell me about your projects", True, "Dismissive"),
     ]
     
     print("\n  Testing individual answers:")
-    for answer, expected_poor, description in test_answers:
-        is_poor = is_poor_answer(answer)
+    for answer, question, expected_poor, description in test_answers:
+        is_poor = await is_poor_answer(answer, question)
         status = "✓" if is_poor == expected_poor else "✗"
-        print(f"    {status} '{answer[:30]}...' -> Poor: {is_poor} ({description})")
+        print(f"    {status} '{answer[:40]}...' -> Poor: {is_poor} ({description})")
     
-    # Test counting
+    # Test counting with questions
     print("\n  Testing count_poor_answers:")
     test_qa = [
         QuestionResponse(
             question_index=0,
-            question="Q1",
-            answer="I don't know",
+            question="Could you start by telling me about your journey?",
+            answer="no i am not going to answer this question , do what you can do",
             timestamp="2025-01-01T10:00:00"
         ),
         QuestionResponse(
             question_index=1,
-            question="Q2",
-            answer="I have 5 years experience",
+            question="Tell me about your projects",
+            answer="I have 5 years experience building scalable applications with Python and FastAPI",
             timestamp="2025-01-01T10:01:00"
         ),
         QuestionResponse(
             question_index=2,
-            question="Q3",
-            answer="Not sure",
+            question="Do you know FastAPI?",
+            answer="i dont know",
             timestamp="2025-01-01T10:02:00"
+        ),
+        QuestionResponse(
+            question_index=3,
+            question="What databases have you used?",
+            answer="um uh",
+            timestamp="2025-01-01T10:03:00"
         ),
     ]
     
-    poor_count = count_poor_answers(test_qa)
-    expected_count = 2
+    poor_count = await count_poor_answers(test_qa)
+    expected_count = 3  # Refusal, "i dont know", and "um uh"
     status = "✓" if poor_count == expected_count else "✗"
     print(f"    {status} Found {poor_count} poor answers (expected {expected_count})")
 

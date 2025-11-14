@@ -149,6 +149,15 @@ async def run_interview_test():
         # Process answer
         try:
             res = await process_text_answer(req)
+            
+            # Check if it's a clarification
+            if res.is_clarification:
+                print("💡 CLARIFICATION PROVIDED (not counted as a question)")
+                print(f"   {res.clarification}")
+                print(f"\nPlease answer the same question:")
+                print(f"Q{res.next_question_index + 1}: {res.next_question.question}")
+                continue  # Ask for answer again without incrementing
+            
             print("✓ Answer processed (Session updated in Redis)")
         except Exception as e:
             print("✗ Error processing answer:", e)
@@ -160,6 +169,17 @@ async def run_interview_test():
         if res.status == "completed":
             print("\n✓ Interview Completed!")
             print(f"Total Questions Asked: {res.total_questions_asked}")
+            
+            # Display closing message
+            if res.clarification:
+                print("\n" + "="*70)
+                print("CLOSING MESSAGE")
+                print("="*70)
+                print(res.clarification)
+                print("="*70)
+                if res.next_question_audio_url:
+                    print(f"\nClosing Message Audio: {res.next_question_audio_url}")
+            
             if res.completion_reason:
                 reason_text = {
                     "poor_answers": "Too many 'I don't know' answers (3+)",

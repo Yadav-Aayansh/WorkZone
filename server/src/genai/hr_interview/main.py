@@ -1,12 +1,10 @@
 from typing import Dict, List
 from src.utils.datetime import get_indian_time
 
-# Import schemas
 from src.genai.schemas.hr_interview import (
     StartInterviewRequest,
     StartInterviewResponse,
     ProcessTextAnswerRequest,
-    ProcessVoiceAnswerRequest,
     ProcessAnswerResponse,
     GenerateReportRequest,
     GenerateReportResponse,
@@ -16,7 +14,7 @@ from src.genai.schemas.hr_interview import (
 )
 
 from src.genai.hr_interview.pdf_processor import extract_text_from_pdf
-from src.genai.hr_interview.question_generator import generate_next_question, should_continue_interview
+from src.genai.hr_interview.question_generator import generate_next_question, should_continue_interview, is_clarifying_question, generate_clarification, count_poor_answers
 from src.genai.hr_interview.report_generator import generate_interview_report
 from src.genai.hr_interview.tts_engine import text_to_speech
 from src.genai.hr_interview.stt_engine import speech_to_text
@@ -100,7 +98,6 @@ def generate_markdown_report(report) -> str:
 
 
 async def start_interview(request: StartInterviewRequest) -> StartInterviewResponse:
-    # Get signed URL for resume and extract text
     resume_signed_url = storage_client.get_url(request.resume_blob_name, expiration=1)
     if not resume_signed_url:
         raise ValueError(f"Resume not found: {request.resume_blob_name}")
@@ -110,10 +107,8 @@ async def start_interview(request: StartInterviewRequest) -> StartInterviewRespo
     # JD markdown text
     jd_text = request.jd_text
     
-    # Use session_id from request (provided by backend)
     session_id = request.session_id
     
-    # Create session data (with empty questions list initially)
     session_data = SessionData(
         session_id=session_id,
         resume_text=resume_text,
@@ -125,23 +120,22 @@ async def start_interview(request: StartInterviewRequest) -> StartInterviewRespo
         current_question_index=0
     )
     
-    # Save session to Redis (now async)
     await save_session_to_redis(session_data)
     
-    # Generate first question
-    first_question = await generate_next_question(
-        jd=jd_text,
-        resume=resume_text,
-        previous_qa=[],
-        candidate_name=request.candidate_name
+    # Create welcoming first question
+    candidate_name = request.candidate_name or "candidate"
+    welcoming_question_text = f"""Good day, {candidate_name}. I hope you're doing well. I'd like to welcome you to the Workzone Interview. The purpose of this session is to help you evaluate your readiness and communication for real-world interviews. To begin, could you please introduce yourself and share a brief overview of your background?"""
+    
+    first_question = InterviewQuestion(
+        type="introduction",
+        question=welcoming_question_text,
+        focus_area="general"
     )
     
-    # Add to questions asked
     session_data.questions_asked.append(first_question)
     
     await update_session_in_redis(session_data)
     
-    # Generate audio for first question (returns signed URL)
     first_question_audio_url = await text_to_speech(
         first_question.question,
         session_id,
@@ -166,7 +160,29 @@ async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswe
     # Get current question
     current_question = session_data.questions_asked[session_data.current_question_index]
     
-    # Store answer
+    if await is_clarifying_question(request.answer_text, current_question.question):
+        clarification_text = await generate_clarification(current_question.question, request.answer_text)
+        
+        clarification_audio_url = await text_to_speech(
+            clarification_text,
+            session_data.session_id,
+            session_data.current_question_index  # Keep same index
+        )
+        
+        poor_count = await count_poor_answers(session_data.responses)
+        
+        return ProcessAnswerResponse(
+            status="clarification_needed",
+            next_question=current_question,  # Same question
+            next_question_audio_url=clarification_audio_url,
+            next_question_index=session_data.current_question_index,  # Same index
+            total_questions_asked=len(session_data.questions_asked),
+            poor_answer_count=poor_count,
+            clarification=clarification_text,
+            is_clarification=True
+        )
+    
+    
     response_record = QuestionResponse(
         question_index=session_data.current_question_index,
         question=current_question.question,
@@ -188,12 +204,10 @@ async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswe
         max_poor_answers=3
     )
     
-    # Import count_poor_answers to get the count
-    from src.genai.hr_interview.question_generator import count_poor_answers
-    poor_count = count_poor_answers(session_data.responses)
+    # Get poor answer count
+    poor_count = await count_poor_answers(session_data.responses)
     
     if not should_continue:
-        # Determine completion reason
         question_count = len(session_data.questions_asked)
         
         if poor_count >= 3:
@@ -203,14 +217,25 @@ async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswe
         else:
             completion_reason = "min_questions_reached"
         
+        candidate_name = session_data.candidate_name or "candidate"
+        closing_message = f"""Thank you, {candidate_name}, for your time and thoughtful responses. This concludes your Workzone interview session. You'll soon receive feedback highlighting your strengths and areas for improvement. We appreciate your participation and wish you continued success in your career journey. Have a great day and best of luck with your future interviews."""
+        
+        closing_audio_url = await text_to_speech(
+            closing_message,
+            session_data.session_id,
+            session_data.current_question_index
+        )
+        
         return ProcessAnswerResponse(
             status="completed",
             total_questions_asked=len(session_data.questions_asked),
             completion_reason=completion_reason,
-            poor_answer_count=poor_count
+            poor_answer_count=poor_count,
+            clarification=closing_message,
+            next_question_audio_url=closing_audio_url
         )
     
-    # Generate next question based on conversation history
+    # ELse continue and generate next question
     next_question = await generate_next_question(
         jd=session_data.jd_text,
         resume=session_data.resume_text,
@@ -224,7 +249,6 @@ async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswe
    
     await update_session_in_redis(session_data)
     
-    # Generate audio for next question (returns signed URL)
     next_question_audio_url = await text_to_speech(
         next_question.question,
         session_data.session_id,
@@ -241,18 +265,11 @@ async def process_text_answer(request: ProcessTextAnswerRequest) -> ProcessAnswe
     )
 
 
-async def process_voice_answer(request: ProcessVoiceAnswerRequest) -> ProcessAnswerResponse: 
-    # Get signed URL for audio
-    audio_signed_url = storage_client.get_url(request.audio_blob_name, expiration=1)
-    if not audio_signed_url:
-        raise ValueError(f"Audio file not found: {request.audio_blob_name}")
+async def process_voice_answer(session_id: str, audio_data: bytes) -> ProcessAnswerResponse: 
+    transcription = await speech_to_text(audio_data)
     
-    # Convert speech to text
-    transcription = await speech_to_text(audio_signed_url)
-    
-    # Process as text answer
     text_request = ProcessTextAnswerRequest(
-        session_id=request.session_id,
+        session_id=session_id,
         answer_text=transcription
     )
     
@@ -265,7 +282,6 @@ async def process_voice_answer(request: ProcessVoiceAnswerRequest) -> ProcessAns
 async def generate_final_report(request: GenerateReportRequest) -> GenerateReportResponse:
     session_data = await get_session_from_redis(request.session_id)
     
-    # Generate report
     report = await generate_interview_report(
         jd=session_data.jd_text,
         resume=session_data.resume_text,
