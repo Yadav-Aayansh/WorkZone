@@ -34,7 +34,7 @@ class WorkspaceService:
             "aud": f"{tenant_id}.{Config.DOMAIN_NAME}"
         }, expires_minutes=2592000)
 
-        invite_link = f"https://{tenant_id}.{Config.DOMAIN_NAME}/auth/signup?token={token}"
+        invite_link = f"https://{tenant_id}.{Config.DOMAIN_NAME}/signup/invited?token={token}"
         task = send_invite_email.delay(data.email, invite_link, client.brand_name)
         return {"message": "Invited!"}
 
