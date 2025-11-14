@@ -9,6 +9,18 @@ class InvitationRequiredError(AuthenticationError):
 class UserNotFoundError(NotFoundError):
     pass
 
+class EmployeeNotFoundError(NotFoundError):
+    pass
+
+class ApplicantNotFoundError(NotFoundError):
+    pass
+
+class ManagerNotFoundError(NotFoundError):
+    pass
+
+class RecruiterNotFoundError(NotFoundError):
+    pass
+
 class InvalidUserCredentialsError(AuthenticationError):
     pass
 
