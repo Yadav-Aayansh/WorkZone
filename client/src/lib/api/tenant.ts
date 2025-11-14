@@ -527,9 +527,8 @@ export const tenantJobAPI = {
    * Sets is_open to false to stop accepting new applications
    */
   async closeJob(jobId: string): Promise<JobResponse> {
-    return tenantApiRequest<JobResponse>(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ is_open: false }),
+    return tenantApiRequest<JobResponse>(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}/close`, {
+      method: 'POST',
     }, 2, true);
   },
 
@@ -653,6 +652,58 @@ export const tenantApplicationAPI = {
       2,
       true
     );
+  },
+};
+
+// ============ AI INTERVIEW API ============
+
+/**
+ * AI Interview Session Response
+ */
+export interface AIInterviewSessionResponse {
+  id: string;
+  application_id: string;
+  job_id: string;
+  status: string;
+  created_at: string;
+}
+
+/**
+ * Create AI Interview Session Request
+ */
+export interface CreateAIInterviewRequest {
+  application_id: string;
+  job_id: string;
+}
+
+export const tenantAIInterviewAPI = {
+  /**
+   * Create a new AI interview session
+   * @param applicationId - UUID of the job application
+   * @param jobId - UUID of the job
+   */
+  async createSession(applicationId: string, jobId: string): Promise<AIInterviewSessionResponse> {
+    const queryParams = new URLSearchParams({
+      application_id: applicationId,
+      job_id: jobId,
+    });
+
+    return tenantApiRequest<AIInterviewSessionResponse>(
+      `${getTenantBackendUrl()}/api/tenant/ai-interview?${queryParams.toString()}`,
+      { method: 'POST' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get WebSocket URL for AI interview
+   * @param interviewId - UUID of the interview session
+   */
+  getWebSocketUrl(interviewId: string): string {
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const backendUrl = getTenantBackendUrl().replace(/^https?:/, wsProtocol);
+    return `${backendUrl}/api/tenant/ws/${interviewId}`;
   },
 };
 
