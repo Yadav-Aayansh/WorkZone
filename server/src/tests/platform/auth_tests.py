@@ -42,8 +42,8 @@ async def test_login_positive():
     """✅ Test successful login with correct credentials"""
     async with httpx.AsyncClient(verify=False) as client:
         payload = {
-            "email": "raghav@gmail.com",  # existing test user
-            "password": "$Raghav123"
+            "email": UNIQUE_EMAIL,  # existing test user
+            "password": VALID_PASSWORD
         }
         response = await client.post(f"{BASE_URL}/login", json=payload)
         print("Login response:", response.status_code, response.text)
@@ -63,7 +63,7 @@ async def test_refresh_token_positive():
         # First, login to get refresh token
         login_resp = await client.post(
             f"{BASE_URL}/login",
-            json={"email": "raghav@gmail.com", "password": "$Raghav123"}
+            json={"email": UNIQUE_EMAIL, "password": VALID_PASSWORD}
         )
         assert login_resp.status_code == 200
         refresh_token = login_resp.json()["refresh_token"]
