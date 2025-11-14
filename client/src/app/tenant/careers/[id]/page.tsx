@@ -31,6 +31,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { JobApplicationModal } from "@/components/careers/JobApplicationModal";
 
 export default function JobDetailsPage() {
   const params = useParams();
@@ -41,6 +42,7 @@ export default function JobDetailsPage() {
   const [job, setJob] = useState<JobResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
 
   const jobId = params.id as string;
 
@@ -68,10 +70,10 @@ export default function JobDetailsPage() {
   const handleApply = () => {
     if (!isAuthenticated) {
       // Redirect to signup/login with return URL
-      router.push(`/signup?returnUrl=/careers/${jobId}`);
+      router.push(`/tenant/signup?returnUrl=/tenant/careers/${jobId}`);
     } else {
-      // TODO: Open application modal or redirect to application page
-      alert("Application feature coming soon!");
+      // Open application modal
+      setShowApplicationModal(true);
     }
   };
 
@@ -299,6 +301,16 @@ export default function JobDetailsPage() {
           </Alert>
         )}
       </main>
+
+      {/* Application Modal */}
+      {job && (
+        <JobApplicationModal
+          isOpen={showApplicationModal}
+          onClose={() => setShowApplicationModal(false)}
+          job={job}
+          isAuthenticated={isAuthenticated}
+        />
+      )}
 
       {/* Footer */}
       <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 mt-16">
