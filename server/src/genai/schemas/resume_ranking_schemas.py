@@ -20,3 +20,8 @@ class RankedCandidate(BaseModel):
 class RankingReport(BaseModel):
     shortlisted_candidates: List[RankedCandidate]
     rejected_candidates: List[RankedCandidate]
+
+class FeedbackInformation(BaseModel):
+    candidate_name: str
+    company_name: str
+    position: str
