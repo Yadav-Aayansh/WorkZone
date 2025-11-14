@@ -10,7 +10,10 @@ from src.repository.tenant import (
 from src.services.platform import (
     ClientService, OrderService, WorkspaceService
 )
-from src.services.tenant import UserService, JobService, ApplicationService
+from src.services.tenant import (
+    UserService, RecruiterService, ManagerService, EmployeeService,
+    ApplicantService, JobService, ApplicationService
+)
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from src.exceptions.base import RoleNotAllowedError
 from .security import decode_token
@@ -91,6 +94,26 @@ async def get_user_service(db: AsyncSession = Depends(get_tenant_db)):
     employee_repo = EmployeeRepository(db)
     applicant_repo = ApplicantRepository(db)
     return UserService(user_repo, recruiter_repo, manager_repo, employee_repo, applicant_repo)
+
+async def get_recruiter_service(db: AsyncSession = Depends(get_tenant_db)):
+    user_repo = UserRepository(db)
+    recruiter_repo = RecruiterRepository(db)
+    return RecruiterService(user_repo, recruiter_repo)
+
+async def get_manager_service(db: AsyncSession = Depends(get_tenant_db)):
+    user_repo = UserRepository(db)
+    manager_repo = ManagerRepository(db)
+    return ManagerService(user_repo, manager_repo)
+
+async def get_employee_service(db: AsyncSession = Depends(get_tenant_db)):
+    user_repo = UserRepository(db)
+    employee_repo = EmployeeRepository(db)
+    return EmployeeService(user_repo, employee_repo)
+
+async def get_applicant_service(db: AsyncSession = Depends(get_tenant_db)):
+    user_repo = UserRepository(db)
+    applicant_repo = ApplicantRepository(db)
+    return ApplicantService(user_repo, applicant_repo)
 
 async def get_job_service(db: AsyncSession = Depends(get_tenant_db)):
     job_repo = JobRepository(db)
