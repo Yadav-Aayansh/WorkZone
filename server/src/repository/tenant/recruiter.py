@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.tenant import Recruiter
+from sqlalchemy import select
 
 class RecruiterRepository:
     def __init__(self, db: AsyncSession):
@@ -13,3 +14,7 @@ class RecruiterRepository:
         self.db.add(new_recruiter)
         await self.db.flush()
         return new_recruiter
+    
+    async def get_recruiter_by_user_id(self, user_id: str):
+        result = await self.db.execute(select(Recruiter).where(Recruiter.user_id==user_id))
+        return result.scalar_one_or_none()
