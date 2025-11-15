@@ -15,8 +15,9 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_EMAIL: str
     GCS_BUCKET_NAME: str
 
-    # Gemini API
+    # LLM APIs
     GOOGLE_API_KEY: str
+    GROQ_API_KEY: str
 
     # JWT
     JWT_SECRET_KEY: str
