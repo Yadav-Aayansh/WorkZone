@@ -10,6 +10,8 @@ import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import {
   tenantApplicationAPI,
   tenantJobAPI,
+  tenantApplicantAPI,
+  tenantAIInterviewAPI,
   ApplicationResponse,
   ApplicationStatus,
   JobResponse,
@@ -43,6 +45,7 @@ import {
   Trash2,
   FileText,
   AlertCircle,
+  Video,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTenant } from "@/providers/tenant-provider";
@@ -73,17 +76,23 @@ function ApplicantApplicationsContent() {
   const loadApplications = async () => {
     setIsLoading(true);
     try {
-      // Note: We need a "my applications" endpoint
-      // For now, we'll load all jobs and check applications
-      // This is a workaround - ideally there should be GET /applications/me endpoint
-      const jobs = await tenantJobAPI.listJobs();
-      const allApplications: ApplicationWithJob[] = [];
+      // Get all applications for the current user
+      const myApps = await tenantApplicationAPI.myApplications();
 
-      // This won't work as intended because applicants can't list all applications
-      // This is just a placeholder structure
-      // TODO: Backend needs to provide GET /applications/me endpoint
+      // Get job details for each application
+      const applicationsWithJobs: ApplicationWithJob[] = await Promise.all(
+        myApps.map(async (app) => {
+          try {
+            const job = await tenantJobAPI.getJob(app.job_id);
+            return { ...app, job };
+          } catch (error) {
+            console.error(`Failed to load job ${app.job_id}:`, error);
+            return app; // Return without job if fetch fails
+          }
+        })
+      );
 
-      setApplications(allApplications);
+      setApplications(applicationsWithJobs);
     } catch (err: any) {
       console.error("Failed to load applications:", err);
       toast.error(err.message || "Failed to load applications");
@@ -125,6 +134,21 @@ function ApplicantApplicationsContent() {
       console.error("Failed to withdraw application:", err);
       toast.error(err.message || "Failed to withdraw application");
     }
+  };
+
+  const handleStartInterview = (applicationId: string) => {
+    // Navigate to setup page with application ID
+    router.push(
+      `/tenant/applicant-portal/interview/setup?application_id=${applicationId}`
+    );
+  };
+
+  const canStartInterview = (status: ApplicationStatus) => {
+    // Allow starting interview for PENDING or SHORTLISTED applications
+    return (
+      status === ApplicationStatus.PENDING ||
+      status === ApplicationStatus.SHORTLISTED
+    );
   };
 
   const getStatusColor = (status: ApplicationStatus) => {
@@ -222,20 +246,6 @@ function ApplicantApplicationsContent() {
           </div>
         )}
 
-        {/* Empty State - Feature Notice */}
-        {!isLoading && (
-          <Alert className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Note:</strong> The &quot;My Applications&quot; feature
-              requires a backend endpoint (GET /applications/me) that is not yet
-              implemented. Currently, you can apply for jobs, but viewing your
-              application history requires the backend team to add this
-              endpoint.
-            </AlertDescription>
-          </Alert>
-        )}
-
         {/* Applications List */}
         {!isLoading && filteredApplications.length === 0 ? (
           <Card className="shadow-lg">
@@ -290,6 +300,20 @@ function ApplicantApplicationsContent() {
                       <p className="text-sm text-muted-foreground">
                         Application ID: {app.id}
                       </p>
+
+                      {/* AI Interview Button */}
+                      {canStartInterview(app.status) && (
+                        <div className="mt-4">
+                          <Button
+                            onClick={() => handleStartInterview(app.id)}
+                            className="gap-2"
+                            size="sm"
+                          >
+                            <Video className="w-4 h-4" />
+                            Start AI Interview
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     <DropdownMenu>
