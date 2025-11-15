@@ -1,0 +1,34 @@
+=== OpenAPI Validation Log ===
+Timestamp: 2025-11-15T18:54:58.955918+00:00
+
+Reading OpenAPI specification...
+Specification loaded successfully
+OpenAPI Version: 3.1.0
+Title: WorkZone API
+Version: ca2ba82
+Paths count: 27
+Schemas count: 24
+
+Validating specification...
+✓ Specification is valid!
+
+=== Inferred Items Summary ===
+Total x-inferred items: 11
+
+Inferred response schemas (manual review recommended):
+  - POST /api/platform/onboarding (response 200)
+  - GET /api/platform/tenant-availability (response 200)
+  - GET /api/platform/subscription (response 200)
+  - POST /api/platform/subscription (response 200)
+  - POST /api/platform/invite (response 200)
+  - GET /api/tenant/config (response 200)
+  - GET /api/tenant/recruiter/me (response 200)
+  - GET /api/tenant/manager/me (response 200)
+  - GET /api/tenant/employee/me (response 200)
+  - GET /api/tenant/applicant/me (response 200)
+  - POST /api/tenant/ai-interview (response 200)
+
+=== Validation Summary ===
+✓ All checks passed
+✓ No critical issues found
+✓ Specification is production-ready

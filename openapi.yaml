@@ -1,0 +1,1495 @@
+openapi: 3.1.0
+info:
+  title: WorkZone API
+  version: ca2ba82
+  description: "\nWorkZone API - A comprehensive platform for managing recruitment, job applications, \nand tenant-based workforce\
+    \ management.\n\n## Features\n- Multi-tenant architecture with subdomain-based routing\n- Role-based access control (Recruiter,\
+    \ Manager, Employee, Applicant)\n- AI-powered job description enhancement\n- AI interview automation via WebSocket\n-\
+    \ Subscription management with Razorpay integration\n\n## Authentication\nMost endpoints require JWT bearer token authentication\
+    \ obtained from login/signup endpoints.\n"
+  contact:
+    name: WorkZone Team
+    url: https://github.com/Yadav-Aayansh/soft-engg-project-sep-2025-se-SEP-10
+  x-generated-by: github-copilot
+  x-generated-at: '2025-11-15T18:54:58.955918+00:00'
+servers:
+- url: http://localhost:8000
+  description: Local development
+- url: https://api.workzone.tech
+  description: Production (placeholder)
+tags:
+- name: Client Auth
+  description: Client authentication endpoints
+- name: Client
+  description: Client management and onboarding
+- name: Tenant Auth
+  description: Tenant user authentication
+- name: Tenant Job
+  description: Job posting management
+- name: Tenant Application
+  description: Application management
+- name: Tenant Recruiter
+  description: Recruiter operations
+- name: Tenant Manager
+  description: Manager operations
+- name: Tenant Employee
+  description: Employee operations
+- name: Tenant Applicant
+  description: Applicant operations
+- name: Tenant AI Interview
+  description: AI interview sessions
+- name: Configuration
+  description: Tenant configuration
+paths:
+  /api/platform/auth/signup:
+    post:
+      operationId: platformAuthSignup
+      tags:
+      - Client Auth
+      summary: Register new client
+      description: 'User story: As a new organization, I want to register so that I can use the platform.
+
+
+        Creates a new client account with JWT tokens.'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientSignupRequest'
+            examples:
+              example1:
+                value:
+                  name: Acme Corp
+                  email: admin@acme.com
+                  password: SecurePass123!
+      responses:
+        '201':
+          description: Client registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientSignupResponse'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/platform/auth/login:
+    post:
+      operationId: platformAuthLogin
+      tags:
+      - Client Auth
+      summary: Client login
+      description: 'User story: As a client, I want to log in to access my workspace.
+
+
+        Authenticates client and returns JWT tokens.'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientLoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientLoginResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/platform/auth/refresh:
+    post:
+      operationId: platformAuthRefresh
+      tags:
+      - Client Auth
+      summary: Refresh access token
+      description: 'User story: As a client, I want to refresh my token to maintain my session.
+
+
+        Generates new access token from refresh token.'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRefreshRequest'
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientLoginResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/platform/onboarding:
+    post:
+      operationId: platformOnboarding
+      tags:
+      - Client
+      summary: Complete client onboarding
+      description: 'User story: As a new client, I want to onboard my organization to set up my workspace.
+
+
+        Completes onboarding with tenant info and logo upload.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - tenant_id
+              - brand_name
+              - logo
+              properties:
+                tenant_id:
+                  type: string
+                  maxLength: 50
+                brand_name:
+                  type: string
+                  maxLength: 100
+                logo:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Onboarding completed
+          content:
+            application/json:
+              schema:
+                type: object
+                x-inferred: true
+                properties:
+                  message:
+                    type: string
+                  tenant_id:
+                    type: string
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/platform/tenant-availability:
+    get:
+      operationId: platformCheckTenantAvailability
+      tags:
+      - Client
+      summary: Check tenant ID availability
+      description: 'User story: As a client, I want to check if my desired tenant ID is available.
+
+
+        Validates tenant ID availability.'
+      security: []
+      parameters:
+      - name: tenant_id
+        in: query
+        required: true
+        schema:
+          type: string
+          maxLength: 50
+      responses:
+        '200':
+          description: Availability result
+          content:
+            application/json:
+              schema:
+                type: object
+                x-inferred: true
+                properties:
+                  available:
+                    type: boolean
+                  tenant_id:
+                    type: string
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/platform/subscription:
+    get:
+      operationId: platformCreateOrder
+      tags:
+      - Client
+      summary: Create subscription order
+      description: 'User story: As a client, I want to purchase a subscription plan.
+
+
+        Creates payment order via Razorpay.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: plan
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/SubscriptionPlan'
+      responses:
+        '200':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                type: object
+                x-inferred: true
+                properties:
+                  order_id:
+                    type: string
+                  amount:
+                    type: integer
+                  currency:
+                    type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      operationId: platformUpdateOrder
+      tags:
+      - Client
+      summary: Update subscription order
+      description: 'User story: As a client, I want to confirm my payment to activate my subscription.
+
+
+        Updates order with Razorpay payment confirmation.'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrder'
+      responses:
+        '200':
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                type: object
+                x-inferred: true
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/platform/invite:
+    post:
+      operationId: platformInviteUser
+      tags:
+      - Client
+      summary: Invite user to workspace
+      description: 'User story: As a client, I want to invite users to join my workspace.
+
+
+        Sends invitation email with specified role.'
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteRequest'
+      responses:
+        '200':
+          description: Invitation sent
+          content:
+            application/json:
+              schema:
+                type: object
+                x-inferred: true
+                properties:
+                  message:
+                    type: string
+                  email:
+                    type: string
+        '409':
+          $ref: '#/components/responses/ConflictError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/tenant/auth/signup:
+    post:
+      operationId: tenantAuthSignup
+      tags:
+      - Tenant Auth
+      summary: Tenant user signup
+      description: 'User story: As a user, I want to sign up to access the tenant workspace.
+
+
+        Registers new tenant user (may require invitation for some roles).'
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSignupRequest'
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSignupResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/tenant/auth/signup/invited:
+    post:
+      operationId: tenantAuthSignupInvited
+      tags:
+      - Tenant Auth
+      summary: Complete invited signup
+      description: 'User story: As an invited user, I want to complete signup using my invitation token.
+
+
+        Completes registration with invitation token.'
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSignupInvitedRequest'
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSignupResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /api/tenant/auth/login:
+    post:
+      operationId: tenantAuthLogin
+      tags:
+      - Tenant Auth
+      summary: Tenant user login
+      description: 'User story: As a tenant user, I want to log in to access workspace features.
+
+
+        Authenticates tenant user and returns JWT tokens.'
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /api/tenant/auth/refresh:
+    post:
+      operationId: tenantAuthRefresh
+      tags:
+      - Tenant Auth
+      summary: Refresh tenant token
+      description: 'User story: As a tenant user, I want to refresh my token to maintain my session.
+
+
+        Generates new access token.'
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRefreshRequest'
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/tenant/config:
+    get:
+      operationId: tenantGetConfig
+      tags:
+      - Configuration
+      summary: Get tenant configuration
+      description: 'User story: As a user, I want to retrieve workspace configuration for branding.
+
+
+        Returns tenant-specific configuration.'
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Configuration retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                x-inferred: true
+                properties:
+                  tenant_id:
+                    type: string
+                  brand_name:
+                    type: string
+                  logo_url:
+                    type: string
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /api/tenant/jobs:
+    post:
+      operationId: tenantCreateJob
+      tags:
+      - Tenant Job
+      summary: Create job posting
+      description: 'User story: As a recruiter, I want to create job postings to attract candidates.
+
+
+        Creates new job (requires recruiter role).'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateJobRequest'
+      responses:
+        '201':
+          description: Job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      operationId: tenantListJobs
+      tags:
+      - Tenant Job
+      summary: List job postings
+      description: 'User story: As a user, I want to browse jobs to find opportunities.
+
+
+        Returns filtered list of jobs.'
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      - name: search
+        in: query
+        schema:
+          type: string
+      - name: department
+        in: query
+        schema:
+          type: string
+      - name: location
+        in: query
+        schema:
+          type: string
+      - name: is_open
+        in: query
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Jobs retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/tenant/jobs/{job_id}:
+    get:
+      operationId: tenantGetJob
+      tags:
+      - Tenant Job
+      summary: Get job details
+      description: 'User story: As a user, I want to view job details to decide whether to apply.
+
+
+        Retrieves job information.'
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Job details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      operationId: tenantUpdateJob
+      tags:
+      - Tenant Job
+      summary: Update job posting
+      description: 'User story: As a recruiter, I want to update job details to keep them current.
+
+
+        Updates existing job (requires ownership).'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateJobRequest'
+      responses:
+        '200':
+          description: Job updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      operationId: tenantDeleteJob
+      tags:
+      - Tenant Job
+      summary: Delete job posting
+      description: 'User story: As a recruiter, I want to delete outdated jobs.
+
+
+        Deletes job (requires ownership).'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: Job deleted
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/tenant/jobs/{job_id}/close:
+    post:
+      operationId: tenantCloseJob
+      tags:
+      - Tenant Job
+      summary: Close job posting
+      description: 'User story: As a recruiter, I want to close jobs to stop accepting applications.
+
+
+        Closes job (requires ownership).'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Job closed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/tenant/jobs/ai/enhance-description:
+    post:
+      operationId: tenantEnhanceJobDescription
+      tags:
+      - Tenant Job
+      summary: AI-enhance job description
+      description: 'User story: As a recruiter, I want AI to enhance my job descriptions.
+
+
+        Generates enhanced job description using AI.'
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JDBuilderPrompt'
+      responses:
+        '200':
+          description: Description generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedJD'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/tenant/jobs/{job_id}/apply:
+    post:
+      operationId: tenantApplyToJob
+      tags:
+      - Tenant Application
+      summary: Apply to job
+      description: 'User story: As an applicant, I want to apply to jobs with my resume.
+
+
+        Submits job application with resume upload.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - resume
+              properties:
+                resume:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Application submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /api/tenant/jobs/{job_id}/applications:
+    get:
+      operationId: tenantListJobApplications
+      tags:
+      - Tenant Application
+      summary: List job applications
+      description: 'User story: As a recruiter, I want to view applications to review candidates.
+
+
+        Returns all applications for a job (requires recruiter role).'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Applications retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /api/tenant/applications:
+    get:
+      operationId: tenantMyApplications
+      tags:
+      - Tenant Application
+      summary: Get my applications
+      description: 'User story: As an applicant, I want to view my applications to track status.
+
+
+        Returns current user''s applications.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Applications retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationResponse'
+  /api/tenant/applications/{application_id}:
+    get:
+      operationId: tenantGetApplication
+      tags:
+      - Tenant Application
+      summary: Get application details
+      description: 'User story: As a user, I want to view application details.
+
+
+        Retrieves application information.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Application details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /api/tenant/applications/{application_id}/withdraw:
+    delete:
+      operationId: tenantWithdrawApplication
+      tags:
+      - Tenant Application
+      summary: Withdraw application
+      description: 'User story: As an applicant, I want to withdraw my application.
+
+
+        Withdraws submitted application.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Application withdrawn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /api/tenant/recruiter/me:
+    get:
+      operationId: tenantRecruiterProfile
+      tags:
+      - Tenant Recruiter
+      summary: Get recruiter profile
+      description: 'User story: As a recruiter, I want to view my profile.
+
+
+        Retrieves current recruiter''s profile.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                x-inferred: true
+                x-inferred-field-description: true
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  email:
+                    type: string
+                    format: email
+                  role:
+                    type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /api/tenant/manager/me:
+    get:
+      operationId: tenantManagerProfile
+      tags:
+      - Tenant Manager
+      summary: Get manager profile
+      description: 'User story: As a manager, I want to view my profile.
+
+
+        Retrieves current manager''s profile.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                x-inferred: true
+                x-inferred-field-description: true
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  email:
+                    type: string
+                    format: email
+                  role:
+                    type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /api/tenant/employee/me:
+    get:
+      operationId: tenantEmployeeProfile
+      tags:
+      - Tenant Employee
+      summary: Get employee profile
+      description: 'User story: As an employee, I want to view my profile.
+
+
+        Retrieves current employee''s profile.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                x-inferred: true
+                x-inferred-field-description: true
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  email:
+                    type: string
+                    format: email
+                  role:
+                    type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /api/tenant/applicant/me:
+    get:
+      operationId: tenantApplicantProfile
+      tags:
+      - Tenant Applicant
+      summary: Get applicant profile
+      description: 'User story: As an applicant, I want to view my profile.
+
+
+        Retrieves current applicant''s profile.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                x-inferred: true
+                x-inferred-field-description: true
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  email:
+                    type: string
+                    format: email
+                  role:
+                    type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /api/tenant/ai-interview:
+    post:
+      operationId: tenantCreateAiInterviewSession
+      tags:
+      - Tenant AI Interview
+      summary: Create AI interview session
+      description: 'User story: As a recruiter, I want to create AI interview sessions for automated screening.
+
+
+        Creates new AI interview session.'
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - application_id
+              properties:
+                application_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                type: object
+                x-inferred: true
+                properties:
+                  ai_interview_id:
+                    type: string
+                    format: uuid
+                  application_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+  /api/tenant/test:
+    get:
+      operationId: tenantTest
+      tags:
+      - Configuration
+      summary: Test endpoint
+      description: 'User story: As a developer, I want to test tenant ID resolution.
+
+
+        Simple test endpoint.'
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Test response
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from login/signup
+  parameters:
+    TenantIdHeader:
+      name: X-Tenant-Id
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Tenant identifier
+      example: acme-corp
+  schemas:
+    Error:
+      type: object
+      required:
+      - code
+      - message
+      properties:
+        code:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          example: Invalid input
+        details:
+          type: object
+          additionalProperties: true
+    ClientSignupRequest:
+      type: object
+      required:
+      - name
+      - email
+      - password
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: Acme Corp
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: admin@acme.com
+        password:
+          type: string
+          minLength: 8
+          example: SecurePass123!
+    ClientSignupResponse:
+      type: object
+      required:
+      - access_token
+      - refresh_token
+      - account_status
+      - subscription_status
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        account_status:
+          type: string
+          example: active
+        subscription_status:
+          type: string
+          example: trial
+    ClientLoginRequest:
+      type: object
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          minLength: 8
+    ClientLoginResponse:
+      type: object
+      required:
+      - access_token
+      - refresh_token
+      - account_status
+      - subscription_status
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        account_status:
+          type: string
+        subscription_status:
+          type: string
+    ClientRefreshRequest:
+      type: object
+      required:
+      - refresh_token
+      properties:
+        refresh_token:
+          type: string
+    UserSignupRequest:
+      type: object
+      required:
+      - name
+      - email
+      - password
+      - role
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          minLength: 8
+        role:
+          $ref: '#/components/schemas/Role'
+    UserSignupInvitedRequest:
+      type: object
+      required:
+      - token
+      - password
+      properties:
+        token:
+          type: string
+        password:
+          type: string
+          minLength: 8
+    UserSignupResponse:
+      type: object
+      required:
+      - access_token
+      - refresh_token
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+    UserLoginRequest:
+      type: object
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          minLength: 8
+    UserLoginResponse:
+      type: object
+      required:
+      - access_token
+      - refresh_token
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+    UserRefreshRequest:
+      type: object
+      required:
+      - refresh_token
+      properties:
+        refresh_token:
+          type: string
+    CreateJobRequest:
+      type: object
+      required:
+      - title
+      - description
+      - department
+      - location
+      properties:
+        title:
+          type: string
+          maxLength: 50
+        description:
+          type: string
+        department:
+          type: string
+          maxLength: 50
+        location:
+          type: string
+          maxLength: 25
+    UpdateJobRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 50
+        description:
+          type: string
+        department:
+          type: string
+          maxLength: 50
+        location:
+          type: string
+          maxLength: 25
+    JobResponse:
+      type: object
+      required:
+      - id
+      - title
+      - description
+      - department
+      - location
+      - is_open
+      - created_at
+      - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        department:
+          type: string
+        location:
+          type: string
+        is_open:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    ApplicationResponse:
+      type: object
+      required:
+      - id
+      - job_id
+      - user_id
+      - status
+      - resume
+      - applied_on
+      properties:
+        id:
+          type: string
+          format: uuid
+        job_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/ApplicationStatus'
+        resume:
+          type: string
+        applied_on:
+          type: string
+          format: date-time
+    InviteRequest:
+      type: object
+      required:
+      - name
+      - email
+      - role
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        role:
+          $ref: '#/components/schemas/Role'
+    CreateOrder:
+      type: object
+      required:
+      - plan
+      properties:
+        plan:
+          $ref: '#/components/schemas/SubscriptionPlan'
+    UpdateOrder:
+      type: object
+      required:
+      - order_id
+      - payment_id
+      - signature
+      properties:
+        order_id:
+          type: string
+        payment_id:
+          type: string
+        signature:
+          type: string
+    JDBuilderPrompt:
+      type: object
+      required:
+      - prompt
+      properties:
+        prompt:
+          type: string
+        company_name:
+          type: string
+        tone:
+          type: string
+          default: professional and enthusiastic
+    GeneratedJD:
+      type: object
+      required:
+      - markdown_text
+      properties:
+        markdown_text:
+          type: string
+    Role:
+      type: string
+      enum:
+      - employee
+      - manager
+      - recruiter
+      - applicant
+    ApplicationStatus:
+      type: string
+      enum:
+      - pending
+      - shortlisted
+      - ai_interview_completed
+      - human_interview_scheduled
+      - human_interview_completed
+      - offered
+      - rejected
+      - hired
+      - withdrawn
+    SubscriptionPlan:
+      type: string
+      enum:
+      - 3_months
+      - 6_months
+      - 12_months
+  responses:
+    UnauthorizedError:
+      description: Unauthorized - invalid/missing token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            example1:
+              value:
+                code: UNAUTHORIZED
+                message: Invalid token
+    ForbiddenError:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            example1:
+              value:
+                code: FORBIDDEN
+                message: Insufficient permissions
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            example1:
+              value:
+                code: NOT_FOUND
+                message: Resource not found
+    ConflictError:
+      description: Conflict - resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            example1:
+              value:
+                code: CONFLICT
+                message: Resource already exists
+    ValidationError:
+      description: Validation error - invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            example1:
+              value:
+                code: VALIDATION_ERROR
+                message: Invalid input
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            example1:
+              value:
+                code: INTERNAL_ERROR
+                message: Unexpected error
