@@ -119,7 +119,7 @@ class LLMClient:
         try:
             # Use the asynchronous ..._async() method from the library
             response = await self.text_model.generate_content_async(prompt)
-            return response.text
+            return response.text.strip()
         except Exception as e:
             return f"Error: {e}"
 
