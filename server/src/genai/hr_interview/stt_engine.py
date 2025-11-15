@@ -282,12 +282,10 @@ async def speech_to_text(audio_data: bytes) -> str:
                     temperature=0.0  # Deterministic output
                 )
             
-            # Groq returns plain text
             result = transcription.strip() if isinstance(transcription, str) else str(transcription).strip()
             
-            # Check if transcription is empty or just whitespace
             if len(result) < 1:
-                logger.warning("No speech detected in audio")
+                logger.warning("No speech detected")
                 return "No speech detected"
             
             logger.info(f"Groq Whisper completed: {len(result)} chars")
