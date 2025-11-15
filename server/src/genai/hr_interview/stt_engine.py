@@ -258,22 +258,6 @@ groq_client = initialize_groq_client()
 
 
 async def speech_to_text(audio_data: bytes) -> str:
-    """
-    Transcribe audio using Groq Whisper API (FREE!)
-    
-    Groq Advantages:
-    - FREE tier with generous limits
-    - Very fast (uses Groq LPU for speed)
-    - Same Whisper model quality as OpenAI
-    - Excellent with Indian English accents
-    - Handles technical terms automatically
-    
-    Args:
-        audio_data: Audio bytes in WebM/Opus format
-    
-    Returns:
-        Transcribed text
-    """
     if not groq_client:
         raise Exception(
             "Groq client not initialized. Set GROQ_API_KEY in config"
@@ -301,6 +285,11 @@ async def speech_to_text(audio_data: bytes) -> str:
             # Groq returns plain text
             result = transcription.strip() if isinstance(transcription, str) else str(transcription).strip()
             
+            # Check if transcription is empty or just whitespace
+            if len(result) < 1:
+                logger.warning("No speech detected in audio")
+                return "No speech detected"
+            
             logger.info(f"Groq Whisper completed: {len(result)} chars")
             
             return result
@@ -314,7 +303,7 @@ async def speech_to_text(audio_data: bytes) -> str:
         logger.error(f"Groq Whisper transcription failed: {e}")
         raise
 
-
+    
 async def speech_to_text_with_prompt(audio_data: bytes, prompt: str = None) -> str:
     """
     Transcribe with optional prompt to guide Whisper
