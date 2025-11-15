@@ -137,71 +137,50 @@ export default function ActiveInterviewPage() {
             break;
 
           case "question":
-            // First question or next question
+            // Question from backend (StartInterviewResponse or ProcessAnswerResponse)
             console.log("Question data received:", {
-              has_first_question: !!data.first_question,
-              has_next_question: !!data.next_question,
-              first_question_text: data.first_question?.question,
-              next_question_text: data.next_question?.question,
-              next_question_index: data.next_question_index,
+              has_question_text: !!data.question_text,
+              question_text: data.question_text?.question,
+              question_index: data.question_index,
               poor_answer_count: data.poor_answer_count,
-              is_clarification: data.is_clarification,
               clarification: data.clarification,
               total_questions_asked: data.total_questions_asked,
               status: data.status,
             });
 
             setProcessingStatus(""); // Clear processing status
-            if (data.first_question) {
-              // StartInterviewResponse
-              console.log(
-                "Setting FIRST question:",
-                data.first_question.question
-              );
-              setQuestionNum(1);
-              setCurrentQuestion(data.first_question.question);
-              if (data.first_question_audio_url) {
-                playAudioHandler(data.first_question_audio_url);
-              } else {
-                setAiState("listening");
-              }
-            } else if (data.next_question) {
-              // ProcessAnswerResponse with next question
-              // Handle different statuses: "in_progress", "completed", "clarification_needed"
 
-              // If it's a clarification, show the clarification text instead of the question
+            // Handle clarification vs regular question
+            if (data.status === "clarification_needed" && data.clarification) {
+              // It's a clarification response - show clarification text
+              console.log("Displaying clarification:", data.clarification);
+              setCurrentQuestion(data.clarification);
+              // Don't update questionNum during clarifications
+            } else if (data.question_text) {
+              // Regular question flow
               const displayText =
-                data.is_clarification && data.clarification
-                  ? data.clarification
-                  : data.next_question.question;
-
-              console.log("Setting NEXT question:", displayText);
-              console.log("Is clarification:", data.is_clarification);
-              console.log("Status:", data.status);
-
-              // Only update question number if it's NOT a clarification
-              if (
-                !data.is_clarification &&
-                data.next_question_index !== undefined
-              ) {
-                setQuestionNum(data.next_question_index + 1); // +1 because backend is 0-indexed
-              }
-
+                data.question_text.question || "Waiting for question...";
+              console.log("Displaying question:", displayText);
               setCurrentQuestion(displayText);
 
-              // Update stats
-              if (data.poor_answer_count !== undefined) {
-                setPoorAnswers(data.poor_answer_count);
+              // Update question number for new questions (not clarifications)
+              if (data.question_index !== undefined) {
+                setQuestionNum(data.question_index + 1); // +1 because backend is 0-indexed
               }
+            }
 
-              // Set AI state based on status
-              if (data.status === "completed") {
-                setAiState("thinking"); // Generating report
-              } else if (data.next_question_audio_url) {
-                playAudioHandler(data.next_question_audio_url);
-              } else {
-                setAiState("listening");
-              }
+            // Update stats
+            if (data.poor_answer_count !== undefined) {
+              setPoorAnswers(data.poor_answer_count);
+            }
+
+            // Set AI state based on status
+            if (data.status === "completed") {
+              setAiState("thinking"); // Generating report
+            } else if (data.question_audio_url) {
+              playAudioHandler(data.question_audio_url);
+            } else {
+              setAiState("listening");
             }
             break;
 
