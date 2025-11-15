@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Briefcase, FileText, Calendar, User } from "lucide-react";
+import { Briefcase, FileText, Calendar, User, Video } from "lucide-react";
 
 function ApplicantPortalContent() {
   const router = useRouter();
@@ -31,6 +31,13 @@ function ApplicantPortalContent() {
       icon: FileText,
       href: "/tenant/applicant-portal/applications",
       color: "bg-green-500",
+    },
+    {
+      title: "AI Interview Demo",
+      description: "Try the AI-powered interview experience",
+      icon: Video,
+      href: "/tenant/applicant-portal/interview/setup",
+      color: "bg-red-500",
     },
     {
       title: "Profile",

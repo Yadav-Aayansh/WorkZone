@@ -37,6 +37,10 @@ export {
   tenantJobAPI,
   tenantApplicationAPI,
   tenantAIInterviewAPI,
+  tenantApplicantAPI,
+  tenantRecruiterAPI,
+  tenantManagerAPI,
+  tenantEmployeeAPI,
   TenantAPIError,
   getTenantSubdomain,
   getTenantTokens,
@@ -58,9 +62,15 @@ export type {
   UpdateJobRequest,
   JobResponse,
   ListJobsRequest,
+  JDBuilderPrompt,
+  GeneratedJD,
   ApplicationResponse,
   AIInterviewSessionResponse,
   CreateAIInterviewRequest,
+  ApplicantProfileResponse,
+  RecruiterProfileResponse,
+  ManagerProfileResponse,
+  EmployeeProfileResponse,
 } from './tenant';
 
 // Backwards compatibility - import for creating combined API
