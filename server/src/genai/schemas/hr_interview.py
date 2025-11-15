@@ -17,6 +17,7 @@
 #     session_id: str = Field(..., description="Interview session ID")
 #     answer_text: str = Field(..., min_length=1, description="Candidate's text answer")
 
+
 # class GenerateReportRequest(BaseModel):
 #     session_id: str = Field(..., description="Interview session ID")
 
@@ -64,7 +65,7 @@
 
 
 # class ProcessAnswerResponse(BaseModel):
-#     status: Literal["in_progress", "completed"]
+#     status: Literal["in_progress", "completed", "clarification_needed"]
 #     next_question: Optional[InterviewQuestion] = None
 #     next_question_audio_url: Optional[str] = Field(None, description="Signed URL for next question audio")
 #     next_question_index: Optional[int] = None
@@ -75,6 +76,8 @@
 #         description="Reason for interview completion: max_questions (reached 10), poor_answers (3+ 'I don't know'), or min_questions_reached"
 #     )
 #     poor_answer_count: Optional[int] = Field(None, description="Number of poor quality answers given")
+#     clarification: Optional[str] = Field(None, description="Clarification text when candidate asks a clarifying question")
+#     is_clarification: Optional[bool] = Field(False, description="Whether this is a clarification response")
 
 
 # class InterviewReport(BaseModel):
@@ -110,6 +113,7 @@
     
 #     class Config:
 #         arbitrary_types_allowed = True
+
 
 from pydantic import BaseModel, validator, Field
 from typing import List, Optional, Literal
@@ -168,20 +172,16 @@ class DetailedQA(BaseModel):
 
 class StartInterviewResponse(BaseModel):
     session_id: str
-    first_question: InterviewQuestion
-    first_question_audio_url: str = Field(..., description="Signed URL for first question audio")
-    resume_text: str
-    jd_text: str
-    candidate_name: Optional[str]
-    position: Optional[str]
+    question_text: InterviewQuestion
+    question_audio_url: str = Field(..., description="Signed URL for question audio")
     question_index: int = Field(default=0, description="Current question index")
 
 
 class ProcessAnswerResponse(BaseModel):
     status: Literal["in_progress", "completed", "clarification_needed"]
-    next_question: Optional[InterviewQuestion] = None
-    next_question_audio_url: Optional[str] = Field(None, description="Signed URL for next question audio")
-    next_question_index: Optional[int] = None
+    question_text: Optional[InterviewQuestion] = None
+    question_audio_url: Optional[str] = Field(None, description="Signed URL for question audio")
+    question_index: Optional[int] = None
     total_questions_asked: int
     transcription: Optional[str] = None  # Only for voice answers
     completion_reason: Optional[Literal["max_questions", "poor_answers", "min_questions_reached"]] = Field(
@@ -190,7 +190,6 @@ class ProcessAnswerResponse(BaseModel):
     )
     poor_answer_count: Optional[int] = Field(None, description="Number of poor quality answers given")
     clarification: Optional[str] = Field(None, description="Clarification text when candidate asks a clarifying question")
-    is_clarification: Optional[bool] = Field(False, description="Whether this is a clarification response")
 
 
 class InterviewReport(BaseModel):
