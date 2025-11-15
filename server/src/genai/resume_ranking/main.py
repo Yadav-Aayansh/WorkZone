@@ -1,11 +1,10 @@
 from typing import List, Any
 
-from src.genai.resume_ranking.text_extractor import extract_text_from_file
+from src.genai.utils.download_blob import download_blob
+from src.genai.utils.text_extractor import extract_text_from_file
 from src.genai.resume_ranking.section_parser import SectionParser
 from src.genai.resume_ranking.ranker import ResumeRanker
 from src.genai.schemas.resume_ranking_schemas import ResumeData, RankingReport, FeedbackInformation
-
-from src.core.storage import storage_client
 
 def process_and_rank_resumes(
     resumes_data: List[tuple[str, str]],
@@ -31,13 +30,7 @@ def process_and_rank_resumes(
     print(f"Parsing {len(resumes_data)} resumes...")
     for resume_id, blob_name in resumes_data:
         try:
-            blob = storage_client.bucket.blob(blob_name)
-            if not blob.exists():
-                print(f"Could not find {resume_id}: ({blob_name}) in GCS bucket")
-                continue
-
-            resume_bytes = blob.download_as_bytes()
-            raw_text = extract_text_from_file(resume_bytes)
+            raw_text = extract_text_from_file(download_blob(blob_name=blob_name))
 
             sections = section_parser.parse(raw_text)
             parsed_resumes.append(
@@ -65,3 +58,25 @@ def process_and_rank_resumes(
     )
     
     return ranking_results
+
+
+if __name__ == '__main__':
+
+
+    GCS_RESUME_BLOB_NAMES = [
+        ("1","Shreyas_Jani_Resume_Sept2025.pdf"),
+        ("2","Shreyas_Jani_Resume_June_2025.pdf"),
+        ("3","Shreyas - 22f3001229 - IITM BS.pdf"),
+        ("4","Shreyas_Jani_CV_11Feb.pdf"),
+    ]
+
+    results = process_and_rank_resumes(
+        resumes_data=GCS_RESUME_BLOB_NAMES,
+        jd_direct_text="Assume standard Python dev job at google",
+        top_x=2,
+        feedback_info=FeedbackInformation(candidate_name="Shreyas", company_name="Google", position="Python Developer")
+    )
+
+
+    print("FINAL RANKING REPORT")
+    print(results.model_dump_json(indent=2))
