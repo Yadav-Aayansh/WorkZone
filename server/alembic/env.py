@@ -1,59 +1,62 @@
-from logging.config import fileConfig
-import sys
-import os
+import sys, os
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from sqlalchemy import engine_from_config, pool, text
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from src.core.database import PublicBase, TenantBase
+from src.core.config import Config
 
-# ─── Add project root to sys.path ─────────────────────────────────────
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from src.models.platform import Client, Order, Setting
+from src.models.tenant import User, Recruiter, Manager, Employee, Applicant, Job, Application, AiInterview
 
-# ─── Import app modules ───────────────────────────────────────────────
-from db import Base
-from config import Config
-import models  # import so Alembic can discover all models
-
-# ─── Alembic Config ───────────────────────────────────────────────────
 config = context.config
+config.set_main_option("sqlalchemy.url", Config.SYNC_DATABASE_URL)
 
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+migration_type = os.getenv("MIGRATION_TYPE", "public")
 
-# ─── Metadata for 'autogenerate' ──────────────────────────────────────
-target_metadata = Base.metadata
+if migration_type == "public":
+    target_metadata = PublicBase.metadata
+else:
+    target_metadata = TenantBase.metadata
 
-# ─── Set SQLAlchemy URL from your config.py ───────────────────────────
-config.set_main_option("sqlalchemy.url", Config.ASYNC_DATABASE_URL)
 
-# ─── Offline Migrations ───────────────────────────────────────────────
-def run_migrations_offline():
-    url = config.get_main_option("sqlalchemy.url")
-    context.configure(
-        url=url,
-        target_metadata=target_metadata,
-        literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
-    )
-    with context.begin_transaction():
-        context.run_migrations()
+if migration_type == "public":
+    config.set_main_option("version_locations", "alembic/versions/public")
+else:
+    config.set_main_option("version_locations", "alembic/versions/tenant")
 
-# ─── Online Migrations ────────────────────────────────────────────────
-def run_migrations_online():
+def run_migrations_online() -> None:
+    print(f"Starting migration - Type: {migration_type}")
+    
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
+        config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
-
+    
+    print(f"Connected to database")
+    
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-        )
-        with context.begin_transaction():
-            context.run_migrations()
-
-# ─── Entry Point ──────────────────────────────────────────────────────
+        if migration_type == "public":
+            print("Setting search_path to public")
+            connection.execute(text("SET search_path TO public"))
+            connection.commit()
+            
+            print("Configuring context for public")
+            context.configure(
+                connection=connection,
+                target_metadata=target_metadata,
+                version_table="alembic_version_public",
+                version_table_schema="public"
+            )
+            
+            print("Running migrations")
+            with context.begin_transaction():
+                context.run_migrations()
+            print("DONE!")
+            
 if context.is_offline_mode():
-    run_migrations_offline()
+    pass
 else:
     run_migrations_online()

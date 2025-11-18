@@ -1,7 +1,7 @@
 from fastapi import Depends, Request, HTTPException, WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 from .database import get_public_db, get_schema
-from src.repository.platform import ClientRepository, OrderRepository
+from src.repository.platform import ClientRepository, OrderRepository, SettingRepository
 from src.repository.tenant import (
     UserRepository, ManagerRepository, RecruiterRepository,
     EmployeeRepository, ApplicantRepository, JobRepository,
@@ -38,7 +38,8 @@ def get_order_service(
 
 def get_workspace_service(db: AsyncSession = Depends(get_public_db)):
     client_repo = ClientRepository(db)
-    return WorkspaceService(client_repo)
+    setting_repo = SettingRepository(db)
+    return WorkspaceService(client_repo, setting_repo)
     
 
     
