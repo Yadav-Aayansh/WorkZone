@@ -420,6 +420,81 @@ export interface InviteUserResponse {
   invitation_token?: string;
 }
 
+// ============ Platform Workspace API ============
+
+// Leave Type Configuration
+export interface LeaveTypeConfig {
+  days: number; // 1-365
+  carry_forward: boolean;
+  max_carry?: number; // 1-365, only if carry_forward is true
+  encashable: boolean;
+}
+
+export interface LeaveTypesRequest {
+  casual?: LeaveTypeConfig;
+  sick?: LeaveTypeConfig;
+  earned?: LeaveTypeConfig;
+  maternity?: LeaveTypeConfig;
+  paternity?: LeaveTypeConfig;
+}
+
+export interface LeaveTypesResponse {
+  casual?: Record<string, any>;
+  sick?: Record<string, any>;
+  earned?: Record<string, any>;
+  maternity?: Record<string, any>;
+  paternity?: Record<string, any>;
+}
+
+export const platformWorkspaceAPI = {
+  /**
+   * Get leave types configuration for the workspace
+   * Requires authentication
+   */
+  async getLeaveTypes(): Promise<LeaveTypesResponse> {
+    return platformApiRequest<LeaveTypesResponse>(
+      `${BASE_URL}/api/platform/workspace/leave-types`,
+      {
+        method: 'GET',
+      },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Create leave types configuration for the workspace
+   * Requires authentication
+   */
+  async createLeaveTypes(data: LeaveTypesRequest): Promise<LeaveTypesResponse> {
+    return platformApiRequest<LeaveTypesResponse>(
+      `${BASE_URL}/api/platform/workspace/leave-types`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Update leave types configuration for the workspace
+   * Requires authentication
+   */
+  async updateLeaveTypes(data: LeaveTypesRequest): Promise<LeaveTypesResponse> {
+    return platformApiRequest<LeaveTypesResponse>(
+      `${BASE_URL}/api/platform/workspace/leave-types`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+};
+
 export const platformClientAPI = {
   /**
    * Check if a tenant_id is available

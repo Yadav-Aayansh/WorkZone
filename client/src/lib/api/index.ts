@@ -3,6 +3,7 @@ export {
   platformAuthAPI,
   platformOnboardingAPI,
   platformSubscriptionAPI,
+  platformWorkspaceAPI,
   platformClientAPI,
   PlatformAPIError,
   getPlatformTokens,
@@ -27,6 +28,9 @@ export type {
   TenantAvailabilityResponse,
   InviteUserRequest,
   InviteUserResponse,
+  LeaveTypeConfig,
+  LeaveTypesRequest,
+  LeaveTypesResponse,
 } from './platform';
 
 // Tenant API exports

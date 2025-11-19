@@ -31,9 +31,11 @@ import {
   CreditCard,
   BarChart3,
   FileText,
+  Calendar,
 } from "lucide-react";
+import LeaveConfiguration from "@/components/(platform)/dashboard/LeaveConfiguration";
 
-type Tab = "overview" | "team" | "settings";
+type Tab = "overview" | "team" | "settings" | "leave";
 
 // Mock tenant data - will be replaced with real API data
 const mockTenantData = {
@@ -76,6 +78,7 @@ export default function DashboardPage() {
   const navItems = [
     { id: "overview" as Tab, label: "Overview", icon: LayoutDashboard },
     { id: "team" as Tab, label: "Team", icon: Users },
+    { id: "leave" as Tab, label: "Leave Policies", icon: Calendar },
     { id: "settings" as Tab, label: "Settings", icon: Settings },
   ];
 
@@ -167,6 +170,8 @@ export default function DashboardPage() {
                     ? "Dashboard Overview"
                     : activeTab === "team"
                     ? "Team Management"
+                    : activeTab === "leave"
+                    ? "Leave Policies"
                     : "Settings"}
                 </h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -174,6 +179,8 @@ export default function DashboardPage() {
                     ? "Welcome back! Here's your workspace overview"
                     : activeTab === "team"
                     ? "Manage your team members and invitations"
+                    : activeTab === "leave"
+                    ? "Configure leave types and policies"
                     : "Customize your workspace settings"}
                 </p>
               </div>
@@ -385,6 +392,8 @@ export default function DashboardPage() {
                 </Card>
               </div>
             )}
+
+            {activeTab === "leave" && <LeaveConfiguration />}
 
             {activeTab === "settings" && (
               <div className="space-y-6">
