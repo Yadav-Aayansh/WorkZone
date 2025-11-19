@@ -362,9 +362,9 @@ export default function CareersPage() {
                           </div>
                         </div>
 
-                        <p className="text-gray-700 dark:text-gray-300 line-clamp-2 mb-4">
-                          {job.description}
-                        </p>
+                        <div className="text-gray-700 dark:text-gray-300 line-clamp-2 mb-4 prose prose-sm dark:prose-invert max-w-none">
+                          <ReactMarkdown>{job.description}</ReactMarkdown>
+                        </div>
 
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-gray-500 dark:text-gray-400">

@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { JobApplicationModal } from "@/components/careers/JobApplicationModal";
+import ReactMarkdown from "react-markdown";
 
 export default function JobDetailsPage() {
   const params = useParams();
@@ -205,9 +206,7 @@ export default function JobDetailsPage() {
           </CardHeader>
           <CardContent>
             <div className="prose dark:prose-invert max-w-none">
-              <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                {job.description}
-              </p>
+              <ReactMarkdown>{job.description}</ReactMarkdown>
             </div>
           </CardContent>
         </Card>

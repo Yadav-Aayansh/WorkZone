@@ -98,6 +98,7 @@ export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
           id: userId || "---",
         }}
         brandName={tenant?.brandName || "WorkZone"}
+        brandLogo={tenant?.logo}
         onLogout={handleLogout}
       />
 

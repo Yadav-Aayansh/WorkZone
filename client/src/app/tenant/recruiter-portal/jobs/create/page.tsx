@@ -26,15 +26,20 @@ import {
   Building2,
   FileText,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
+import { useTenant } from "@/providers/tenant-provider";
 
 function CreateJobContent() {
   const router = useRouter();
+  const { tenant } = useTenant();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -106,6 +111,46 @@ function CreateJobContent() {
   const handleBack = () => {
     setError(null);
     setCurrentStep(currentStep - 1);
+  };
+
+  const handleEnhanceDescription = async () => {
+    if (!formData.title.trim()) {
+      toast.error("Please enter a job title first");
+      return;
+    }
+
+    setIsEnhancing(true);
+    setError(null);
+
+    try {
+      const prompt =
+        formData.description.trim() ||
+        `Create a comprehensive job description for ${formData.title} position${
+          formData.department ? ` in ${formData.department} department` : ""
+        }${formData.location ? ` based in ${formData.location}` : ""}.`;
+
+      const result = await tenantJobAPI.enhanceJobDescription({
+        prompt,
+        company_name: tenant?.brandName || "Our Company",
+        tone: "professional and enthusiastic",
+      });
+
+      setFormData((prev) => ({
+        ...prev,
+        description: result.markdown_text,
+      }));
+
+      toast.success("Job description enhanced with AI!");
+    } catch (err: unknown) {
+      console.error("Failed to enhance description:", err);
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to enhance description. Please try again.";
+      toast.error(message);
+    } finally {
+      setIsEnhancing(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -181,7 +226,9 @@ function CreateJobContent() {
                             "border-primary bg-primary text-primary-foreground",
                           isCompleted &&
                             "border-primary bg-primary text-primary-foreground",
-                          !isActive && !isCompleted && "border-muted bg-background"
+                          !isActive &&
+                            !isCompleted &&
+                            "border-muted bg-background"
                         )}
                       >
                         {isCompleted ? (
@@ -228,8 +275,7 @@ function CreateJobContent() {
                 "Enter the basic information about the job position"}
               {currentStep === 2 &&
                 "Provide detailed information about the role"}
-              {currentStep === 3 &&
-                "Review your job posting before publishing"}
+              {currentStep === 3 && "Review your job posting before publishing"}
             </CardDescription>
           </CardHeader>
 
@@ -290,7 +336,10 @@ function CreateJobContent() {
               {currentStep === 2 && (
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="location" className="flex items-center gap-2">
+                    <Label
+                      htmlFor="location"
+                      className="flex items-center gap-2"
+                    >
                       <MapPin className="h-4 w-4" />
                       Location <span className="text-destructive">*</span>
                     </Label>
@@ -308,25 +357,59 @@ function CreateJobContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="description"
-                      className="flex items-center gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Job Description <span className="text-destructive">*</span>
-                    </Label>
+                    <div className="flex items-center justify-between">
+                      <Label
+                        htmlFor="description"
+                        className="flex items-center gap-2"
+                      >
+                        <FileText className="h-4 w-4" />
+                        Job Description{" "}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleEnhanceDescription}
+                        disabled={isEnhancing || !formData.title.trim()}
+                        className="gap-2"
+                      >
+                        {isEnhancing ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Enhancing...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            AI Enhance
+                          </>
+                        )}
+                      </Button>
+                    </div>
                     <Textarea
                       id="description"
                       name="description"
-                      placeholder="Describe the role, responsibilities, requirements, and what makes this position exciting..."
+                      placeholder="Describe the role, responsibilities, requirements, and what makes this position exciting... or click 'AI Enhance' to generate automatically!"
                       value={formData.description}
                       onChange={handleChange}
                       rows={12}
-                      className="resize-none"
+                      className="resize-none font-mono text-sm"
                     />
                     <p className="text-sm text-muted-foreground">
-                      Provide a comprehensive description of the role
+                      Provide a comprehensive description or use AI to generate
+                      one. Markdown formatting supported.
                     </p>
+
+                    {/* Markdown Preview */}
+                    {formData.description && (
+                      <div className="space-y-2 mt-4">
+                        <Label className="text-sm font-medium">Preview:</Label>
+                        <div className="rounded-lg border bg-muted/30 p-4 prose prose-sm dark:prose-invert max-w-none">
+                          <ReactMarkdown>{formData.description}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -366,9 +449,9 @@ function CreateJobContent() {
                         <FileText className="h-4 w-4" />
                         Description
                       </Label>
-                      <p className="whitespace-pre-wrap text-sm">
-                        {formData.description}
-                      </p>
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown>{formData.description}</ReactMarkdown>
+                      </div>
                     </div>
                   </div>
 

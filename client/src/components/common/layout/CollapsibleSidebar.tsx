@@ -43,6 +43,7 @@ export interface CollapsibleSidebarProps {
     id: string;
   };
   brandName?: string;
+  brandLogo?: string;
   onLogout?: () => void;
 }
 
@@ -50,6 +51,7 @@ function SidebarContentWrapper({
   navItems,
   user,
   brandName = "WorkZone",
+  brandLogo,
   onLogout,
 }: CollapsibleSidebarProps) {
   const pathname = usePathname();
@@ -86,11 +88,21 @@ function SidebarContentWrapper({
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-foreground shadow-sm">
-                <span className="text-xl font-bold text-background">
-                  {brandName[0]}
-                </span>
-              </div>
+              {brandLogo ? (
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl overflow-hidden bg-white shadow-sm">
+                  <img
+                    src={brandLogo}
+                    alt={brandName}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-foreground shadow-sm">
+                  <span className="text-xl font-bold text-background">
+                    {brandName[0]}
+                  </span>
+                </div>
+              )}
               <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
                 <span className="text-sm font-semibold truncate">
                   {brandName}
