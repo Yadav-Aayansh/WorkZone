@@ -9,6 +9,7 @@ from .applicant import applicant_router
 from .job import job_router
 from .application import application_router
 from .ai_interview import ai_interview_router
+from .leave import leave_router
 
 # Tenant Routers (HTTP & WS)
 tenant_router = APIRouter(prefix="/api/tenant")
@@ -24,6 +25,7 @@ http_router.include_router(employee_router)
 http_router.include_router(applicant_router)
 http_router.include_router(job_router)
 http_router.include_router(application_router)
+http_router.include_router(leave_router)
 
 tenant_router.include_router(http_router)
 
