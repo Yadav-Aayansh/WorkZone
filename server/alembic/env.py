@@ -7,56 +7,89 @@ from alembic import context
 from src.core.database import PublicBase, TenantBase
 from src.core.config import Config
 
-from src.models.platform import Client, Order, Setting
-from src.models.tenant import User, Recruiter, Manager, Employee, Applicant, Job, Application, AiInterview
+from src.models.platform import *
+from src.models.tenant import *
 
 config = context.config
 config.set_main_option("sqlalchemy.url", Config.SYNC_DATABASE_URL)
 
-migration_type = os.getenv("MIGRATION_TYPE", "public")
+# Detect which config is being used
+config_file = config.config_file_name
+is_tenant = "tenant" in config_file if config_file else False
 
-if migration_type == "public":
-    target_metadata = PublicBase.metadata
-else:
+if is_tenant:
     target_metadata = TenantBase.metadata
-
-
-if migration_type == "public":
-    config.set_main_option("version_locations", "alembic/versions/public")
+    version_table = "alembic_version"
 else:
-    config.set_main_option("version_locations", "alembic/versions/tenant")
+    target_metadata = PublicBase.metadata
+    version_table = "alembic_version_public"
+
+def run_migrations_offline() -> None:
+    """Run migrations in 'offline' mode."""
+    url = config.get_main_option("sqlalchemy.url")
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+        version_table=version_table,
+    )
+    with context.begin_transaction():
+        context.run_migrations()
 
 def run_migrations_online() -> None:
-    print(f"Starting migration - Type: {migration_type}")
-    
+    """Run migrations in 'online' mode."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
     
-    print(f"Connected to database")
-    
     with connectable.connect() as connection:
-        if migration_type == "public":
-            print("Setting search_path to public")
+        if not is_tenant:
+            # PUBLIC migrations
             connection.execute(text("SET search_path TO public"))
-            connection.commit()
-            
-            print("Configuring context for public")
             context.configure(
                 connection=connection,
                 target_metadata=target_metadata,
-                version_table="alembic_version_public",
-                version_table_schema="public"
+                version_table=version_table,
+                version_table_schema="public",
+                include_schemas=False,
             )
-            
-            print("Running migrations")
             with context.begin_transaction():
                 context.run_migrations()
-            print("DONE!")
+        else:
+            # TENANT migrations
+            result = connection.execute(text(
+                "SELECT tenant_id FROM public.clients WHERE tenant_id IS NOT NULL"
+            ))
+            tenants = [row[0] for row in result]
             
+            # DON'T do this table creation during stamp - remove it:
+            # raw_conn = connection.connection.dbapi_connection
+            # cursor = raw_conn.cursor()
+            # for tenant_id in tenants:
+            #     cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{tenant_id}"')
+            #     cursor.execute(f"""CREATE TABLE IF NOT EXISTS...""")
+            
+            for tenant_id in tenants:
+                print(f"Migrating tenant: {tenant_id}")
+                connection.execute(text(f'SET search_path TO "{tenant_id}"'))
+                
+                context.configure(
+                    connection=connection,
+                    target_metadata=target_metadata,
+                    version_table=version_table,
+                    version_table_schema=tenant_id,
+                    include_schemas=False,
+                )
+                
+                with context.begin_transaction():
+                    context.run_migrations()
+                    
+                print(f"✓ Migrated {tenant_id}")
+                
 if context.is_offline_mode():
-    pass
+    run_migrations_offline()
 else:
     run_migrations_online()
