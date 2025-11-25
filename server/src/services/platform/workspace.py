@@ -11,6 +11,7 @@ from src.tasks import send_invite_email
 from src.core.database import get_schema
 from typing import Dict, Any
 from uuid import UUID
+from src.models.tenant import Role
 
 class WorkspaceService:
     def __init__(self, client_repo: ClientRepository, setting_repo: SettingRepository):
@@ -30,12 +31,18 @@ class WorkspaceService:
                 raise UserAlreadyExistsError(f"User {data.email} already exists!")
         
         client = await self.client_repo.get_client_by_id(client_id)
-        token = create_access_token({
+
+        payload = {
             "name": data.name,
             "email": data.email,
             "role": data.role.value,
             "aud": f"{tenant_id}.{Config.DOMAIN_NAME}"
-        }, expires_minutes=2592000)
+        }
+        
+        if data.role == Role.EMPLOYEE:
+            payload["manager_id"] = str(data.manager_id)
+
+        token = create_access_token(payload, expires_minutes=2592000)
 
         invite_link = f"https://{tenant_id}.{Config.DOMAIN_NAME}/signup/invited?token={token}"
         task = send_invite_email.delay(data.email, invite_link, client.brand_name)
