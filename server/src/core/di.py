@@ -5,14 +5,16 @@ from src.repository.platform import ClientRepository, OrderRepository, SettingRe
 from src.repository.tenant import (
     UserRepository, ManagerRepository, RecruiterRepository,
     EmployeeRepository, ApplicantRepository, JobRepository,
-    ApplicationRepository, AiInterviewRepository
+    ApplicationRepository, AiInterviewRepository, LeaveEntitlementRepository,
+    LeaveRequestRepository
 )
 from src.services.platform import (
     ClientService, OrderService, WorkspaceService
 )
 from src.services.tenant import (
     UserService, RecruiterService, ManagerService, EmployeeService,
-    ApplicantService, JobService, ApplicationService, AiInterviewService
+    ApplicantService, JobService, ApplicationService, AiInterviewService,
+    LeaveService
 )
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from src.exceptions.base import RoleNotAllowedError
@@ -158,3 +160,11 @@ async def get_ai_interview_service_ws(db: AsyncSession = Depends(get_tenant_db_w
     ai_interview_repo = AiInterviewRepository(db)
     application_repo = ApplicationRepository(db)
     return AiInterviewService(ai_interview_repo, application_repo)
+
+
+async def get_leave_service(db: AsyncSession = Depends(get_tenant_db)):
+    employee_repo = EmployeeRepository(db)
+    manager_repo = ManagerRepository(db)
+    leave_entitlement_repo = LeaveEntitlementRepository(db)
+    leave_request_repo = LeaveRequestRepository(db)
+    return LeaveService(employee_repo, manager_repo, leave_entitlement_repo, leave_request_repo)

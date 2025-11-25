@@ -6,9 +6,10 @@ class EmployeeRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_employee(self, user_id: str):
+    async def create_employee(self, user_id: str, manager_id: str):
         new_employee = Employee(
-            user_id=user_id
+            user_id=user_id,
+            manager_id=manager_id
         )
 
         self.db.add(new_employee)

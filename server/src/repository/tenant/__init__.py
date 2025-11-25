@@ -6,3 +6,5 @@ from .applicant import ApplicantRepository
 from .job import JobRepository
 from .application import ApplicationRepository
 from .ai_interview import AiInterviewRepository
+from .leave_entitlement import LeaveEntitlementRepository
+from .leave_request import LeaveRequestRepository
