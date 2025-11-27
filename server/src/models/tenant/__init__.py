@@ -8,5 +8,6 @@ from .application import Application, ApplicationStatus
 from .ai_interview import AiInterview
 from .leave_entitlement import LeaveEntitlement
 from .leave_request import LeaveRequest, LeaveRequestType, LeaveRequestStatus
+from .learning_path import LearningPath
 
-__all__ = [ "User", "Role", "Applicant", "Employee", "Manager", "Recruiter", "Job", "Application", "ApplicationStatus", "AiInterview", "LeaveEntitlement", "LeaveRequest", "LeaveRequestType", "LeaveRequestStatus"]
+__all__ = [ "User", "Role", "Applicant", "Employee", "Manager", "Recruiter", "Job", "Application", "ApplicationStatus", "AiInterview", "LeaveEntitlement", "LeaveRequest", "LeaveRequestType", "LeaveRequestStatus", "LearningPath"]
