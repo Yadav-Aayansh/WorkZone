@@ -4,17 +4,14 @@ import { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
-  Briefcase,
   Users,
-  FileText,
   Calendar,
-  Gift,
-  Brain,
-  Inbox,
+  CheckSquare,
+  TrendingUp,
+  FileText,
   Bell,
-  Plus,
   Search,
-  Upload,
+  User,
 } from "lucide-react";
 import { CollapsibleSidebar } from "@/components/common/layout/CollapsibleSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -37,47 +34,42 @@ import { Badge } from "@/components/ui/badge";
 const navItems = [
   {
     title: "Dashboard",
-    href: "/tenant/recruiter-portal/dashboard",
+    href: "/tenant/manager-portal/dashboard",
     icon: LayoutDashboard,
   },
   {
-    title: "Jobs",
-    href: "/tenant/recruiter-portal/jobs",
-    icon: Briefcase,
-  },
-  {
-    title: "Applications",
-    href: "/tenant/recruiter-portal/applications",
-    icon: Inbox,
-  },
-  {
-    title: "Candidates",
-    href: "/tenant/recruiter-portal/candidates",
+    title: "Team Members",
+    href: "/tenant/manager-portal/team",
     icon: Users,
   },
   {
-    title: "Resume Scoring",
-    href: "/tenant/recruiter-portal/resume-scoring",
-    icon: FileText,
+    title: "Leave Approvals",
+    href: "/tenant/manager-portal/leaves",
+    icon: CheckSquare,
   },
   {
-    title: "Interviews",
-    href: "/tenant/recruiter-portal/interviews",
+    title: "Attendance",
+    href: "/tenant/manager-portal/attendance",
     icon: Calendar,
   },
   {
-    title: "AI Interviews",
-    href: "/tenant/recruiter-portal/ai-interviews",
-    icon: Brain,
+    title: "Performance",
+    href: "/tenant/manager-portal/performance",
+    icon: TrendingUp,
   },
   {
-    title: "Offers",
-    href: "/tenant/recruiter-portal/offers",
-    icon: Gift,
+    title: "Reports",
+    href: "/tenant/manager-portal/reports",
+    icon: FileText,
+  },
+  {
+    title: "Profile",
+    href: "/tenant/manager-portal/profile",
+    icon: User,
   },
 ];
 
-export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
+export function ModernManagerLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { tenant } = useTenant();
   const { logout, userId } = useTenantAuth();
@@ -93,8 +85,8 @@ export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
       <CollapsibleSidebar
         navItems={navItems}
         user={{
-          name: "Recruiter",
-          role: "Recruiter Portal",
+          name: "Manager",
+          role: "Manager Portal",
           id: userId || "---",
         }}
         brandName={tenant?.brandName || "WorkZone"}
@@ -110,7 +102,7 @@ export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search jobs, candidates, applications..."
+                placeholder="Search team members, requests..."
                 className="pl-10 bg-muted/50"
               />
             </div>
@@ -118,21 +110,13 @@ export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
 
           {/* Quick Actions & Profile */}
           <div className="flex items-center gap-2 ml-auto">
-            {/* Import Button */}
-            <Button variant="outline" size="sm">
-              <Upload className="mr-2 h-4 w-4" />
-              Import
-            </Button>
-
-            {/* Create Job Button */}
+            {/* Leave Approvals Button */}
             <Button
               size="sm"
-              onClick={() =>
-                router.push("/tenant/recruiter-portal/jobs/create")
-              }
+              onClick={() => router.push("/tenant/manager-portal/leaves")}
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Create Job
+              <CheckSquare className="mr-2 h-4 w-4" />
+              Leave Approvals
             </Button>
 
             {/* Notifications */}
@@ -150,19 +134,19 @@ export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <div className="flex flex-col gap-1">
-                    <p className="text-sm font-medium">
-                      New application received
-                    </p>
+                    <p className="text-sm font-medium">New leave request</p>
                     <p className="text-xs text-muted-foreground">
-                      Sr. Vue.js Developer • 2 min ago
+                      John Doe requested casual leave • 10 min ago
                     </p>
                   </div>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <div className="flex flex-col gap-1">
-                    <p className="text-sm font-medium">Interview scheduled</p>
+                    <p className="text-sm font-medium">
+                      Performance review due
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      John Doe • 1 hour ago
+                      3 team members pending review • 1 day ago
                     </p>
                   </div>
                 </DropdownMenuItem>
@@ -184,9 +168,9 @@ export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
                   className="relative h-9 w-9 rounded-full"
                 >
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src="/avatars/recruiter.jpg" />
+                    <AvatarImage src="/avatars/manager.jpg" />
                     <AvatarFallback className="bg-primary text-primary-foreground">
-                      R
+                      M
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -194,7 +178,7 @@ export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">Recruiter</p>
+                    <p className="text-sm font-medium">Manager</p>
                     <p className="text-xs text-muted-foreground">
                       ID: {userId || "---"}
                     </p>
@@ -202,12 +186,12 @@ export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() =>
-                    router.push("/tenant/recruiter-portal/profile")
-                  }
+                  onClick={() => router.push("/tenant/manager-portal/profile")}
                 >
-                  Profile Settings
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={handleLogout}
                   className="text-destructive"
@@ -220,9 +204,7 @@ export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex flex-1 flex-col gap-4 p-6 bg-gradient-to-br from-white via-gray-50/50 to-gray-100/30 dark:from-background dark:via-background dark:to-neutral-800/30">
-          {children}
-        </main>
+        <main className="flex-1 p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -36,6 +36,7 @@ export default function InviteEmployeePage() {
     email: "",
     name: "",
     role: "employee" as "employee" | "manager" | "recruiter",
+    manager_id: "",
   });
 
   const handleChange = (field: string, value: string) => {
@@ -48,14 +49,33 @@ export default function InviteEmployeePage() {
     e.preventDefault();
     setError(null);
     setSuccess(false);
+
+    // Validate manager_id is provided for employees
+    if (formData.role === "employee" && !formData.manager_id.trim()) {
+      setError("Manager ID is required for employees");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await platformClientAPI.inviteUser({
+      const requestData: {
+        email: string;
+        name: string;
+        role: "employee" | "manager" | "recruiter";
+        manager_id?: string;
+      } = {
         email: formData.email,
         name: formData.name,
         role: formData.role,
-      });
+      };
+
+      // Only include manager_id for employees
+      if (formData.role === "employee" && formData.manager_id.trim()) {
+        requestData.manager_id = formData.manager_id.trim();
+      }
+
+      await platformClientAPI.inviteUser(requestData);
 
       setSuccess(true);
       showToast({
@@ -69,6 +89,7 @@ export default function InviteEmployeePage() {
         email: "",
         name: "",
         role: "employee",
+        manager_id: "",
       });
 
       // Redirect after 2 seconds
@@ -322,6 +343,34 @@ export default function InviteEmployeePage() {
                     🔐 Role determines their access level and permissions
                   </p>
                 </div>
+
+                {/* Manager ID field - only shown when role is employee */}
+                {formData.role === "employee" && (
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="manager_id"
+                      className="text-base font-medium dark:text-white"
+                    >
+                      Manager ID *
+                    </Label>
+                    <Input
+                      id="manager_id"
+                      type="text"
+                      placeholder="Enter manager's UUID"
+                      value={formData.manager_id}
+                      onChange={(e) =>
+                        handleChange("manager_id", e.target.value)
+                      }
+                      required={formData.role === "employee"}
+                      disabled={isSubmitting || success}
+                      className="w-full h-11 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                    <p className="text-xs text-muted-foreground dark:text-gray-400 flex items-center gap-1">
+                      👨‍💼 The UUID of the manager who will supervise this
+                      employee
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex gap-4 pt-6 border-t dark:border-gray-700">
                   <Button

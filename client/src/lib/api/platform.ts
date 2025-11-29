@@ -413,6 +413,7 @@ export interface InviteUserRequest {
   name: string;
   email: string;
   role: 'employee' | 'manager' | 'recruiter';
+  manager_id?: string; // Required when role is 'employee'
 }
 
 export interface InviteUserResponse {
