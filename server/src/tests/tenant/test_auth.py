@@ -4,9 +4,7 @@ import pytest
 import httpx
 import asyncio
 
-# -------------------------------------------------------------------
-# GLOBAL CONFIG
-# -------------------------------------------------------------------
+# Global Config
 
 BASE_PLATFORM_URL = "https://workzone.tech/api"
 CLIENT_BASE_URL = f"{BASE_PLATFORM_URL}/platform"
@@ -14,28 +12,26 @@ CLIENT_BASE_URL = f"{BASE_PLATFORM_URL}/platform"
 TENANT_ID = "abc123"
 TENANT_URL = f"https://{TENANT_ID}.workzone.tech/api/tenant/auth"
 
-# PLATFORM CLIENT (Admin) Credentials
+# Credentials
 CLIENT_EMAIL = f"platformadmin@workzone.tech"
 CLIENT_PASSWORD = "Admin@123"
 
-# Randomized test data
+# Test Data
 BRAND_NAME = f"MyBrand_{uuid.uuid4().hex[:4]}"
 LOGO_FILE_CONTENT = b"fake image bytes"
 TEST_EMAIL = f"testuser_{uuid.uuid4().hex[:6]}@example.com"
 TEST_PASSWORD = "StrongPass@123"
 TEST_ROLE = "applicant"
 
-# Dynamic storage
+# Dynamic Storage
 CLIENT_ACCESS_TOKEN = None
 REFRESH_TOKEN = None
 
-# -------------------------------------------------------------------
-# 2️⃣ SIGNUP TESTS
-# -------------------------------------------------------------------
+# Signup Tests
 
 @pytest.mark.asyncio
 async def test_signup_success():
-    """✅ Positive: Tenant user signup."""
+    """Test tenant user signup."""
     await asyncio.sleep(3)  # Give DNS time if needed
     async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
         payload = {
@@ -51,7 +47,7 @@ async def test_signup_success():
 
 @pytest.mark.asyncio
 async def test_signup_duplicate_user():
-    """❌ Negative: Same user again."""
+    """Test duplicate user signup."""
     async with httpx.AsyncClient(verify=False) as client:
         payload = {
             "name": "Test User",
@@ -66,7 +62,7 @@ async def test_signup_duplicate_user():
 
 @pytest.mark.asyncio
 async def test_signup_missing_fields():
-    """❌ Negative: Missing email should fail."""
+    """Test signup with missing fields."""
     async with httpx.AsyncClient(verify=False) as client:
         payload = {"name": "NoEmail", "password": TEST_PASSWORD, "role": TEST_ROLE}
         response = await client.post(f"{TENANT_URL}/signup", json=payload)
@@ -74,13 +70,11 @@ async def test_signup_missing_fields():
         assert response.status_code == 422
 
 
-# -------------------------------------------------------------------
-# 3️⃣ LOGIN TESTS
-# -------------------------------------------------------------------
+# Login Tests
 
 @pytest.mark.asyncio
 async def test_login_success():
-    """✅ Positive: Login to tenant."""
+    """Test login to tenant."""
     async with httpx.AsyncClient(verify=False) as client:
         payload = {"email": TEST_EMAIL, "password": TEST_PASSWORD}
         response = await client.post(f"{TENANT_URL}/login", json=payload)
@@ -95,7 +89,7 @@ async def test_login_success():
 
 @pytest.mark.asyncio
 async def test_login_wrong_password():
-    """❌ Negative: Wrong password should fail."""
+    """Test login with wrong password."""
     async with httpx.AsyncClient(verify=False) as client:
         payload = {"email": TEST_EMAIL, "password": "WrongPassword!"}
         response = await client.post(f"{TENANT_URL}/login", json=payload)
@@ -105,7 +99,7 @@ async def test_login_wrong_password():
 
 @pytest.mark.asyncio
 async def test_login_unknown_user():
-    """❌ Negative: Unknown user."""
+    """Test login with unknown user."""
     async with httpx.AsyncClient(verify=False) as client:
         payload = {"email": "nouser@unknown.com", "password": "InvalidPass"}
         response = await client.post(f"{TENANT_URL}/login", json=payload)
@@ -113,13 +107,11 @@ async def test_login_unknown_user():
         assert response.status_code == 401
 
 
-# -------------------------------------------------------------------
-# 4️⃣ REFRESH TOKEN TESTS
-# -------------------------------------------------------------------
+# Refresh Token Tests
 
 @pytest.mark.asyncio
 async def test_refresh_token_success():
-    """✅ Positive: Refresh access token."""
+    """Test refresh access token."""
     if not REFRESH_TOKEN:
         pytest.skip("No refresh token from login.")
     async with httpx.AsyncClient(verify=False) as client:
@@ -134,7 +126,7 @@ async def test_refresh_token_success():
 
 @pytest.mark.asyncio
 async def test_refresh_token_invalid():
-    """❌ Negative: Invalid refresh token should fail."""
+    """Test invalid refresh token."""
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
             f"{TENANT_URL}/refresh",
