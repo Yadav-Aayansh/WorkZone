@@ -850,6 +850,145 @@ export const tenantEmployeeAPI = {
   },
 };
 
+// ============================================
+// Leave Management Types
+// ============================================
+
+export enum LeaveRequestType {
+  CASUAL = 'casual',
+  SICK = 'sick',
+  EARNED = 'earned',
+  MATERNITY = 'maternity',
+  PATERNITY = 'paternity',
+}
+
+export enum LeaveRequestStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  CANCELLED = 'cancelled',
+}
+
+export interface ApplyLeaveRequest {
+  leave_type: LeaveRequestType;
+  start_date: string; // ISO date string YYYY-MM-DD
+  end_date: string; // ISO date string YYYY-MM-DD
+  reason: string;
+}
+
+export interface RejectLeaveRequest {
+  rejection_reason: string;
+}
+
+export interface LeaveRequestResponse {
+  id: string;
+  employee_id: string;
+  manager_id: string | null;
+  leave_type: LeaveRequestType;
+  status: LeaveRequestStatus;
+  start_date: string;
+  end_date: string;
+  reason: string;
+  rejection_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LeaveBalanceResponse {
+  employee_id: string;
+  casual: number;
+  sick: number;
+  earned: number;
+  maternity: number;
+  paternity: number;
+  total_available: number;
+  total_used: number;
+}
+
+// ============================================
+// Tenant Leave API (Employee & Manager)
+// ============================================
+
+export const tenantLeaveAPI = {
+  /**
+   * Apply for leave (requires EMPLOYEE role)
+   */
+  async applyLeave(data: ApplyLeaveRequest): Promise<LeaveRequestResponse> {
+    return tenantApiRequest<LeaveRequestResponse>(
+      `${getTenantBackendUrl()}/api/tenant/leaves/apply`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get current employee's leave requests (requires EMPLOYEE role)
+   */
+  async getMyLeaveRequests(): Promise<LeaveRequestResponse[]> {
+    return tenantApiRequest<LeaveRequestResponse[]>(
+      `${getTenantBackendUrl()}/api/tenant/leaves/`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get current employee's leave balance (requires EMPLOYEE role)
+   */
+  async getLeaveBalance(): Promise<LeaveBalanceResponse> {
+    return tenantApiRequest<LeaveBalanceResponse>(
+      `${getTenantBackendUrl()}/api/tenant/leaves/balance`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get pending leave requests for approval (requires MANAGER role)
+   */
+  async getPendingApprovals(): Promise<LeaveRequestResponse[]> {
+    return tenantApiRequest<LeaveRequestResponse[]>(
+      `${getTenantBackendUrl()}/api/tenant/leaves/pending-requests`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Approve a leave request (requires MANAGER role)
+   */
+  async approveLeave(leaveRequestId: string): Promise<LeaveRequestResponse> {
+    return tenantApiRequest<LeaveRequestResponse>(
+      `${getTenantBackendUrl()}/api/tenant/leaves/${leaveRequestId}/approve`,
+      { method: 'POST' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Reject a leave request (requires MANAGER role)
+   */
+  async rejectLeave(leaveRequestId: string, data: RejectLeaveRequest): Promise<LeaveRequestResponse> {
+    return tenantApiRequest<LeaveRequestResponse>(
+      `${getTenantBackendUrl()}/api/tenant/leaves/${leaveRequestId}/reject`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+};
+
 // Export utility functions for use in other files
 export { getTenantSubdomain, getTenantBackendUrl, getTenantTokens, setTenantTokens, clearTenantTokens };
 
