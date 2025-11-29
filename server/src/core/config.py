@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # Gemini API
     GOOGLE_API_KEY: str
-
+    
     # JWT
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str

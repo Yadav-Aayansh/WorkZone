@@ -38,7 +38,7 @@ async def test_tts_module():
     try:
         print("\nPreparing test input...")
 
-        test_text = "Hello, this is a test of the Google text to speech engine."
+        test_text = "FastAPI is a modern, high-performance Python framework used for building APIs with efficient asynchronous support, making it ideal for scalable microservices. Redis often complements FastAPI as an in-memory data store for caching, message brokering, and real-time operations, significantly improving response times. PostgreSQL serves as the primary relational database, offering strong ACID compliance, advanced indexing, and JSON support for complex queries"
         test_session = "test_session_0101"
         test_index = 0
 
@@ -67,3 +67,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+

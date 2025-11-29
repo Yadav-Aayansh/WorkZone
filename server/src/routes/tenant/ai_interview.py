@@ -30,7 +30,7 @@ async def interview(websocket: WebSocket, interview_id: str):
         start_res = await start_interview(
             StartInterviewRequest(
                 session_id=interview_id,
-                resume_blob_name="Aayansh Yadav October.pdf",
+                resume_blob_name="resumes/resume.pdf",
                 jd_text="""
 # Backend Developer (2+ Years Experience)
 
@@ -94,7 +94,8 @@ We’re looking for a **Backend Developer** with at least 2 years of hands-on ex
                 logger.warning(f"Unknown message type: {message}")
                 continue
 
-            if llm_reply.status == "in_progress":
+            # if llm_reply.status == "in_progress":
+            if llm_reply.status in ["in_progress", "clarification_needed"]:
                 await websocket.send_json(llm_reply.model_dump())
             else:
                 report = await generate_final_report(GenerateReportRequest(session_id=interview_id))

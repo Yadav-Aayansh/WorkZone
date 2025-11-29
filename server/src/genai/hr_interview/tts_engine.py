@@ -19,7 +19,7 @@ except ImportError:
 
 
 # Configuration
-GOOGLE_VOICE_NAME = "en-IN-Neural2-A"
+GOOGLE_VOICE_NAME = "en-IN-Chirp3-HD-Charon"
 GOOGLE_LANGUAGE_CODE = "en-IN"
 
 
@@ -117,3 +117,4 @@ async def text_to_speech(text: str, session_id: str, question_index: int) -> str
     
     except Exception as e:
         raise Exception(f"TTS error: {str(e)}")
+    
