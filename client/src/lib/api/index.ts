@@ -41,12 +41,15 @@ export {
   tenantRecruiterAPI,
   tenantManagerAPI,
   tenantEmployeeAPI,
+  tenantLeaveAPI,
   TenantAPIError,
   getTenantSubdomain,
   getTenantTokens,
   setTenantTokens,
   clearTenantTokens,
   ApplicationStatus,
+  LeaveRequestType,
+  LeaveRequestStatus,
 } from './tenant';
 
 export type {
@@ -71,6 +74,10 @@ export type {
   RecruiterProfileResponse,
   ManagerProfileResponse,
   EmployeeProfileResponse,
+  ApplyLeaveRequest,
+  RejectLeaveRequest,
+  LeaveRequestResponse,
+  LeaveBalanceResponse,
 } from './tenant';
 
 // Backwards compatibility - import for creating combined API
