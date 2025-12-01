@@ -1,6 +1,6 @@
 from uuid import UUID
 from typing import Dict, Any
-from sqlalchemy import select
+from sqlalchemy import select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.platform import Setting
 
@@ -34,3 +34,32 @@ class SettingRepository:
         await self.db.commit()
         await self.db.refresh(setting)
         return setting
+    
+    async def set_policy_docs(self, client_id: UUID, docs: list[str]):
+        setting = await self.get_by_client_id(client_id)
+        setting.policy_docs = docs
+        await self.db.commit()
+        await self.db.refresh(setting)
+        return setting
+    
+    async def append_policy_docs(self, client_id: UUID, docs: list[str]):
+        stmt = (
+            update(Setting)
+            .where(Setting.client_id == client_id)
+            .values(policy_docs=Setting.policy_docs + docs)
+            .returning(Setting)
+        )
+        result = await self.db.execute(stmt)
+        await self.db.commit()
+        return result.scalar_one()
+    
+    async def delete_policy_doc(self, client_id: UUID, doc: str):
+        stmt = (
+            update(Setting)
+            .where(Setting.client_id == client_id)
+            .values(policy_docs=func.array_remove(Setting.policy_docs, doc))
+            .returning(Setting)
+        )
+        result = await self.db.execute(stmt)
+        await self.db.commit()
+        return result.scalar_one()
