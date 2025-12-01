@@ -1,7 +1,7 @@
 from src.core.database import PublicBase
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import Column, JSON, String, ForeignKey
+from sqlalchemy import Column, JSON, String, ForeignKey, ARRAY
 from sqlalchemy.orm import relationship
 
 class Setting(PublicBase):
@@ -16,4 +16,6 @@ class Setting(PublicBase):
         "paternity": {"days": 15, "carry_forward": False, "encashable": False}
     })
 
+    policy_docs = Column(ARRAY(String), default=list)
+    
     client = relationship("Client", back_populates="setting", uselist=False)

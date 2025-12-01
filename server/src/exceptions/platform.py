@@ -26,3 +26,9 @@ class TenantNotFoundError(NotFoundError):
 
 class InvalidPaymentSignature(PaymentError):
     pass
+
+class PolicyAlreadyExistsError(ConflictError):
+    pass
+
+class PolicyNotFoundError(NotFoundError):
+    pass

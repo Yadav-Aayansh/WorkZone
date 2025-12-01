@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from uuid import UUID
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from src.core.di import get_workspace_service, get_current_user
 from src.services.platform import WorkspaceService
-from uuid import UUID
 from src.schemas.platform import LeaveTypesRequest, LeaveTypesResponse
-from src.exceptions.platform import SettingNotFoundError, SettingAlreadyExistsError
+from src.exceptions.base import FileSizeExceededError, FileTypeNotAllowedError
+from src.exceptions.platform import (
+    SettingNotFoundError, SettingAlreadyExistsError, PolicyNotFoundError,
+    PolicyAlreadyExistsError
+)
 
 workspace_router = APIRouter(prefix="/workspace", tags=["Client Workspace"])
 
@@ -47,3 +51,71 @@ async def update_leave_types(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@workspace_router.post("/policy")
+async def set_policies(
+    data: list[UploadFile],
+    service: WorkspaceService = Depends(get_workspace_service),
+    current_user = Depends(get_current_user())
+):
+    try:
+        client_id = current_user.get("sub")
+        return await service.set_documents(client_id, data)
+    except SettingNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except FileTypeNotAllowedError as e:
+        raise HTTPException(status_code=415, detail=str(e))
+    except FileSizeExceededError as e:
+        raise HTTPException(status_code=413, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@workspace_router.get("/policy")
+async def get_policies(
+    service: WorkspaceService = Depends(get_workspace_service),
+    current_user = Depends(get_current_user())
+):
+    try:
+        client_id = current_user.get("sub")
+        return await service.my_documents(client_id)
+    except SettingNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@workspace_router.patch("/policy")
+async def add_policies(
+    data: list[UploadFile],
+    service: WorkspaceService = Depends(get_workspace_service),
+    current_user = Depends(get_current_user())
+):
+    try:
+        client_id = current_user.get("sub")
+        return await service.append_documents(client_id, data)
+    except SettingNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except FileTypeNotAllowedError as e:
+        raise HTTPException(status_code=415, detail=str(e))
+    except FileSizeExceededError as e:
+        raise HTTPException(status_code=413, detail=str(e))
+    except PolicyAlreadyExistsError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@workspace_router.delete("/policy/{document_id:path}")
+async def delete_policy(
+    document_id: str,
+    service: WorkspaceService = Depends(get_workspace_service),
+    current_user = Depends(get_current_user())
+):
+    try:
+        client_id = current_user.get("sub")
+        return await service.delete_document(client_id, document_id)
+    except SettingNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PolicyNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    
+
+    

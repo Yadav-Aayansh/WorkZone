@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from src.services.tenant import EmployeeService
 from src.core.di import get_employee_service, get_current_user
 from src.models.tenant import Role
+from src.schemas.tenant import HelpdeskQuery
 
 employee_router = APIRouter(prefix="/employee", tags=["Tenant Employee"])
 
@@ -12,3 +13,13 @@ async def employee_profile(
 ):
     user_id = current_user.get("sub")
     return await service.profile(user_id)
+
+
+@employee_router.post("/helpdesk") 
+async def smart_helpdesk(
+    data: HelpdeskQuery,
+    service: EmployeeService = Depends(get_employee_service),
+    current_user = Depends(get_current_user(use_tenant=True, roles=[Role.EMPLOYEE]))
+):
+    user_id = current_user.get("sub")
+    return await service.helpdesk(user_id, data.query, data.chat_id)

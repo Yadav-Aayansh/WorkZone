@@ -2,12 +2,14 @@ import uuid
 from sqlalchemy.dialects.postgresql import UUID
 from src.core.database import TenantBase
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, DateTime, ForeignKey
+from sqlalchemy import Column, DateTime, ForeignKey, String
 from src.utils.datetime import get_indian_time
 
 class Employee(TenantBase):
     __tablename__ = "employees"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String(50), nullable=False)
+    resume = Column(String(500), nullable=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, unique=True)
     manager_id = Column(UUID(as_uuid=True), ForeignKey("managers.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), default=get_indian_time, nullable=False)

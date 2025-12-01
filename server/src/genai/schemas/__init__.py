@@ -4,3 +4,4 @@ from .doc_generator_schemas import OfferLetterData, RejectionLetterData, PolicyU
 from .hr_interview import StartInterviewRequest, ProcessTextAnswerRequest, GenerateReportRequest
 from .personalized_learning import LearningPathRequest, LearningPlanResponse, LearningResource, SkillArea
 from .query_classifier import QueryCategory, UrgencyLevel, Sentiment, ClassificationResponse
+from .hr_policy import ChatRequest, ChatResponse, ProcessDocumentRequest

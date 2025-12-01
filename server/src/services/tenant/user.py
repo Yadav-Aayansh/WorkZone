@@ -48,27 +48,28 @@ class UserService:
         name = user_data.get("name")
         email = user_data.get("email")
         role = Role(user_data.get("role"))
+        title = user_data.get("title")
         manager_id = user_data.get("manager_id")
             
         
-        return await self._create_user(name, email, data.password, role, manager_id)
+        return await self._create_user(name, email, data.password, role, title, manager_id)
 
 
-    async def _create_role_profile(self, user_id: str, role: Role, manager_id: str | None = None):
+    async def _create_role_profile(self, user_id: str, role: Role, title: str | None = None, manager_id: str | None = None):
         match role:
             case Role.MANAGER:
                 await self.manager_repo.create_manager(user_id)
             case Role.RECRUITER:
                 await self.recruiter_repo.create_recruiter(user_id)
             case Role.EMPLOYEE:
-                employee = await self.employee_repo.create_employee(user_id, manager_id)
+                employee = await self.employee_repo.create_employee(user_id, title, manager_id)
                 tenant_id = tenant_context.get()
                 create_leave_entitlement_task.delay(tenant_id, employee.id)
             case Role.APPLICANT:
                 await self.applicant_repo.create_applicant(user_id)
 
 
-    async def _create_user(self, name: str, email: str, password: str, role: Role, manager_id: str | None = None) -> dict:
+    async def _create_user(self, name: str, email: str, password: str, role: Role, title: str | None = None, manager_id: str | None = None) -> dict:
         is_exist = await self.user_repo.get_user_by_email(email)
         if is_exist:
             raise UserAlreadyExistsError(f"Email {email} already exists!")
@@ -81,7 +82,7 @@ class UserService:
             role=role
         )
         
-        await self._create_role_profile(user.id, role, manager_id)
+        await self._create_role_profile(user.id, role, title, manager_id)
     
         return create_tokens(self._build_token_payload(user))
 
