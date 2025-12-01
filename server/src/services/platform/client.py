@@ -15,7 +15,7 @@ from src.utils.datetime import get_indian_time
 from src.core.security import create_tokens, decode_token
 from src.core.config import Config
 from datetime import timedelta
-from src.tasks import create_tenant_schema_task
+from src.tasks import create_tenant_schema_task, create_tenant_setting
 from src.core.logger import logger
 
 class ClientService:
@@ -83,7 +83,8 @@ class ClientService:
             logo=blob_name
         )
         
-        task = create_tenant_schema_task.delay(data.tenant_id)
+        create_tenant_schema_task.delay(data.tenant_id)
+        create_tenant_setting.delay(id)
         account_status = self.get_account_status(client)
         subscription_status = self.get_subscription_status(client)
 
