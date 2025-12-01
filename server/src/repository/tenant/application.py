@@ -1,15 +1,18 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.tenant import Application, ApplicationStatus
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload
 from src.core.logger import logger
 
 class ApplicationRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
         
-    async def get_application_by_id(self, id: str) -> Application | None:
-        result = await self.db.execute(select(Application).options(joinedload(Application.job)).where(Application.id==id))
+    async def get_application_by_id(self, id: str, options: list | None = None) -> Application | None:
+        query = select(Application).where(Application.id == id)
+        if options:
+            query = query.options(*options)
+        
+        result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
     async def apply_job(self, job_id: str, user_id: str, resume: str) -> Application:
@@ -31,6 +34,14 @@ class ApplicationRepository:
     async def get_applications_by_job_id(self, job_id: str) -> list[Application]:
         try:
             result = await self.db.execute(select(Application).where(Application.job_id==job_id))
+            return result.scalars().all()
+        except Exception as e:
+            logger.exception(f"Error fetching applications: {e}")
+            raise
+
+    async def get_applications_by_user_id(self, user_id: str) -> list[Application]:
+        try:
+            result = await self.db.execute(select(Application).where(Application.user_id==user_id))
             return result.scalars().all()
         except Exception as e:
             logger.exception(f"Error fetching applications: {e}")

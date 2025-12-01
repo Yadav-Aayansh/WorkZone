@@ -5,3 +5,5 @@ from .employee import EmployeeService
 from .applicant import ApplicantService
 from .job import JobService
 from .application import ApplicationService
+from .ai_interview import AiInterviewService
+from .leave import LeaveService

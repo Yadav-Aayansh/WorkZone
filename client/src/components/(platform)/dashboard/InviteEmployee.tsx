@@ -36,6 +36,7 @@ export default function InviteEmployee() {
     email: "",
     name: "",
     role: "employee" as "employee" | "manager" | "recruiter",
+    manager_id: "",
   });
 
   const handleChange = (field: string, value: string) => {
@@ -48,14 +49,33 @@ export default function InviteEmployee() {
     e.preventDefault();
     setError(null);
     setSuccess(false);
+
+    // Validate manager_id is provided for employees
+    if (formData.role === "employee" && !formData.manager_id.trim()) {
+      setError("Manager ID is required for employees");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const response = await platformClientAPI.inviteUser({
+      const requestData: {
+        email: string;
+        name: string;
+        role: "employee" | "manager" | "recruiter";
+        manager_id?: string;
+      } = {
         email: formData.email,
         name: formData.name,
         role: formData.role,
-      });
+      };
+
+      // Only include manager_id for employees
+      if (formData.role === "employee" && formData.manager_id.trim()) {
+        requestData.manager_id = formData.manager_id.trim();
+      }
+
+      const response = await platformClientAPI.inviteUser(requestData);
 
       setSuccess(true);
       showToast({
@@ -69,6 +89,7 @@ export default function InviteEmployee() {
         email: "",
         name: "",
         role: "employee",
+        manager_id: "",
       });
 
       // Close dialog after 2 seconds
@@ -182,6 +203,25 @@ export default function InviteEmployee() {
                 Determines their access level and permissions
               </p>
             </div>
+
+            {/* Manager ID field - only shown when role is employee */}
+            {formData.role === "employee" && (
+              <div className="space-y-2">
+                <Label htmlFor="manager_id">Manager ID *</Label>
+                <Input
+                  id="manager_id"
+                  type="text"
+                  placeholder="Enter manager's UUID"
+                  value={formData.manager_id}
+                  onChange={(e) => handleChange("manager_id", e.target.value)}
+                  disabled={isSubmitting || success}
+                  required={formData.role === "employee"}
+                />
+                <p className="text-xs text-muted-foreground">
+                  The UUID of the manager who will supervise this employee
+                </p>
+              </div>
+            )}
           </div>
 
           <DialogFooter>

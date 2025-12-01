@@ -2,7 +2,6 @@
 // @ts-nocheck
 /* eslint-disable */
 
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -338,7 +337,7 @@ export default function CareersPage() {
                 <Card
                   key={job.id}
                   className="hover:shadow-xl transition-shadow cursor-pointer group"
-                  onClick={() => router.push(`/careers/${job.id}`)}
+                  onClick={() => router.push(`/tenant/careers/${job.id}`)}
                 >
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">

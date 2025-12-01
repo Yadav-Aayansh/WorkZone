@@ -23,4 +23,5 @@ class Client(PublicBase):
     updated_at = Column(DateTime(timezone=True), default=get_indian_time, onupdate=get_indian_time, nullable=False)
 
     orders = relationship("Order", back_populates="client", uselist=True)
+    setting = relationship("Setting", back_populates="client", uselist=False)
 

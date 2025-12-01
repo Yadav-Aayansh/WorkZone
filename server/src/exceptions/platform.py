@@ -9,6 +9,15 @@ class TenantAlreadyExistsError(ConflictError):
 class ClientNotFoundError(NotFoundError):
     pass
 
+class SettingNotFoundError(NotFoundError):
+    pass
+
+class SettingAlreadyExistsError(ConflictError):
+    pass
+
+class InvalidLeaveError(ValidationError):
+    pass
+
 class InvalidClientCredentialsError(AuthenticationError):
     pass
 

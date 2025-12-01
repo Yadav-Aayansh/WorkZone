@@ -1,4 +1,3 @@
-
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 /* eslint-disable */
@@ -109,9 +108,15 @@ function JobsManagementContent() {
 
   const handleToggleStatus = async (job: JobResponse) => {
     try {
-      const updated = await tenantJobAPI.updateJob(job.id, {
-        is_open: !job.is_open,
-      });
+      let updated: JobResponse;
+
+      if (job.is_open) {
+        // Close the job using dedicated endpoint
+        updated = await tenantJobAPI.closeJob(job.id);
+      } else {
+        // Reopen the job using dedicated endpoint
+        updated = await tenantJobAPI.reopenJob(job.id);
+      }
 
       setJobs((prev) => prev.map((j) => (j.id === job.id ? updated : j)));
 

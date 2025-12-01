@@ -451,6 +451,7 @@ export interface JobResponse {
   description: string;
   department: string;
   location: string;
+  posted_by: string;
   is_open: boolean;
   created_at: string;
   updated_at: string;
@@ -461,6 +462,17 @@ export interface ListJobsRequest {
   department?: string;
   location?: string;
   is_open?: boolean;
+}
+
+// AI JD Builder Types
+export interface JDBuilderPrompt {
+  prompt: string;
+  company_name?: string;
+  tone?: string; // default: "professional and enthusiastic"
+}
+
+export interface GeneratedJD {
+  markdown_text: string;
 }
 
 // ============ Tenant Job API ============
@@ -527,9 +539,8 @@ export const tenantJobAPI = {
    * Sets is_open to false to stop accepting new applications
    */
   async closeJob(jobId: string): Promise<JobResponse> {
-    return tenantApiRequest<JobResponse>(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ is_open: false }),
+    return tenantApiRequest<JobResponse>(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}/close`, {
+      method: 'POST',
     }, 2, true);
   },
 
@@ -542,6 +553,18 @@ export const tenantJobAPI = {
       method: 'PATCH',
       body: JSON.stringify({ is_open: true }),
     }, 2, true);
+  },
+
+  /**
+   * AI-powered job description enhancer
+   * Converts simple prompts into professional, comprehensive job descriptions
+   * @param prompt - Job description generation request
+   */
+  async enhanceJobDescription(prompt: JDBuilderPrompt): Promise<GeneratedJD> {
+    return tenantApiRequest<GeneratedJD>(`${getTenantBackendUrl()}/api/tenant/jobs/ai/enhance-description`, {
+      method: 'POST',
+      body: JSON.stringify(prompt),
+    }, 2, false);
   },
 };
 
@@ -613,6 +636,20 @@ export const tenantApplicationAPI = {
   },
 
   /**
+   * Get current user's applications
+   * Requires APPLICANT or EMPLOYEE role
+   * @returns List of user's job applications
+   */
+  async myApplications(): Promise<ApplicationResponse[]> {
+    return tenantApiRequest<ApplicationResponse[]>(
+      `${getTenantBackendUrl()}/api/tenant/applications`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
    * List all applications for a specific job
    * Requires RECRUITER role
    * @param jobId - UUID of the job
@@ -656,6 +693,302 @@ export const tenantApplicationAPI = {
   },
 };
 
+// ============ AI INTERVIEW API ============
+
+/**
+ * AI Interview Session Response
+ */
+export interface AIInterviewSessionResponse {
+  id: string;
+  application_id: string;
+  score?: number;
+  report?: string;
+  created_at: string;
+  completed_at?: string;
+}
+
+/**
+ * Create AI Interview Session Request
+ */
+export interface CreateAIInterviewRequest {
+  application_id: string;
+}
+
+export const tenantAIInterviewAPI = {
+  /**
+   * Create a new AI interview session
+   * @param applicationId - UUID of the job application
+   * @param jobId - UUID of the job
+   */
+  async createSession(applicationId: string): Promise<AIInterviewSessionResponse> {
+    const queryParams = new URLSearchParams({
+      application_id: applicationId,
+    });
+
+    return tenantApiRequest<AIInterviewSessionResponse>(
+      `${getTenantBackendUrl()}/api/tenant/ai-interview?${queryParams.toString()}`,
+      { method: 'POST' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get WebSocket URL for AI interview
+   * @param interviewId - UUID of the interview session
+   */
+  getWebSocketUrl(interviewId: string): string {
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const backendUrl = getTenantBackendUrl().replace(/^https?:/, wsProtocol);
+    return `${backendUrl}/api/tenant/ai-interview/ws/${interviewId}`;
+  },
+};
+
+// ============ Applicant Profile API ============
+
+/**
+ * Applicant Profile Response
+ */
+export interface ApplicantProfileResponse {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  applications: ApplicationResponse[];
+}
+
+export const tenantApplicantAPI = {
+  /**
+   * Get current applicant's profile (requires APPLICANT role)
+   */
+  async getProfile(): Promise<ApplicantProfileResponse> {
+    return tenantApiRequest<ApplicantProfileResponse>(
+      `${getTenantBackendUrl()}/api/tenant/applicant/me`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+};
+
+// ============ Recruiter Profile API ============
+
+/**
+ * Recruiter Profile Response
+ */
+export interface RecruiterProfileResponse {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  jobs: JobResponse[];
+}
+
+export const tenantRecruiterAPI = {
+  /**
+   * Get current recruiter's profile (requires RECRUITER role)
+   */
+  async getProfile(): Promise<RecruiterProfileResponse> {
+    return tenantApiRequest<RecruiterProfileResponse>(
+      `${getTenantBackendUrl()}/api/tenant/recruiter/me`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+};
+
+// ============ Manager Profile API ============
+
+/**
+ * Manager Profile Response
+ */
+export interface ManagerProfileResponse {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+}
+
+export const tenantManagerAPI = {
+  /**
+   * Get current manager's profile (requires MANAGER role)
+   */
+  async getProfile(): Promise<ManagerProfileResponse> {
+    return tenantApiRequest<ManagerProfileResponse>(
+      `${getTenantBackendUrl()}/api/tenant/manager/me`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+};
+
+// ============ Employee Profile API ============
+
+/**
+ * Employee Profile Response
+ */
+export interface EmployeeProfileResponse {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+}
+
+export const tenantEmployeeAPI = {
+  /**
+   * Get current employee's profile (requires EMPLOYEE role)
+   */
+  async getProfile(): Promise<EmployeeProfileResponse> {
+    return tenantApiRequest<EmployeeProfileResponse>(
+      `${getTenantBackendUrl()}/api/tenant/employee/me`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+};
+
+// ============================================
+// Leave Management Types
+// ============================================
+
+export enum LeaveRequestType {
+  CASUAL = 'casual',
+  SICK = 'sick',
+  EARNED = 'earned',
+  MATERNITY = 'maternity',
+  PATERNITY = 'paternity',
+}
+
+export enum LeaveRequestStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  CANCELLED = 'cancelled',
+}
+
+export interface ApplyLeaveRequest {
+  leave_type: LeaveRequestType;
+  start_date: string; // ISO date string YYYY-MM-DD
+  end_date: string; // ISO date string YYYY-MM-DD
+  reason: string;
+}
+
+export interface RejectLeaveRequest {
+  rejection_reason: string;
+}
+
+export interface LeaveRequestResponse {
+  id: string;
+  employee_id: string;
+  manager_id: string | null;
+  leave_type: LeaveRequestType;
+  status: LeaveRequestStatus;
+  start_date: string;
+  end_date: string;
+  reason: string;
+  rejection_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LeaveBalanceResponse {
+  employee_id: string;
+  casual: number;
+  sick: number;
+  earned: number;
+  maternity: number;
+  paternity: number;
+  total_available: number;
+  total_used: number;
+}
+
+// ============================================
+// Tenant Leave API (Employee & Manager)
+// ============================================
+
+export const tenantLeaveAPI = {
+  /**
+   * Apply for leave (requires EMPLOYEE role)
+   */
+  async applyLeave(data: ApplyLeaveRequest): Promise<LeaveRequestResponse> {
+    return tenantApiRequest<LeaveRequestResponse>(
+      `${getTenantBackendUrl()}/api/tenant/leaves/apply`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get current employee's leave requests (requires EMPLOYEE role)
+   */
+  async getMyLeaveRequests(): Promise<LeaveRequestResponse[]> {
+    return tenantApiRequest<LeaveRequestResponse[]>(
+      `${getTenantBackendUrl()}/api/tenant/leaves/`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get current employee's leave balance (requires EMPLOYEE role)
+   */
+  async getLeaveBalance(): Promise<LeaveBalanceResponse> {
+    return tenantApiRequest<LeaveBalanceResponse>(
+      `${getTenantBackendUrl()}/api/tenant/leaves/balance`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get pending leave requests for approval (requires MANAGER role)
+   */
+  async getPendingApprovals(): Promise<LeaveRequestResponse[]> {
+    return tenantApiRequest<LeaveRequestResponse[]>(
+      `${getTenantBackendUrl()}/api/tenant/leaves/pending-requests`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Approve a leave request (requires MANAGER role)
+   */
+  async approveLeave(leaveRequestId: string): Promise<LeaveRequestResponse> {
+    return tenantApiRequest<LeaveRequestResponse>(
+      `${getTenantBackendUrl()}/api/tenant/leaves/${leaveRequestId}/approve`,
+      { method: 'POST' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Reject a leave request (requires MANAGER role)
+   */
+  async rejectLeave(leaveRequestId: string, data: RejectLeaveRequest): Promise<LeaveRequestResponse> {
+    return tenantApiRequest<LeaveRequestResponse>(
+      `${getTenantBackendUrl()}/api/tenant/leaves/${leaveRequestId}/reject`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+};
+
 // Export utility functions for use in other files
-export { getTenantSubdomain, getTenantTokens, setTenantTokens, clearTenantTokens };
+export { getTenantSubdomain, getTenantBackendUrl, getTenantTokens, setTenantTokens, clearTenantTokens };
 
