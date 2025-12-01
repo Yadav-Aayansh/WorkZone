@@ -11,7 +11,7 @@ from .application import (
     ApplicationResponse, 
 )
 
-from .employee import EmployeeProfileResponse
+from .employee import EmployeeProfileResponse, EmployeeInfo, HelpdeskQuery
 
 from .applicant import ApplicantProfileResponse
 
