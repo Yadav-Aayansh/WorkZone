@@ -12,7 +12,7 @@ import shutil
 
 
 # GCS paths
-CHROMA_GCS_BASE = "chroma_db/"
+CHROMA_GCS_BASE = "platform/chroma_db/"
 POLICIES_GCS_BASE = "policies/"
 
 # Local temp directory for all tenant ChromaDBs
@@ -306,6 +306,5 @@ async def list_all_documents(chroma_db_path: str) -> List[Dict]:
         return []
 
 
-def create_tenant_chroma_path(tenant_name: str) -> str:
-    tenant_uuid = str(uuid.uuid4())[:8]  # Short UUID
-    return f"{CHROMA_GCS_BASE}{tenant_name}_{tenant_uuid}"
+def create_tenant_chroma_path(tenant_name: str) -> str: 
+    return f"{CHROMA_GCS_BASE}{tenant_name}"

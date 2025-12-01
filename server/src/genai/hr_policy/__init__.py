@@ -9,6 +9,7 @@ from .main import (
     # chat_with_context_streaming,
     get_suggestions,
     get_chat_history,
+    process_multiple_documents
 )
 
 __all__ = [
