@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 
 class Settings(BaseSettings):
+    SERVER_IP: str
     FRONTEND_URL: str
     LOG_LEVEL: str
 

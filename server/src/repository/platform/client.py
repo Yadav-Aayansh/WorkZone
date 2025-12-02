@@ -1,3 +1,4 @@
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.platform import Client
 from sqlalchemy import exists, select
@@ -84,4 +85,24 @@ class ClientRepository:
         return dict(result.one()._mapping)
 
 
+    async def add_custom_domain(self, id: UUID, domain: str):
+        try:
+            client = await self.get_client_by_id(id)
+            client.domain = domain
+            await self.db.commit()
+            await self.db.refresh(client)
+            return client
+        except Exception:
+            await self.db.rollback()
+            raise
 
+    async def remove_custom_domain(self, id: UUID):
+        try:
+            client = await self.get_client_by_id(id)
+            client.domain = None
+            await self.db.commit()
+            await self.db.refresh(client)
+            return client
+        except Exception:
+            await self.db.rollback()
+            raise
