@@ -152,7 +152,7 @@ class ClientService:
         
         is_domain_exist = await self.client_repo.is_domain_exist(tenant_or_domain)
         if is_domain_exist:
-            return await self.client_repo.get_tenant_by_domain(is_tenant_exist)
+            return await self.client_repo.get_tenant_by_domain(tenant_or_domain)
         
         raise TenantNotFoundError("Tenant does not exist!")
     
