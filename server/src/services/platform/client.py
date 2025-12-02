@@ -194,6 +194,7 @@ class ClientService:
 
         await self.client_repo.add_custom_domain(id, domain)
         link_domain_and_redirect_task.delay(domain, tenant_subdomain)
+        return {"message": "Domain linked successfully!"}
 
     async def unlink_custom_domain(self, id: UUID, domain: str):
         if not is_valid_domain(domain):
@@ -206,9 +207,9 @@ class ClientService:
         if client.domain != domain:
             raise UnauthorizedAccessError("Access denied!")
         
-        self.client_repo.remove_custom_domain(id, domain)
+        await self.client_repo.remove_custom_domain(id)
         unlink_domain_task.delay(domain, f"{client.tenant_id}.{Config.DOMAIN_NAME}")
-
+        return {"message": "Domain deleted successfully!"}
     
     async def is_domain_linked(self, domain: str):
         if not is_valid_domain(domain):

@@ -96,7 +96,7 @@ class ClientRepository:
             await self.db.rollback()
             raise
 
-    async def remove_custom_domain(self, id: UUID, domain: str):
+    async def remove_custom_domain(self, id: UUID):
         try:
             client = await self.get_client_by_id(id)
             client.domain = None
