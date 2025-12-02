@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
-// import { Logo } from '@/components/logo'
-import { Menu, X } from "lucide-react";
+import { Menu, X, Building2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import React from "react";
 import { cn } from "@/lib/utils";
@@ -25,28 +24,36 @@ export const HeroHeader = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
   return (
     <header>
       <nav
         data-state={menuState && "active"}
-        className="fixed z-20 w-full px-2"
+        className="fixed z-50 w-full px-2"
       >
         <div
           className={cn(
-            "mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-12",
+            "mx-auto mt-2 max-w-6xl px-6 transition-all duration-500 lg:px-12",
             isScrolled &&
-              "bg-background/50 max-w-4xl rounded-2xl border backdrop-blur-lg lg:px-5"
+              "bg-background/80 max-w-4xl rounded-2xl border border-border/50 backdrop-blur-xl shadow-lg shadow-primary/5 lg:px-5"
           )}
         >
           <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
             <div className="flex w-full justify-between lg:w-auto">
               <Link
-                href="/client/public"
+                href="/"
                 aria-label="home"
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 group"
               >
-                {/*<Logo />*/}
-                <span className="text-xl font-bold">WorkZone</span>
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg blur-lg opacity-40 group-hover:opacity-60 transition-opacity duration-300" />
+                  <div className="relative bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-lg">
+                    <Building2 className="h-5 w-5 text-white" />
+                  </div>
+                </div>
+                <span className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
+                  WorkZone
+                </span>
               </Link>
 
               <button
@@ -65,23 +72,24 @@ export const HeroHeader = () => {
                   <li key={index}>
                     <Link
                       href={item.href}
-                      className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                      className="relative text-muted-foreground hover:text-foreground transition-colors duration-200 group/link"
                     >
                       <span>{item.name}</span>
+                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 group-hover/link:w-full transition-all duration-300" />
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="bg-background in-data-[state=active]:block lg:in-data-[state=active]:flex mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent">
+            <div className="bg-background/95 backdrop-blur-xl in-data-[state=active]:block lg:in-data-[state=active]:flex mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border border-border/50 p-6 shadow-2xl shadow-primary/10 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none">
               <div className="lg:hidden">
                 <ul className="space-y-6 text-base">
                   {menuItems.map((item, index) => (
                     <li key={index}>
                       <Link
                         href={item.href}
-                        className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                        className="text-muted-foreground hover:text-foreground transition-colors duration-200 block"
                       >
                         <span>{item.name}</span>
                       </Link>
@@ -93,9 +101,12 @@ export const HeroHeader = () => {
                 <ThemeToggle />
                 <Button
                   asChild
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className={cn(isScrolled && "lg:hidden")}
+                  className={cn(
+                    "hover:bg-primary/5 hover:text-primary transition-all duration-200",
+                    isScrolled && "lg:hidden"
+                  )}
                 >
                   <Link href="/login">
                     <span>Login</span>
@@ -104,19 +115,27 @@ export const HeroHeader = () => {
                 <Button
                   asChild
                   size="sm"
-                  className={cn(isScrolled && "lg:hidden")}
+                  className={cn(
+                    "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg shadow-purple-500/25 border-0 group",
+                    isScrolled && "lg:hidden"
+                  )}
                 >
                   <Link href="/signup">
                     <span>Sign Up</span>
+                    <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </Link>
                 </Button>
                 <Button
                   asChild
                   size="sm"
-                  className={cn(isScrolled ? "lg:inline-flex" : "hidden")}
+                  className={cn(
+                    "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-lg shadow-purple-500/25 border-0 group",
+                    isScrolled ? "lg:inline-flex" : "hidden"
+                  )}
                 >
                   <Link href="/signup">
                     <span>Get Started</span>
+                    <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </Link>
                 </Button>
               </div>

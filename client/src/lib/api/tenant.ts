@@ -750,11 +750,10 @@ export const tenantAIInterviewAPI = {
  * Applicant Profile Response
  */
 export interface ApplicantProfileResponse {
-  id: string;
   user_id: string;
-  name: string;
+  applicant_id: string;
   email: string;
-  applications: ApplicationResponse[];
+  name: string;
 }
 
 export const tenantApplicantAPI = {
@@ -777,11 +776,10 @@ export const tenantApplicantAPI = {
  * Recruiter Profile Response
  */
 export interface RecruiterProfileResponse {
-  id: string;
   user_id: string;
-  name: string;
+  recruiter_id: string;
   email: string;
-  jobs: JobResponse[];
+  name: string;
 }
 
 export const tenantRecruiterAPI = {
@@ -804,10 +802,10 @@ export const tenantRecruiterAPI = {
  * Manager Profile Response
  */
 export interface ManagerProfileResponse {
-  id: string;
   user_id: string;
-  name: string;
+  manager_id: string;
   email: string;
+  name: string;
 }
 
 export const tenantManagerAPI = {
@@ -830,10 +828,37 @@ export const tenantManagerAPI = {
  * Employee Profile Response
  */
 export interface EmployeeProfileResponse {
-  id: string;
   user_id: string;
-  name: string;
+  employee_id: string;
   email: string;
+  name: string;
+}
+
+/**
+ * Employee Info (for helpdesk)
+ */
+export interface EmployeeInfo {
+  name: string;
+  title: string;
+  granted: Record<string, number>;
+  used: Record<string, number>;
+  balance: Record<string, number>;
+}
+
+/**
+ * Helpdesk Query Request
+ */
+export interface HelpdeskQueryRequest {
+  query: string;
+  chat_id?: string;
+}
+
+/**
+ * Helpdesk Response
+ */
+export interface HelpdeskResponse {
+  response: string;
+  chat_id: string;
 }
 
 export const tenantEmployeeAPI = {
@@ -844,6 +869,24 @@ export const tenantEmployeeAPI = {
     return tenantApiRequest<EmployeeProfileResponse>(
       `${getTenantBackendUrl()}/api/tenant/employee/me`,
       { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Smart helpdesk - AI-powered assistant for employee queries
+   * Can answer questions about policies, leave balance, company info, etc.
+   * @param query - The question/query from the employee
+   * @param chatId - Optional chat session ID for conversation continuity
+   */
+  async helpdesk(data: HelpdeskQueryRequest): Promise<HelpdeskResponse> {
+    return tenantApiRequest<HelpdeskResponse>(
+      `${getTenantBackendUrl()}/api/tenant/employee/helpdesk`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
       2,
       true
     );

@@ -240,3 +240,19 @@
   background-size: 200% 200%;
   animation: gradient 3s ease infinite;
 }
+
+/* ======================
+   Logo Cloud Animation
+   ====================== */
+@keyframes logo-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-100% - 3rem));
+  }
+}
+
+.animate-logo-scroll {
+  animation: logo-scroll 25s linear infinite;
+}
