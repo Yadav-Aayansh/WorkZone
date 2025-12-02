@@ -448,5 +448,258 @@ export const platformClientAPI = {
   },
 };
 
+// ============ Platform Workspace API - Leave Types ============
+
+/**
+ * Leave Type Configuration
+ */
+export interface LeaveTypeConfig {
+  days: number;
+  carry_forward: boolean;
+  max_carry?: number;
+  encashable: boolean;
+}
+
+/**
+ * Leave Types Request - for creating/updating leave types
+ */
+export interface LeaveTypesRequest {
+  casual?: LeaveTypeConfig;
+  sick?: LeaveTypeConfig;
+  earned?: LeaveTypeConfig;
+  maternity?: LeaveTypeConfig;
+  paternity?: LeaveTypeConfig;
+}
+
+/**
+ * Leave Types Response
+ */
+export interface LeaveTypesResponse {
+  casual?: Record<string, any>;
+  sick?: Record<string, any>;
+  earned?: Record<string, any>;
+  maternity?: Record<string, any>;
+  paternity?: Record<string, any>;
+}
+
+/**
+ * Policy Document Response
+ */
+export interface PolicyDocument {
+  id: string;
+  name: string;
+  url: string;
+  uploaded_at: string;
+}
+
+export interface PolicyListResponse {
+  documents: PolicyDocument[];
+}
+
+export const platformWorkspaceAPI = {
+  // ============ Leave Types Management ============
+
+  /**
+   * Get leave types configuration for the organization
+   */
+  async getLeaveTypes(): Promise<LeaveTypesResponse> {
+    return platformApiRequest<LeaveTypesResponse>(
+      `${BASE_URL}/api/platform/workspace/leave-types`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Create leave types configuration (first time setup)
+   */
+  async createLeaveTypes(data: LeaveTypesRequest): Promise<LeaveTypesResponse> {
+    return platformApiRequest<LeaveTypesResponse>(
+      `${BASE_URL}/api/platform/workspace/leave-types`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Update leave types configuration
+   */
+  async updateLeaveTypes(data: LeaveTypesRequest): Promise<LeaveTypesResponse> {
+    return platformApiRequest<LeaveTypesResponse>(
+      `${BASE_URL}/api/platform/workspace/leave-types`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+
+  // ============ Policy Document Management ============
+
+  /**
+   * Get all policy documents
+   */
+  async getPolicies(): Promise<PolicyListResponse> {
+    return platformApiRequest<PolicyListResponse>(
+      `${BASE_URL}/api/platform/workspace/policy`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Upload policy documents (replaces all existing)
+   * @param files - Array of files to upload (PDF, DOC, DOCX)
+   */
+  async setPolicies(files: File[]): Promise<PolicyListResponse> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('data', file);
+    });
+
+    let lastError: Error;
+    let currentAccessToken = getPlatformTokens().accessToken;
+
+    for (let i = 0; i <= 2; i++) {
+      try {
+        const headers: Record<string, string> = {};
+
+        if (currentAccessToken) {
+          headers['Authorization'] = `Bearer ${currentAccessToken}`;
+        }
+
+        const response = await fetch(`${BASE_URL}/api/platform/workspace/policy`, {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
+
+        return await handleResponse<PolicyListResponse>(response);
+      } catch (error) {
+        lastError = error as Error;
+
+        if (error instanceof PlatformAPIError && error.isTokenExpired && i === 0) {
+          try {
+            if (!platformRefreshPromise) {
+              platformRefreshPromise = refreshPlatformAccessToken();
+            }
+
+            currentAccessToken = await platformRefreshPromise;
+            platformRefreshPromise = null;
+
+            continue;
+          } catch (refreshError) {
+            platformRefreshPromise = null;
+            throw error;
+          }
+        }
+
+        if (error instanceof PlatformAPIError && error.status >= 400 && error.status < 500 && !error.isTokenExpired) {
+          throw error;
+        }
+
+        if (i === 2) {
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, Math.pow(2, i) * 1000));
+      }
+    }
+
+    if (lastError!.name === 'TypeError' || lastError!.message.includes('fetch')) {
+      throw new PlatformAPIError(0, 'Network error. Please check your internet connection and try again.');
+    }
+
+    throw lastError!;
+  },
+
+  /**
+   * Add additional policy documents (appends to existing)
+   * @param files - Array of files to upload (PDF, DOC, DOCX)
+   */
+  async addPolicies(files: File[]): Promise<PolicyListResponse> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('data', file);
+    });
+
+    let lastError: Error;
+    let currentAccessToken = getPlatformTokens().accessToken;
+
+    for (let i = 0; i <= 2; i++) {
+      try {
+        const headers: Record<string, string> = {};
+
+        if (currentAccessToken) {
+          headers['Authorization'] = `Bearer ${currentAccessToken}`;
+        }
+
+        const response = await fetch(`${BASE_URL}/api/platform/workspace/policy`, {
+          method: 'PATCH',
+          headers,
+          body: formData,
+        });
+
+        return await handleResponse<PolicyListResponse>(response);
+      } catch (error) {
+        lastError = error as Error;
+
+        if (error instanceof PlatformAPIError && error.isTokenExpired && i === 0) {
+          try {
+            if (!platformRefreshPromise) {
+              platformRefreshPromise = refreshPlatformAccessToken();
+            }
+
+            currentAccessToken = await platformRefreshPromise;
+            platformRefreshPromise = null;
+
+            continue;
+          } catch (refreshError) {
+            platformRefreshPromise = null;
+            throw error;
+          }
+        }
+
+        if (error instanceof PlatformAPIError && error.status >= 400 && error.status < 500 && !error.isTokenExpired) {
+          throw error;
+        }
+
+        if (i === 2) {
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, Math.pow(2, i) * 1000));
+      }
+    }
+
+    if (lastError!.name === 'TypeError' || lastError!.message.includes('fetch')) {
+      throw new PlatformAPIError(0, 'Network error. Please check your internet connection and try again.');
+    }
+
+    throw lastError!;
+  },
+
+  /**
+   * Delete a policy document
+   * @param documentId - The ID/path of the document to delete
+   */
+  async deletePolicy(documentId: string): Promise<void> {
+    return platformApiRequest<void>(
+      `${BASE_URL}/api/platform/workspace/policy/${encodeURIComponent(documentId)}`,
+      { method: 'DELETE' },
+      2,
+      true
+    );
+  },
+};
+
 // Export utility functions
 export { getPlatformTokens, setPlatformTokens, clearPlatformTokens };
