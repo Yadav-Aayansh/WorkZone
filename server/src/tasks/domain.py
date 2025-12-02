@@ -3,7 +3,6 @@ from src.core.celery import worker
 
 @worker.task(bind=True, max_retries=3)
 def link_domain_and_redirect_task(self, domain: str, tenant_subdomain: str):
-    # Route 1: Serve custom domain
     route_config = {
         "match": [{"host": [domain]}],
         "handle": [{
@@ -21,7 +20,6 @@ def link_domain_and_redirect_task(self, domain: str, tenant_subdomain: str):
         "terminal": True
     }
     
-    # Route 2: Redirect tenant subdomain → custom domain
     redirect_config = {
         "match": [{"host": [tenant_subdomain]}],
         "handle": [{
@@ -33,13 +31,34 @@ def link_domain_and_redirect_task(self, domain: str, tenant_subdomain: str):
     }
     
     try:
-        r1 = httpx.post("http://localhost:2019/config/apps/http/servers/srv0/routes", 
-                        json=route_config, timeout=10)
-        r1.raise_for_status()
+        # Insert at position 0 (before wildcard)
+        httpx.put("http://localhost:2019/config/apps/http/servers/srv0/routes/0", json=route_config, timeout=10).raise_for_status()
         
-        r2 = httpx.post("http://localhost:2019/config/apps/http/servers/srv0/routes", 
-                        json=redirect_config, timeout=10)
-        r2.raise_for_status()
+        # Insert redirect at position 1 (after route, still before wildcard)
+        httpx.put("http://localhost:2019/config/apps/http/servers/srv0/routes/1", json=redirect_config, timeout=10).raise_for_status()
+        
+    except Exception as exc:
+        raise self.retry(exc=exc)
+
+
+@worker.task(bind=True, max_retries=3)
+def unlink_domain_task(self, domain: str, tenant_subdomain: str):
+    try:
+        # Get all routes
+        r = httpx.get("http://localhost:2019/config/apps/http/servers/srv0/routes", timeout=10)
+        r.raise_for_status()
+        routes = r.json()
+        
+        # Find indices to delete (in reverse order to avoid index shifting)
+        indices_to_delete = []
+        for i, route in enumerate(routes):
+            hosts = route.get("match", [{}])[0].get("host", [])
+            if domain in hosts or tenant_subdomain in hosts:
+                indices_to_delete.append(i)
+        
+        # Delete in reverse order
+        for idx in sorted(indices_to_delete, reverse=True):
+            httpx.delete(f"http://localhost:2019/config/apps/http/servers/srv0/routes/{idx}", timeout=10).raise_for_status()
         
     except Exception as exc:
         raise self.retry(exc=exc)

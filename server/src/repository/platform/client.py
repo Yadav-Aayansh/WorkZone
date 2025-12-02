@@ -95,3 +95,14 @@ class ClientRepository:
         except Exception:
             await self.db.rollback()
             raise
+
+    async def remove_custom_domain(self, id: UUID, domain: str):
+        try:
+            client = await self.get_client_by_id(id)
+            client.domain = None
+            await self.db.commit()
+            await self.db.refresh(client)
+            return client
+        except Exception:
+            await self.db.rollback()
+            raise

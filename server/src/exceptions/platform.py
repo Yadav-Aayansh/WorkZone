@@ -1,6 +1,6 @@
 from .base import (
     NotFoundError, ConflictError, ValidationError, AuthenticationError,
-    PaymentError, DomainError
+    PaymentError, DomainError, AuthorizationError
 )
 
 class ClientAlreadyExistsError(ConflictError):
@@ -43,4 +43,7 @@ class DomainAlreadyExistsError(DomainError):
     pass
 
 class DomainNotVerifiedError(DomainError):
+    pass
+
+class UnauthorizedAccessError(AuthorizationError):
     pass

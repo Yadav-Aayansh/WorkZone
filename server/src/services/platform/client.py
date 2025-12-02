@@ -6,7 +6,7 @@ from src.schemas.platform import (
 from src.exceptions.platform import (
     ClientAlreadyExistsError, TenantAlreadyExistsError, ClientNotFoundError,
     InvalidClientCredentialsError, TenantNotFoundError, InvalidDomainError,
-    DomainAlreadyExistsError, DomainNotVerifiedError
+    DomainAlreadyExistsError, DomainNotVerifiedError, UnauthorizedAccessError
 )
 from src.utils.hashing import hash_password, verify_password
 from src.core.storage import storage_client
@@ -18,7 +18,10 @@ from src.utils.misc import is_valid_domain, verify_domain
 from src.core.security import create_tokens, decode_token
 from src.core.config import Config
 from datetime import timedelta
-from src.tasks import create_tenant_schema_task, create_tenant_setting, link_domain_and_redirect_task
+from src.tasks import (
+    create_tenant_schema_task, create_tenant_setting, link_domain_and_redirect_task,
+    unlink_domain_task
+)
 from src.core.logger import logger
 
 class ClientService:
@@ -191,6 +194,20 @@ class ClientService:
 
         await self.client_repo.add_custom_domain(id, domain)
         link_domain_and_redirect_task.delay(domain, tenant_subdomain)
+
+    async def unlink_custom_domain(self, id: UUID, domain: str):
+        if not is_valid_domain(domain):
+            raise InvalidDomainError(f"Invalid domain: {domain}")
+        
+        client = await self.client_repo.get_client_by_id(id)
+        if not client:
+            raise ClientNotFoundError(f"Client {id} does not exist!")
+        
+        if client.domain != domain:
+            raise UnauthorizedAccessError("Access denied!")
+        
+        self.client_repo.remove_custom_domain(id, domain)
+        unlink_domain_task.delay(domain, f"{client.tenant_id}.{Config.DOMAIN_NAME}")
 
     
     async def is_domain_linked(self, domain: str):

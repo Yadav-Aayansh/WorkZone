@@ -7,7 +7,7 @@ from src.schemas.platform import (
 )
 from src.exceptions.platform import (
     TenantAlreadyExistsError, InvalidDomainError, ClientNotFoundError,
-    DomainAlreadyExistsError, DomainNotVerifiedError
+    DomainAlreadyExistsError, DomainNotVerifiedError, UnauthorizedAccessError
 )
 from src.exceptions.tenant import UserAlreadyExistsError
 
@@ -68,7 +68,7 @@ async def invite(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@client_router.post(path="/custom-domain")
+@client_router.post(path="/custom-domain/{domain}")
 async def link_custom_domain(
     domain: str,
     service: ClientService = Depends(get_client_service),
@@ -86,7 +86,21 @@ async def link_custom_domain(
     except DomainNotVerifiedError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
+@client_router.delete(path="/custom-domain/{domain}")
+async def unlink_custom_domain(
+    domain: str,
+    service: ClientService = Depends(get_client_service),
+    current_user = Depends(get_current_user()),
+):
+    try:
+        id = current_user.get("sub")
+        return await service.unlink_custom_domain(id, domain)
+    except InvalidDomainError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except ClientNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except UnauthorizedAccessError as e:
+        raise HTTPException(status_code=403, detail=str(e))
 
 @client_router.get("/caddy-ask")
 async def caddy_ask(
