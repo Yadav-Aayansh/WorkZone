@@ -1,10 +1,12 @@
+from uuid import UUID
 from src.repository.platform import ClientRepository
 from src.schemas.platform import (
     ClientSignupRequest, ClientOnboarding, ClientLoginRequest,
     TenantAvailabilityRequest, ClientRefreshRequest)
 from src.exceptions.platform import (
     ClientAlreadyExistsError, TenantAlreadyExistsError, ClientNotFoundError,
-    InvalidClientCredentialsError, TenantNotFoundError
+    InvalidClientCredentialsError, TenantNotFoundError, InvalidDomainError,
+    DomainAlreadyExistsError, DomainNotVerifiedError
 )
 from src.utils.hashing import hash_password, verify_password
 from src.core.storage import storage_client
@@ -12,10 +14,11 @@ from fastapi import UploadFile
 from src.models.platform import Client, SubscriptionPlan
 from src.utils.constants import AccountStatus, SubscriptionStatus
 from src.utils.datetime import get_indian_time
+from src.utils.misc import is_valid_domain, verify_domain
 from src.core.security import create_tokens, decode_token
 from src.core.config import Config
 from datetime import timedelta
-from src.tasks import create_tenant_schema_task, create_tenant_setting
+from src.tasks import create_tenant_schema_task, create_tenant_setting, link_domain_and_redirect_task
 from src.core.logger import logger
 
 class ClientService:
@@ -162,6 +165,39 @@ class ClientService:
         config["logo"] = storage_client.get_url(config["logo"])
         logger.info(f"Tenant Config: {config}")
         return config
+    
+    async def link_custom_domain(self, id: UUID, domain: str):
+        if not is_valid_domain(domain):
+            raise InvalidDomainError(f"Invalid domain: {domain}")
+        
+        client = await self.client_repo.get_client_by_id(id)
+        if not client:
+            raise ClientNotFoundError(f"Client {id} does not exist!")
+        
+        existing = await self.client_repo.is_domain_exist(domain)
+        if existing:
+            raise DomainAlreadyExistsError(f"Domain already linked!")
+        
+        tenant_subdomain = f"{client.tenant_id}.{Config.DOMAIN_NAME}"
+        if not verify_domain(domain, tenant_subdomain):
+            if domain.count('.') == 1:
+                raise DomainNotVerifiedError(f"Add A record: {domain} → {Config.SERVER_IP}")
+            else:
+                raise DomainNotVerifiedError(
+                    f"Add either:\n"
+                    f"A record: {domain} → {Config.SERVER_IP}\n"
+                    f"OR CNAME: {domain} → {tenant_subdomain}"
+                )
+
+        await self.client_repo.add_custom_domain(id, domain)
+        link_domain_and_redirect_task.delay(domain, tenant_subdomain)
+
+    
+    async def is_domain_linked(self, domain: str):
+        if not is_valid_domain(domain):
+            raise InvalidDomainError(f"Invalid domain: {domain}")
+        return await self.client_repo.is_domain_exist(domain)
+
             
 
 

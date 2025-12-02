@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, UploadFile, HTTPException, Form, File
+from fastapi import APIRouter, Depends, UploadFile, HTTPException, Form, File, Response
 from src.services.platform import ClientService, OrderService, WorkspaceService
 from src.core.di import get_client_service, get_current_user, get_order_service, get_workspace_service
 from src.schemas.platform import (
     ClientOnboarding,CreateOrder, UpdateOrder, TenantAvailabilityRequest,
     InviteRequest
 )
-from src.core.config import Config
-from src.exceptions.platform import TenantAlreadyExistsError
+from src.exceptions.platform import (
+    TenantAlreadyExistsError, InvalidDomainError, ClientNotFoundError,
+    DomainAlreadyExistsError, DomainNotVerifiedError
+)
 from src.exceptions.tenant import UserAlreadyExistsError
 
 client_router = APIRouter(tags=["Client"])
@@ -66,3 +68,36 @@ async def invite(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@client_router.post(path="/custom-domain")
+async def link_custom_domain(
+    domain: str,
+    service: ClientService = Depends(get_client_service),
+    current_user = Depends(get_current_user()),
+):
+    try:
+        id = current_user.get("sub")
+        return await service.link_custom_domain(id, domain)
+    except InvalidDomainError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except ClientNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except DomainAlreadyExistsError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except DomainNotVerifiedError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+
+@client_router.get("/caddy-ask")
+async def caddy_ask(
+    domain: str,
+    service: ClientService = Depends(get_client_service)
+):
+    try:
+        exists = await service.is_domain_linked(domain)
+        if exists:
+            return Response(status_code=200)
+    except:
+        pass
+    
+    return Response(status_code=403)

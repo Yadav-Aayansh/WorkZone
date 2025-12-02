@@ -1,4 +1,7 @@
-from .base import NotFoundError, ConflictError, ValidationError, AuthenticationError, PaymentError
+from .base import (
+    NotFoundError, ConflictError, ValidationError, AuthenticationError,
+    PaymentError, DomainError
+)
 
 class ClientAlreadyExistsError(ConflictError):
     pass
@@ -31,4 +34,13 @@ class PolicyAlreadyExistsError(ConflictError):
     pass
 
 class PolicyNotFoundError(NotFoundError):
+    pass
+
+class InvalidDomainError(DomainError):
+    pass
+
+class DomainAlreadyExistsError(DomainError):
+    pass
+
+class DomainNotVerifiedError(DomainError):
     pass
