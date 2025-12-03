@@ -7,7 +7,7 @@ from src.genai.resume_ranking.ranker import ResumeRanker
 from src.genai.schemas.resume_ranking_schemas import ResumeData, RankingReport, FeedbackInformation
 
 def process_and_rank_resumes(
-    resumes_data: List[tuple[str, str]],
+    resumes_data: List[tuple[str, str, str]],
     jd_direct_text: str, # Direct text
     feedback_info: FeedbackInformation,
     top_x: int = 10,
@@ -16,7 +16,7 @@ def process_and_rank_resumes(
     Orchestrates the entire resume ranking process.
 
     Args:
-        resumes_data: A list of tuples, where each tuple is (resume_id, resume_blob_name).
+        resumes_data: A list of tuples, where each tuple is (resume_id, candidate_name, resume_blob_name).
         jd_direct_text: The full, raw text of the job description.
         top_x: The number of candidates to shortlist.
 
@@ -28,7 +28,7 @@ def process_and_rank_resumes(
     
     parsed_resumes: list[ResumeData] = []
     print(f"Parsing {len(resumes_data)} resumes...")
-    for resume_id, blob_name in resumes_data:
+    for resume_id, candidate_name, blob_name in resumes_data:
         try:
             raw_text = extract_text_from_file(download_blob(blob_name=blob_name))
 
@@ -36,6 +36,7 @@ def process_and_rank_resumes(
             parsed_resumes.append(
                 ResumeData(
                     id=resume_id,
+                    candidate_name=candidate_name,
                     sections=sections
                 )
             )
@@ -64,17 +65,17 @@ if __name__ == '__main__':
 
 
     GCS_RESUME_BLOB_NAMES = [
-        ("1","Shreyas_Jani_Resume_Sept2025.pdf"),
-        ("2","Shreyas_Jani_Resume_June_2025.pdf"),
-        ("3","Shreyas - 22f3001229 - IITM BS.pdf"),
-        ("4","Shreyas_Jani_CV_11Feb.pdf"),
+        ("1","Shreyas","Shreyas_Jani_Resume_Sept2025.pdf"),
+        ("2","Jani","Shreyas_Jani_Resume_June_2025.pdf"),
+        ("3","Name","Shreyas - 22f3001229 - IITM BS.pdf"),
+        ("4","Another Name","Shreyas_Jani_CV_11Feb.pdf"),
     ]
 
     results = process_and_rank_resumes(
         resumes_data=GCS_RESUME_BLOB_NAMES,
         jd_direct_text="Assume standard Python dev job at google",
         top_x=2,
-        feedback_info=FeedbackInformation(candidate_name="Shreyas", company_name="Google", position="Python Developer")
+        feedback_info=FeedbackInformation(company_name="Google", position="Python Developer")
     )
 
 

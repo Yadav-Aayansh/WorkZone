@@ -125,7 +125,7 @@ class ResumeRanker:
             # Now, build the email prompt (1 API call)
             prompt = REJECTION_EMAIL_FROM_ANALYSIS_PROMPT.format(
                 # Data for the email
-                candidate_name=feedback_info.candidate_name,
+                candidate_name=candidate_data.candidate_name,
                 company_name=feedback_info.company_name,
                 position=feedback_info.position,
                 
@@ -207,6 +207,7 @@ class ResumeRanker:
 
         return RankedCandidate(
             application_id=resume_data.id,
+            candidate_name=resume_data.candidate_name,
             final_score=final_score,
             details=scoring_details,
         )
