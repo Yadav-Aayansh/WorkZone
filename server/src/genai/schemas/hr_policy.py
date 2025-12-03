@@ -2,15 +2,27 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 from datetime import datetime
 
+
 class ProcessDocumentRequest(BaseModel):
-    document_blob_name: str = Field(..., description="GCS blob name for PDF")
-    category: str = Field(..., description="Document category: leave, payroll, benefits, policies")
-    metadata: Optional[Dict] = Field(default_factory=dict, description="Additional metadata")
+    chroma_db_path: str = Field(..., description="ChromaDB path: chroma_db/amazon_uuid123")
+    document_blob_names: Optional[List[str]] = Field(
+        None,
+        description="List of blob names to process. If None, used in batch mode."
+    )
+    category: Optional[str] = Field(
+        None,
+        description="Document category: leave, payroll, benefits, policies. Auto-detected if None."
+    )
+    metadata: Optional[Dict] = Field(
+        default_factory=dict,
+        description="Additional metadata"
+    )
 
 
 class ProcessDocumentResponse(BaseModel):
     status: str  # "success" or "error"
-    document_id: str
+    document_id: str  # Same as blob_name
+    blob_name: str
     chunks_added: int
     processing_time: float
     message: str
@@ -21,6 +33,7 @@ class ChatRequest(BaseModel):
     query: str = Field(..., description="User's question")
     chat_id: Optional[str] = Field(None, description="Chat session ID (None for new chat)")
     user_info: Dict = Field(..., description="User context as JSON key-value pairs")
+    chroma_db_path: str = Field(..., description="Tenant's ChromaDB path: chroma_db/amazon_uuid123")
 
 
 class ChatResponse(BaseModel):
@@ -40,10 +53,9 @@ class SuggestionsRequest(BaseModel):
 class SuggestionsResponse(BaseModel):
     for_you: List[str]
     categories: Dict[str, List[str]]
-    # trending: List[Dict]
 
 
-# Internal data model
+# Internal data models
 class Message(BaseModel):
     role: str  # "user" or "assistant"
     content: str
@@ -71,6 +83,7 @@ class RAGContext(BaseModel):
     user_info: Dict
     conversation_history: List[Message]
     session_context: Dict
+    chroma_db_path: str  
 
 
 class RAGResult(BaseModel):
@@ -78,3 +91,5 @@ class RAGResult(BaseModel):
     sources: List[Dict]
     confidence: float
     extracted_context: Dict
+    suggestions: List[str] = [] 
+

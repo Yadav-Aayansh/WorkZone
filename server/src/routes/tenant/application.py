@@ -36,6 +36,14 @@ async def list_applications(
         raise HTTPException(status_code=403, detail=str(e))
 
 
+@application_router.get("/applications")
+async def my_applications(
+    service: ApplicationService = Depends(get_application_service),
+    current_user = Depends(get_current_user(use_tenant=True, roles=[Role.APPLICANT, Role.EMPLOYEE]))
+):
+    user_id = current_user.get("sub")
+    return await service.my_applications(user_id)
+
 @application_router.get("/applications/{application_id}", response_model=ApplicationResponse)
 async def get_application(
     application_id: str,

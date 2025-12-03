@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 
 class Settings(BaseSettings):
+    SERVER_IP: str
     FRONTEND_URL: str
     LOG_LEVEL: str
 
@@ -15,9 +16,10 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_EMAIL: str
     GCS_BUCKET_NAME: str
 
-    # Gemini API
+    # LLM APIs
     GOOGLE_API_KEY: str
-    
+    GROQ_API_KEY: str
+
     # JWT
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str

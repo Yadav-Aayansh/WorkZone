@@ -26,8 +26,10 @@ from src.genai.hr_policy.vector_store import (
     add_documents_to_chroma,
     delete_document_from_chroma,
     list_all_documents,
+    download_all_tenant_chromadbs,
     download_chroma_from_gcs,
-    upload_chroma_to_gcs
+    upload_chroma_to_gcs,
+    create_tenant_chroma_path
 )
 from src.genai.hr_policy.context_manager import (
     create_chat_session,
@@ -38,151 +40,249 @@ from src.genai.hr_policy.context_manager import (
     update_chat_context
 )
 from src.genai.hr_policy.rag_engine import (
-    generate_answer,
-    generate_answer_streaming,
-    extract_topic_from_query
-)
-from src.genai.hr_policy.personalization import personalize_answer
-from src.genai.hr_policy.suggestions_generator import (
-    generate_initial_suggestions,
-    generate_contextual_suggestions
+    generate_answer
 )
 
-# call this func. at server start
+from src.genai.hr_policy.suggestions_generator import (
+    generate_initial_suggestions,
+    generate_contextual_suggestions,
+)
+
+
 async def initialize_system():
-    logger.info("Initializing HR Policy Assistant system...")
+    logger.info("Initializing HR Policy Assistant system (multi-tenant)...")
     
     try:
-        # Download Chroma DB from GCS
-        download_chroma_from_gcs()
+        # Download all tenant ChromaDBs from GCS
+        tenant_folders = download_all_tenant_chromadbs()
         
-        # Test Chroma connection
-        from src.genai.hr_policy.vector_store import get_collection
-        collection = get_collection()
-        count = collection.count()
-        
-        logger.info(f"System initialized - {count} documents in vector store")
+        logger.info(
+            f" System initialized - "
+            f"{len(tenant_folders)} tenant ChromaDBs downloaded"
+        )
         
         return {
             "status": "success",
-            "message": f"System initialized with {count} documents"
+            "message": f"System initialized with {len(tenant_folders)} tenants",
+            "tenants": tenant_folders
         }
         
     except Exception as e:
-        logger.error(f"System initialization failed: {e}")
+        logger.error(f" System initialization failed: {e}")
         return {
             "status": "error",
             "message": str(e)
         }
 
-# DOCUMENT PROCESSING
+
+def _determine_category(blob_name: str, category_override: Optional[str] = None) -> str:
+    if category_override:
+        return category_override
+    
+    # Auto-detect from filename
+    blob_lower = blob_name.lower()
+    
+    if any(word in blob_lower for word in ['leave', 'vacation', 'pto', 'time_off']):
+        return "leave"
+    elif any(word in blob_lower for word in ['payroll', 'salary', 'pay', 'compensation']):
+        return "payroll"
+    elif any(word in blob_lower for word in ['benefit', 'insurance', 'health', 'wellness']):
+        return "benefits"
+    else:
+        return "policies"
+
 
 async def process_uploaded_document(
-    request: ProcessDocumentRequest
+    request: ProcessDocumentRequest,
+    blob_name: str
 ) -> ProcessDocumentResponse:
-  
+    
     start_time = time.time()
-    logger.info(f"Processing document: {request.document_blob_name}")
     
     try:
-        # Download PDF from GCS
+        logger.info(f"Processing document: {blob_name} for {request.chroma_db_path}")
+        
+        # Step 1: Download PDF from GCS
         logger.info("Step 1: Downloading PDF from GCS...")
-        pdf_bytes = await download_pdf_from_gcs(request.document_blob_name)
+        local_pdf_path = await download_pdf_from_gcs(blob_name)
+        logger.info(f" Downloaded to {local_pdf_path}")
         
-        # Extract text
+        # Step 2: Extract text
         logger.info("Step 2: Extracting text from PDF...")
-        text = extract_text_from_pdf(pdf_bytes)
+        text = extract_text_from_pdf(local_pdf_path)
+        logger.info(f" Extracted {len(text)} characters")
         
-        if not text.strip():
-            raise ValueError("No text extracted from PDF")
-        
-        # Chunk text
+        # Step 3: Chunk text
         logger.info("Step 3: Chunking text...")
-        filename = request.document_blob_name.split("/")[-1]
+        category = _determine_category(blob_name, request.category)
+        
         chunks = chunk_text(
             text=text,
-            source_filename=filename,
-            category=request.category,
-            metadata=request.metadata
+            source=os.path.basename(blob_name),
+            category=category,
+            metadata=request.metadata or {}
         )
+        logger.info(f" Created {len(chunks)} chunks")
         
-        # Add to Chroma
-        logger.info("Step 4: Adding to Chroma vector store...")
-        document_id = await add_documents_to_chroma(chunks)
+        # Step 4: Add to ChromaDB
+        logger.info(f"Step 4: Adding to ChromaDB ({request.chroma_db_path})...")
+        document_id = await add_documents_to_chroma(
+            chunks=chunks,
+            chroma_db_path=request.chroma_db_path,
+            blob_name=blob_name
+        )
+        logger.info(f"Added to ChromaDB (document_id: {document_id})")
+        
+        # Clean up temp file
+        if os.path.exists(local_pdf_path):
+            os.remove(local_pdf_path)
         
         processing_time = time.time() - start_time
-        logger.info(f" Document processed in {processing_time:.2f}s")
+        logger.info(f"Document processed in {processing_time:.2f}s")
         
         return ProcessDocumentResponse(
             status="success",
             document_id=document_id,
+            blob_name=blob_name,
             chunks_added=len(chunks),
             processing_time=processing_time,
-            message=f"Successfully processed {len(chunks)} chunks from {filename}"
+            message=f"Document {blob_name} processed successfully"
         )
         
     except Exception as e:
         processing_time = time.time() - start_time
-        logger.error(f"Document processing failed: {str(e)}")
+        logger.error(f" Document processing failed: {e}")
         
         return ProcessDocumentResponse(
             status="error",
-            document_id="",
+            document_id=blob_name,
+            blob_name=blob_name,
             chunks_added=0,
             processing_time=processing_time,
-            message="Failed to process document",
+            message=f"Failed to process {blob_name}",
             error=str(e)
         )
 
 
-def _determine_category(blob_name: str, category_mapping: Optional[Dict] = None) -> str:
-    if category_mapping:
-        for folder, category in category_mapping.items():
-            if f"/{folder}/" in blob_name or blob_name.startswith(f"{folder}/"):
-                return category
-    
-    # Try folder structure
-    parts = blob_name.split('/')
-    if len(parts) >= 2:
-        potential_category = parts[-2].lower()
-        if potential_category in ['leave', 'payroll', 'benefits', 'policies']:
-            return potential_category
-    
-    # Try filename
-    filename = blob_name.split('/')[-1].lower()
-    if 'leave' in filename or 'vacation' in filename:
-        return 'leave'
-    elif 'salary' in filename or 'payroll' in filename or 'gratuity' in filename:
-        return 'payroll'
-    elif 'benefit' in filename or 'insurance' in filename:
-        return 'benefits'
-    
-    return 'policies'
+async def process_multiple_documents(
+    request: ProcessDocumentRequest
+) -> Dict:
 
-#one time setup
+    start_time = time.time()
+    
+    if not request.document_blob_names:
+        return {
+            "status": "error",
+            "message": "document_blob_names is required"
+        }
+    
+    logger.info(
+        f"Processing {len(request.document_blob_names)} documents "
+        f"for {request.chroma_db_path}"
+    )
+    
+    try:
+        # Download existing ChromaDB
+        download_chroma_from_gcs(request.chroma_db_path)
+        
+        results = []
+        successful = 0
+        failed = 0
+        
+        for i, blob_name in enumerate(request.document_blob_names, 1):
+            logger.info(f"Processing [{i}/{len(request.document_blob_names)}]: {blob_name}")
+            
+            try:
+                result = await process_uploaded_document(request, blob_name)
+                
+                results.append({
+                    "blob_name": blob_name,
+                    "status": result.status,
+                    "document_id": result.document_id,
+                    "chunks_added": result.chunks_added
+                })
+                
+                if result.status == "success":
+                    successful += 1
+                    logger.info(f"✓ [{i}/{len(request.document_blob_names)}] Success: {blob_name}")
+                else:
+                    failed += 1
+                    logger.error(f"✗ [{i}/{len(request.document_blob_names)}] Failed: {blob_name}")
+                
+            except Exception as e:
+                failed += 1
+                logger.error(f"✗ [{i}/{len(request.document_blob_names)}] Error: {e}")
+                results.append({
+                    "blob_name": blob_name,
+                    "status": "error",
+                    "error": str(e)
+                })
+        
+        # Upload ChromaDB to GCS ONCE after all documents
+        logger.info("Uploading updated ChromaDB to GCS...")
+        upload_chroma_to_gcs(request.chroma_db_path)
+        
+        processing_time = time.time() - start_time
+        logger.info(
+            f"✓ Processed {len(request.document_blob_names)} documents: "
+            f"{successful} successful, {failed} failed in {processing_time:.2f}s"
+        )
+        
+        return {
+            "status": "success",
+            "message": f"Processed {len(request.document_blob_names)} documents",
+            "successful": successful,
+            "failed": failed,
+            "total": len(request.document_blob_names),
+            "results": results,
+            "processing_time": processing_time
+        }
+        
+    except Exception as e:
+        processing_time = time.time() - start_time
+        logger.error(f"Batch processing failed: {e}")
+        
+        return {
+            "status": "error",
+            "message": str(e),
+            "processing_time": processing_time
+        }
+
+
 async def process_all_documents_from_gcs(
-    folder_path: str = "policies/",
+    tenant_folder_path: str,
     category_mapping: Optional[Dict[str, str]] = None
 ) -> Dict:
    
-    logger.info(f"Starting bulk processing from GCS: {folder_path}")
     start_time = time.time()
     
     try:
-        # List all PDFs
-        logger.info("Step 1: Listing all PDFs in GCS...")
-        bucket = storage_client.bucket
-        blobs = bucket.list_blobs(prefix=folder_path)
+        # Extract tenant name from path
+        tenant_name = tenant_folder_path.rstrip('/').split('/')[-1]
+        logger.info(f"Processing all documents for tenant: {tenant_name}")
         
-        pdf_blobs = [blob for blob in blobs if blob.name.lower().endswith('.pdf')]
+        # Create ChromaDB path for this tenant
+        chroma_db_path = create_tenant_chroma_path(tenant_name)
+        logger.info(f"Created ChromaDB path: {chroma_db_path}")
+        
+        # List all PDFs in tenant folder
+        logger.info(f"Step 1: Listing all PDFs in {tenant_folder_path}")
+        bucket = storage_client.bucket
+        blobs = bucket.list_blobs(prefix=tenant_folder_path)
+        
+        pdf_blobs = [
+            blob for blob in blobs 
+            if blob.name.lower().endswith('.pdf')
+        ]
         total_files = len(pdf_blobs)
         
-        logger.info(f"Found {total_files} PDF files in {folder_path}")
+        logger.info(f"Found {total_files} PDF files in {tenant_folder_path}")
         
         if total_files == 0:
             return {
                 "status": "success",
                 "message": "No PDF files found",
+                "chroma_db_path": chroma_db_path,
                 "total_files": 0,
                 "successful": 0,
                 "failed": 0,
@@ -195,23 +295,23 @@ async def process_all_documents_from_gcs(
         successful = 0
         failed = 0
         
+        # Create request object for this tenant
+        request = ProcessDocumentRequest(
+            chroma_db_path=chroma_db_path,
+            category=None,  # Auto-detect
+            metadata={
+                "tenant": tenant_name,
+                "bulk_processed": True,
+                "processed_at": get_indian_time().isoformat()
+            }
+        )
+        
         for i, blob in enumerate(pdf_blobs, 1):
             blob_name = blob.name
             logger.info(f"Processing [{i}/{total_files}]: {blob_name}")
             
             try:
-                category = _determine_category(blob_name, category_mapping)
-                
-                result = await process_uploaded_document(
-                    ProcessDocumentRequest(
-                        document_blob_name=blob_name,
-                        category=category,
-                        metadata={
-                            "bulk_processed": True,
-                            "processed_at": get_indian_time().isoformat()
-                        }
-                    )
-                )
+                result = await process_uploaded_document(request, blob_name)
                 
                 results.append({
                     "blob_name": blob_name,
@@ -222,10 +322,10 @@ async def process_all_documents_from_gcs(
                 
                 if result.status == "success":
                     successful += 1
-                    logger.info(f"[{i}/{total_files}] Success: {blob_name}")
+                    logger.info(f" [{i}/{total_files}] Success: {blob_name}")
                 else:
                     failed += 1
-                    logger.error(f"[{i}/{total_files}] Failed: {blob_name}")
+                    logger.error(f" [{i}/{total_files}] Failed: {blob_name}")
                 
             except Exception as e:
                 failed += 1
@@ -236,6 +336,10 @@ async def process_all_documents_from_gcs(
                     "error": str(e)
                 })
         
+        # Upload ChromaDB to GCS ONCE after all documents
+        logger.info(f"Step 3: Uploading ChromaDB to {chroma_db_path}")
+        upload_chroma_to_gcs(chroma_db_path)
+        
         processing_time = time.time() - start_time
         logger.info(
             f" Bulk processing complete: "
@@ -245,7 +349,9 @@ async def process_all_documents_from_gcs(
         
         return {
             "status": "success",
-            "message": f"Processed {total_files} files",
+            "message": f"Processed {total_files} files for tenant {tenant_name}",
+            "chroma_db_path": chroma_db_path,
+            "tenant": tenant_name,
             "total_files": total_files,
             "successful": successful,
             "failed": failed,
@@ -258,52 +364,26 @@ async def process_all_documents_from_gcs(
         return {
             "status": "error",
             "message": str(e),
-            "total_files": 0,
-            "successful": 0,
-            "failed": 0
+            "tenant_folder_path": tenant_folder_path
         }
 
 
-async def rebuild_chroma_from_gcs(folder_path: str = "policies/") -> Dict:
-    logger.info("Rebuilding Chroma DB from scratch...")
-    
+async def delete_document(
+    chroma_db_path: str,
+    blob_name: str
+) -> Dict:
     try:
-        # Clear existing Chroma DB
-        from src.genai.hr_policy.vector_store import CHROMA_LOCAL_TEMP
-        import shutil
-        
-        if os.path.exists(CHROMA_LOCAL_TEMP):
-            shutil.rmtree(CHROMA_LOCAL_TEMP)
-            os.makedirs(CHROMA_LOCAL_TEMP)
-            logger.info(" Cleared existing Chroma DB")
-        
-        # Process all documents
-        result = await process_all_documents_from_gcs(folder_path)
-        
-        logger.info("Chroma DB rebuilt successfully")
-        return result
-        
-    except Exception as e:
-        logger.error(f" Failed to rebuild Chroma DB: {e}")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
-
-
-async def delete_document(document_id: str) -> Dict:
-    try:
-        success = await delete_document_from_chroma(document_id)
+        success = await delete_document_from_chroma(chroma_db_path, blob_name)
         
         if success:
             return {
                 "status": "success",
-                "message": f"Document {document_id} deleted successfully"
+                "message": f"Document {blob_name} deleted successfully from {chroma_db_path}"
             }
         else:
             return {
                 "status": "error",
-                "message": f"Document {document_id} not found"
+                "message": f"Document {blob_name} not found in {chroma_db_path}"
             }
             
     except Exception as e:
@@ -313,72 +393,62 @@ async def delete_document(document_id: str) -> Dict:
             "message": str(e)
         }
 
-#To show admin dashboard, what are the policy files uploaded
-async def list_documents() -> Dict:
 
+# #To show admin dashboard, what are the policy files uploaded
+async def list_documents(chroma_db_path: str) -> List[Dict]:
     try:
-        docs = await list_all_documents()
-        return {
-            "status": "success",
-            "total_documents": len(docs),
-            "documents": docs
-        }
+        documents = await list_all_documents(chroma_db_path)
+        return documents
+        
     except Exception as e:
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        logger.error(f"Failed to list documents: {e}")
+        return []
 
-# CHAT FUNCTIONS
 
 async def chat_with_context(request: ChatRequest) -> ChatResponse:
-  
     start_time = time.time()
-    logger.info(f"Chat request - chat_id: {request.chat_id}")
-    logger.info(f"Query: {request.query}")
     
     try:
         # Session Management
+        logger.info(f"Chat request - chat_id: {request.chat_id}")
+        logger.info(f"Query: {request.query}")
+        logger.info(f"ChromaDB path: {request.chroma_db_path}")
+        
         if not request.chat_id:
-            logger.info("Creating new chat session...")
             chat_id = await create_chat_session(request.user_info)
-            logger.info(f"New chat created: {chat_id}")
+            logger.info(f"Created new chat: {chat_id}")
         else:
             chat_id = request.chat_id
             logger.info(f"Using existing chat: {chat_id}")
         
-        # Get Conversation History
+        # Get Conversation History 
         logger.info("Retrieving conversation history...")
         history = await get_conversation_history(chat_id, last_n=5)
-        logger.info(f" Retrieved {len(history)} previous messages")
+        logger.info(f"Retrieved {len(history)} previous messages")
         
-        # Get Conversation Context
+        #Get Conversation Context
         logger.info("Getting conversation context...")
         session_context = await get_chat_context(chat_id)
         current_topic = session_context.get("current_topic", "none")
-        logger.info(f" Current topic: {current_topic}")
+        logger.info(f"Current topic: {current_topic}")
         
-        # Generate Answer with RAG
-        logger.info("Generating answer with RAG...")
+        logger.info("Generating answer + personalization + suggestions")
         rag_result = await generate_answer(
             query=request.query,
             user_info=request.user_info,
             conversation_history=history,
-            session_context=session_context
+            session_context=session_context,
+            chroma_db_path=request.chroma_db_path  
         )
+        
+        # Extract results from unified response
+        personalized_answer = rag_result.answer
+        suggestions = rag_result.suggestions
         confidence = rag_result.confidence
-        logger.info(f" Answer generated (confidence: {confidence:.1f}%)")
         
-        # Personalize Answer
-        logger.info("Personalizing answer...")
-        personalized_answer = await personalize_answer(
-            raw_answer=rag_result.answer,
-            user_info=request.user_info,
-            query=request.query
-        )
-        logger.info("Answer personalized")
+        logger.info(f" Unified response generated (confidence: {confidence:.1f}%)")
         
-        # Save Messages
+        # save messages
         logger.info("Saving messages to Redis...")
         await add_message_to_chat(chat_id, "user", request.query)
         await add_message_to_chat(
@@ -392,7 +462,7 @@ async def chat_with_context(request: ChatRequest) -> ChatResponse:
         )
         logger.info("Messages saved")
         
-        # Update Context
+        # update context
         logger.info("Updating conversation context...")
         context_update = rag_result.extracted_context
         context_update["timestamp"] = get_indian_time().isoformat()
@@ -400,17 +470,9 @@ async def chat_with_context(request: ChatRequest) -> ChatResponse:
         new_topic = context_update.get("current_topic")
         logger.info(f"Context updated - new topic: {new_topic}")
         
-        # Generate Suggestions
-        logger.info("Generating follow-up suggestions...")
-        suggestions = await generate_contextual_suggestions(
-            session_context=rag_result.extracted_context,
-            user_info=request.user_info
-        )
-        logger.info(f" Generated {len(suggestions)} suggestions")
-        
-        # Return Response
+        # return responses
         processing_time = time.time() - start_time
-        logger.info(f"Chat completed in {processing_time:.2f}s")
+        logger.info(f" Chat completed in {processing_time:.2f}s ")
         
         return ChatResponse(
             chat_id=chat_id,
@@ -436,116 +498,7 @@ async def chat_with_context(request: ChatRequest) -> ChatResponse:
             confidence=0.0
         )
 
-
-async def chat_with_context_streaming(
-    request: ChatRequest
-) -> AsyncGenerator[str, None]:
-
-    try:
-        # Session Management
-        if not request.chat_id:
-            chat_id = await create_chat_session(request.user_info)
-        else:
-            chat_id = request.chat_id
-        
-        # Get History & Context 
-        history = await get_conversation_history(chat_id, last_n=5)
-        session_context = await get_chat_context(chat_id)
-        
-        # Save User Message
-        await add_message_to_chat(chat_id, "user", request.query)
-        
-        # Stream Answer Generation 
-        # Get relevant documents for later use
-        from src.genai.hr_policy.vector_store import search_similar_documents
-        relevant_docs = await search_similar_documents(request.query, k=3)
-        
-        # Stream answer
-        full_answer = ""
-        async for chunk in generate_answer_streaming(
-            query=request.query,
-            user_info=request.user_info,
-            conversation_history=history,
-            session_context=session_context
-        ):
-            full_answer += chunk
-            yield f"data: {chunk}\n\n"
-        
-        # Personalize Answer
-        personalized_answer = await personalize_answer(
-            raw_answer=full_answer,
-            user_info=request.user_info,
-            query=request.query
-        )
-        
-        # If personalization added extra text, stream that too
-        if len(personalized_answer) > len(full_answer):
-            extra_text = personalized_answer[len(full_answer):]
-            yield f"data: {extra_text}\n\n"
-        
-        # Save Assistant Message 
-        # Calculate confidence
-        if relevant_docs:
-            avg_score = sum(doc['score'] for doc in relevant_docs) / len(relevant_docs)
-            confidence = min(avg_score * 100, 100)
-        else:
-            confidence = 0.0
-        
-        # Format sources
-        sources = []
-        for doc in relevant_docs:
-            sources.append({
-                "source": doc['metadata'].get('source', 'Unknown'),
-                "category": doc['metadata'].get('category', 'general'),
-                "relevance_score": doc['score']
-            })
-        
-        await add_message_to_chat(
-            chat_id,
-            "assistant",
-            personalized_answer,
-            metadata={
-                "sources": sources,
-                "confidence": confidence
-            }
-        )
-        
-        # Update Context 
-        topic = extract_topic_from_query(request.query, full_answer)
-        context_update = {
-            "current_topic": topic,
-            "timestamp": get_indian_time().isoformat()
-        }
-        await update_chat_context(chat_id, context_update)
-        
-        # Generate Suggestions
-        suggestions = await generate_contextual_suggestions(
-            session_context=context_update,
-            user_info=request.user_info
-        )
-        
-        # Send Metadata at End 
-        metadata = {
-            "type": "metadata",
-            "chat_id": chat_id,
-            "sources": sources,
-            "suggestions": suggestions,
-            "current_topic": topic,
-            "confidence": confidence
-        }
-        yield f"data: [METADATA]{json.dumps(metadata)}\n\n"
-        
-        # Send completion signal
-        yield "data: [DONE]\n\n"
-        
-    except Exception as e:
-        logger.error(f"Streaming error: {e}")
-        yield f"data: \n\nError: {str(e)}\n\n"
-        yield "data: [DONE]\n\n"
-
-
-# suggestions for homepage
-
+#suggestion for homepage
 async def get_suggestions(request: SuggestionsRequest) -> SuggestionsResponse:
     logger.info("Generating suggestions...")
     
@@ -553,21 +506,22 @@ async def get_suggestions(request: SuggestionsRequest) -> SuggestionsResponse:
         # Generate initial suggestions
         suggestions = await generate_initial_suggestions(request.user_info)
         
-        # Get trending questions
-        # trending = await get_trending_questions(top_n=5)
-        
         # If chat_id provided, add contextual suggestions
         if request.chat_id:
             session_context = await get_chat_context(request.chat_id)
             if session_context:
+                # conv_history = await get_conversation_history(request.chat_id, last_n=6)
+                
                 contextual = await generate_contextual_suggestions(
                     session_context=session_context,
                     user_info=request.user_info
+                    # conversation_history=conv_history,
+                    # last_answer=""
                 )
                 suggestions["contextual"] = contextual
         
         user_name = request.user_info.get("name", "Employee")
-        logger.info(f" Generated suggestions for {user_name}")
+        logger.info(f"Generated suggestions for {user_name}")
         
         return SuggestionsResponse(
             for_you=suggestions.get("for_you", []),
@@ -576,8 +530,7 @@ async def get_suggestions(request: SuggestionsRequest) -> SuggestionsResponse:
                 "payroll": suggestions.get("payroll", []),
                 "benefits": suggestions.get("benefits", []),
                 "policies": suggestions.get("policies", [])
-            },
-            # trending=trending
+            }
         )
         
     except Exception as e:
@@ -590,12 +543,11 @@ async def get_suggestions(request: SuggestionsRequest) -> SuggestionsResponse:
                 "payroll": ["When is salary credited?"],
                 "benefits": ["What insurance benefits do we have?"],
                 "policies": ["What's the WFH policy?"]
-            },
-            # trending=[]
+            }
         )
 
 
-#Retrieve complete conversation from Redis for display/analysis.
+#Retrieve complete conversation from Redis for display/analysis on dashboard
 async def get_chat_history(chat_id: str) -> Dict:
     try:
         session = await get_chat_session(chat_id)
@@ -623,21 +575,20 @@ async def get_chat_history(chat_id: str) -> Dict:
         }
 
 
-
 __all__ = [
     # Initialization
     "initialize_system",
     
     # Document processing
     "process_uploaded_document",
+    "process_multiple_documents",
     "process_all_documents_from_gcs",
-    "rebuild_chroma_from_gcs",
     "delete_document",
     "list_documents",
     
     # Chat functions
-    "chat_with_context",
-    "chat_with_context_streaming",
+    "chat_with_context"
+    # "chat_with_context_streaming",
     
     # Suggestions
     "get_suggestions",

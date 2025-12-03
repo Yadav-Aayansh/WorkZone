@@ -23,6 +23,9 @@ class PaymentError(AppException):
 class FileError(AppException):
     pass
 
+class DomainError(AppException):
+    pass
+
 # AuthenticationError
 class InvalidTokenError(AuthenticationError):
     pass
@@ -46,3 +49,4 @@ class FileUploadFailedError(FileError):
 
 class FileNotFoundError(FileError):
     pass
+

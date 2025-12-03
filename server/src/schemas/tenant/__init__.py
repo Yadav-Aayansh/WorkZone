@@ -11,10 +11,12 @@ from .application import (
     ApplicationResponse, 
 )
 
-from .employee import EmployeeProfileResponse
+from .employee import EmployeeProfileResponse, EmployeeInfo, HelpdeskQuery
 
 from .applicant import ApplicantProfileResponse
 
 from .manager import ManagerProfileResponse
 
 from .recruiter import RecruiterProfileResponse
+
+from .leave import ApplyLeaveRequest, LeaveRequestResponse, RejectLeaveRequest

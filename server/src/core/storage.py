@@ -34,13 +34,23 @@ class StorageClient:
         if size > max_size_mb * 1024 * 1024:
             raise FileSizeExceededError(f"File size {size/1024/1024:.2f}MB exceeds {max_size_mb}MB limit")
 
-
-    def upload(self, file: UploadFile, folder: str, expiration: int = 1):
-        blob_name = f"{folder}/{uuid.uuid4()}-{file.filename}"
+    def _upload(self, file: UploadFile, blob_name: str, expiration: int = 1, is_public: bool = False):
         blob = self.bucket.blob(blob_name)
         blob.upload_from_string(file.file.read(), content_type=file.content_type)
-        url = blob.generate_signed_url(expiration=timedelta(days=expiration))
-        return blob_name, url
+        if is_public:
+            blob.make_public()
+            return blob_name, blob.public_url
+        else:
+            url = blob.generate_signed_url(expiration=timedelta(days=expiration))
+            return blob_name, url
+
+    def upload_unique(self, file: UploadFile, folder: str, expiration: int = 1, is_public: bool = False):
+        blob_name = f"{folder}/{file.filename}"
+        return self._upload(file, blob_name, expiration, is_public)
+
+    def upload(self, file: UploadFile, folder: str, expiration: int = 1, is_public: bool = False):
+        blob_name = f"{folder}/{uuid.uuid4()}-{file.filename}"
+        return self._upload(file, blob_name, expiration, is_public)
     
     def get_url(self, blob_name: str, expiration: int = 1):
         blob = self.bucket.blob(blob_name)

@@ -1,6 +1,7 @@
 from typing import Dict, List
 from src.core.logger import logger
 from src.genai.hr_policy.personalization import get_user_category
+from src.genai.llm_client import llm_client
 
 
 BASE_SUGGESTIONS = {
@@ -114,11 +115,11 @@ async def generate_initial_suggestions(user_info: Dict) -> Dict[str, List[str]]:
     logger.info(f"✓ Generated initial suggestions with {len(suggestions['for_you'])} personalized items")
     return suggestions
 
-
 async def generate_contextual_suggestions(
     session_context: Dict,
     user_info: Dict
-) -> List[str]:    
+) -> List[str]:
+
     current_topic = session_context.get("current_topic", "general")
     
     suggestions = FOLLOW_UP_SUGGESTIONS.get(current_topic, []).copy()
@@ -140,20 +141,5 @@ async def generate_contextual_suggestions(
         if not user_info.get("health_insurance_enrolled"):
             suggestions.insert(0, "How do I enroll in health insurance?")
     
-    logger.info(f"✓ Generated {len(suggestions)} contextual suggestions for topic: {current_topic}")
+    logger.info(f"Generated {len(suggestions)} contextual suggestions for topic: {current_topic}")
     return suggestions[:5]
-
-
-# async def get_trending_questions(category: str = None, top_n: int = 5) -> List[Dict]:
-    
-#     # Mock data for now - in production, query Redis ZSET
-#     trending = [
-#         {"question": "What's the new WFH policy?", "count": 145},
-#         {"question": "How to download payslips?", "count": 98},
-#         {"question": "When is the next salary revision?", "count": 76},
-#         {"question": "What's the leave carry forward limit?", "count": 65},
-#         {"question": "How to update bank details?", "count": 54}
-#     ]
-    
-#     return trending[:top_n]
-

@@ -6,7 +6,7 @@ from src.core.storage import storage_client
 from src.genai.schemas.hr_policy import DocumentChunk
 
 
-async def download_pdf_from_gcs(blob_name: str) -> bytes:
+async def download_pdf_from_gcs(blob_name: str) -> str:
     try:
         # Get signed URL
         signed_url = storage_client.get_url(blob_name, expiration=1)
@@ -21,26 +21,34 @@ async def download_pdf_from_gcs(blob_name: str) -> bytes:
         response.raise_for_status()
         
         logger.info(f"Downloaded PDF from GCS: {blob_name}")
-        return response.content
-        
+        # return response.content
+        import tempfile
+        temp_path = tempfile.mktemp(suffix=".pdf")
+        with open(temp_path, 'wb') as f:
+            f.write(response.content)
+        return temp_path
+                
     except Exception as e:
         logger.error(f"Failed to download PDF: {e}")
         raise
 
 
-def extract_text_from_pdf(pdf_bytes: bytes) -> str:
+def extract_text_from_pdf(pdf_path: str) -> str:
     try:
-        pdf_file = io.BytesIO(pdf_bytes)
-        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        # pdf_file = io.BytesIO(pdf_bytes)
+        # pdf_reader = PyPDF2.PdfReader(pdf_file)
+        with open(pdf_path, 'rb') as f:
+            pdf_reader = PyPDF2.PdfReader(f)
+    
         
-        text = ""
-        for page_num, page in enumerate(pdf_reader.pages):
-            page_text = page.extract_text()
-            if page_text:
-                text += f"\n\n--- Page {page_num + 1} ---\n\n{page_text}"
-        
-        logger.info(f" Extracted text from PDF: {len(text)} characters")
-        return text.strip()
+            text = ""
+            for page_num, page in enumerate(pdf_reader.pages):
+                page_text = page.extract_text()
+                if page_text:
+                    text += f"\n\n--- Page {page_num + 1} ---\n\n{page_text}"
+            
+            logger.info(f" Extracted text from PDF: {len(text)} characters")
+            return text.strip()
         
     except Exception as e:
         logger.error(f"Failed to extract text from PDF: {e}")
@@ -49,7 +57,7 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> str:
 
 def chunk_text(
     text: str,
-    source_filename: str,
+    source: str,
     category: str,
     metadata: Dict,
     chunk_size: int = 500,
@@ -77,7 +85,7 @@ def chunk_text(
             chunk = DocumentChunk(
                 text=chunk_text,
                 metadata={
-                    "source": source_filename,
+                    "source": source,
                     "category": category,
                     "chunk_index": chunk_index,
                     "total_chars": len(chunk_text),

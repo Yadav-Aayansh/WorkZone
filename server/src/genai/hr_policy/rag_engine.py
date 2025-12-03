@@ -4,22 +4,24 @@ from src.genai.llm_client import llm_client
 from src.genai.schemas.hr_policy import Message, RAGResult
 from src.genai.hr_policy.vector_store import search_similar_documents
 from src.genai.hr_policy.personalization import build_personalized_context
+import json
 
 
-def build_rag_prompt(
+def build_unified_rag_prompt(
     query: str,
     relevant_docs: List[Dict],
     user_info: Dict,
     conversation_history: List[Message],
     session_context: Dict
 ) -> str:
-    
+
     system_instruction = """You are a helpful HR Policy Assistant for employees. Your role is to:
 - Answer questions about company policies clearly and accurately
 - Provide personalized answers based on employee context
 - Cite sources when providing information
 - Be concise but thorough
 - Use a friendly, professional tone
+- Generate relevant follow-up questions
 
 IMPORTANT RULES:
 - Always base answers on the provided policy documents
@@ -51,20 +53,62 @@ IMPORTANT RULES:
     
     query_text = f"\n\nCURRENT QUESTION: {query}"
     
-    instructions = """
+    # Extract user info for personalization
+    name = user_info.get("name") or user_info.get("employee_name") or "Employee"
+    
+    # Build leave balance info (flexible structure)
+    leave_info = ""
+    if "balance" in user_info and isinstance(user_info["balance"], dict):
+        balances = []
+        for leave_type, days in user_info["balance"].items():
+            balances.append(f"{leave_type.title()}: {days} days")
+        leave_info = ", ".join(balances)
+    elif "leave_balance" in user_info:
+        leave_info = f"{user_info['leave_balance']} days"
+    
+    # Determine if this is a leave-related query
+    query_lower = query.lower()
+    is_leave_query = any(word in query_lower for word in ['leave', 'vacation', 'pto', 'time off', 'holiday', 'absent'])
+    
+    instructions = f"""
 
-Please provide a helpful, personalized answer based on:
-1. The policy documents provided above
-2. The employee's context (department, location, tenure, etc.)
-3. The conversation history (if this is a follow-up question)
+Please provide a response in the following JSON format:
+{{
+    "answer": "Your personalized answer here",
+    "suggestions": ["Suggestion 1", "Suggestion 2", "Suggestion 3"]
+}}
 
-Format your response as:
-- Direct answer to the question
-- Cite the source document when providing specific policy details
-- Personalize the answer using the employee's information
-- Keep it concise but complete
+ANSWER INSTRUCTIONS:
+1. Provide a direct, helpful answer based on the policy documents
+2. Cite the source document when providing specific policy details
+3. PERSONALIZE the answer:
+   - Start with greeting using employee name: {name}
+   - {"Add their current leave balance at the end: " + leave_info if is_leave_query and leave_info else "Do NOT add leave balance (query is not about leaves)"}
+   - Reference their role, department, or location ONLY if relevant to the query
+   - Keep personalization natural and concise (1-2 sentences max)
+4. Keep the answer complete but concise
 
-Answer:"""
+SUGGESTIONS INSTRUCTIONS:
+1. Generate EXACTLY 3 relevant follow-up questions based on:
+   - The current answer and topic
+   - Available policy documents
+   - Employee context (role, department, tenure)
+   - Conversation history
+2. Questions should:
+   - Build on what was just discussed
+   - Be answerable from available policy documents
+   - NOT repeat questions already asked in conversation
+   - Be specific and actionable
+3. Generate ONLY 3 suggestions, no more, no less
+
+IMPORTANT: 
+- Your ENTIRE response must be ONLY a valid JSON object
+- DO NOT include any text outside the JSON
+- DO NOT use markdown code blocks
+- DO NOT add explanations before or after the JSON
+- Generate EXACTLY 3 suggestions in the array
+
+Your JSON response:"""
     
     complete_prompt = (
         system_instruction +
@@ -96,58 +140,33 @@ def extract_topic_from_query(query: str, answer: str) -> str:
         return "general"
 
 
-async def generate_answer_streaming(
-    query: str,
-    user_info: Dict,
-    conversation_history: List[Message],
-    session_context: Dict
-) -> AsyncGenerator[str, None]:
-    try:
-        logger.info(f"Searching for relevant documents for query: {query}")
-        relevant_docs = await search_similar_documents(query, k=3)
-        
-        if not relevant_docs:
-            yield "I couldn't find relevant policy documents to answer your question. Please contact HR for assistance."
-            return
-        
-        prompt = build_rag_prompt(
-            query=query,
-            relevant_docs=relevant_docs,
-            user_info=user_info,
-            conversation_history=conversation_history,
-            session_context=session_context
-        )
-        
-        logger.info("Streaming answer from LLM...")
-        async for chunk in llm_client.generate_text_streaming(prompt, temperature=0.7):
-            yield chunk
-        
-        logger.info("Answer streamed successfully")
-        
-    except Exception as e:
-        logger.error(f"Error generating answer: {e}")
-        yield f"\n\nError: {str(e)}"
-
-
 async def generate_answer(
     query: str,
     user_info: Dict,
     conversation_history: List[Message],
-    session_context: Dict
+    session_context: Dict,
+    chroma_db_path: str
 ) -> RAGResult:
+
     try:
         logger.info(f"Searching for relevant documents for query: {query}")
-        relevant_docs = await search_similar_documents(query, k=3)
+        relevant_docs = await search_similar_documents(
+            query=query,
+            chroma_db_path=chroma_db_path,
+            k=3
+        )
         
         if not relevant_docs:
             return RAGResult(
                 answer="I couldn't find relevant policy documents to answer your question. Please contact HR for assistance.",
                 sources=[],
                 confidence=0.0,
-                extracted_context={"current_topic": "unknown"}
+                extracted_context={"current_topic": "unknown"},
+                suggestions=[]
             )
         
-        prompt = build_rag_prompt(
+        # Build unified prompt that handles everything
+        prompt = build_unified_rag_prompt(
             query=query,
             relevant_docs=relevant_docs,
             user_info=user_info,
@@ -155,14 +174,58 @@ async def generate_answer(
             session_context=session_context
         )
         
-        logger.info("Generating answer with LLM...")
-        answer = llm_client.generate_text(prompt, temperature=0.7)
+        logger.info("Generating unified response (answer + personalization + suggestions) with single LLM call...")
+        response_text = llm_client.generate_text(prompt, temperature=0.7)
         
+        # Parse JSON response
+        try:
+            # Clean up response (remove markdown code blocks if present)
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text.replace("```json", "").replace("```", "").strip()
+            elif response_text.startswith("```"):
+                response_text = response_text.replace("```", "").strip()
+            
+            response_json = json.loads(response_text)
+            
+            personalized_answer = response_json.get("answer", "")
+            suggestions = response_json.get("suggestions", [])
+            
+            # Ensure exactly 3 suggestions
+            if len(suggestions) > 3:
+                suggestions = suggestions[:3]
+            elif len(suggestions) < 3:
+                # Pad with generic suggestions if needed
+                while len(suggestions) < 3:
+                    generic = [
+                        "Can you explain more about this policy?",
+                        "How does this apply to my department?",
+                        "What are the exceptions to this rule?"
+                    ]
+                    suggestions.append(generic[len(suggestions)])
+            
+            logger.info("✓ Successfully parsed unified response")
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JSON response: {e}")
+            logger.error(f"Response was: {response_text[:500]}")
+            
+            # Fallback: use the text as answer, generate basic suggestions
+            personalized_answer = response_text
+            suggestions = [
+                "Can you explain more about this policy?",
+                "How does this apply to my department?",
+                "What are the exceptions to this rule?"
+            ]
+        
+        # Calculate confidence
         avg_score = sum(doc['score'] for doc in relevant_docs) / len(relevant_docs)
         confidence = min(avg_score * 100, 100)
         
-        topic = extract_topic_from_query(query, answer)
+        # Extract topic
+        topic = extract_topic_from_query(query, personalized_answer)
         
+        # Build sources
         sources = []
         for doc in relevant_docs:
             sources.append({
@@ -171,16 +234,17 @@ async def generate_answer(
                 "relevance_score": doc['score']
             })
         
-        logger.info(f"Answer generated (confidence: {confidence:.1f}%)")
+        logger.info(f"✓ Generated answer + suggestions in single call (confidence: {confidence:.1f}%)")
         
         return RAGResult(
-            answer=answer,
+            answer=personalized_answer,
             sources=sources,
             confidence=confidence,
             extracted_context={
                 "current_topic": topic,
                 "timestamp": None
-            }
+            },
+            suggestions=suggestions
         )
         
     except Exception as e:
@@ -189,5 +253,6 @@ async def generate_answer(
             answer=f"An error occurred while generating the answer: {str(e)}",
             sources=[],
             confidence=0.0,
-            extracted_context={"current_topic": "error"}
+            extracted_context={"current_topic": "error"},
+            suggestions=[]
         )

@@ -2,7 +2,6 @@
 // @ts-nocheck
 /* eslint-disable */
 
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -425,12 +424,19 @@ function ApplicationDetailContent() {
                   <div>
                     <h4 className="font-semibold mb-2">Required Skills</h4>
                     <div className="flex flex-wrap gap-2">
-                      {application.job.skills_required.map(
-                        (skill: string, index: number) => (
-                          <Badge key={index} variant="secondary">
-                            {skill}
-                          </Badge>
+                      {application.job.skills_required &&
+                      application.job.skills_required.length > 0 ? (
+                        application.job.skills_required.map(
+                          (skill: string, index: number) => (
+                            <Badge key={index} variant="secondary">
+                              {skill}
+                            </Badge>
+                          )
                         )
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No skills specified
+                        </p>
                       )}
                     </div>
                   </div>

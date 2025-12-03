@@ -211,8 +211,17 @@ function JobDetailsContent() {
     toast.success("Job link copied to clipboard!");
   };
 
-  const handleCloseJob = () => {
-    toast.success("Job closed successfully!");
+  const handleCloseJob = async () => {
+    try {
+      if (!job) return;
+
+      const updated = await tenantJobAPI.closeJob(job.id);
+      setJob(updated);
+      toast.success("Job closed successfully!");
+    } catch (err: any) {
+      console.error("Failed to close job:", err);
+      toast.error(err.message || "Failed to close job");
+    }
   };
 
   const handleArchiveJob = () => {

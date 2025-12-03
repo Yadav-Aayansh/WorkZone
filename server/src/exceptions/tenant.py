@@ -1,4 +1,4 @@
-from .base import ConflictError, AuthenticationError, NotFoundError, AuthorizationError
+from .base import ConflictError, AuthenticationError, NotFoundError, AuthorizationError, ValidationError
 
 class UserAlreadyExistsError(ConflictError):
     pass
@@ -21,6 +21,15 @@ class ManagerNotFoundError(NotFoundError):
 class RecruiterNotFoundError(NotFoundError):
     pass
 
+class ApplicationNotFoundError(NotFoundError):
+    pass
+
+class AiInterviewNotFoundError(NotFoundError):
+    pass
+
+class AiInterviewAlreadyExistsError(ConflictError):
+    pass
+
 class InvalidUserCredentialsError(AuthenticationError):
     pass
 
@@ -31,4 +40,13 @@ class UnauthorizedAccessError(AuthorizationError):
     pass
 
 class ApplicationNotFoundError(NotFoundError):
+    pass
+
+class InsufficientLeaveBalanceError(ValidationError):
+    pass
+
+class LeaveRequestNotFoundError(NotFoundError):
+    pass
+
+class InvalidLeaveActionError(ValidationError):
     pass

@@ -1,18 +1,20 @@
-from fastapi import Depends, Request, HTTPException
+from fastapi import Depends, Request, HTTPException, WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
 from .database import get_public_db, get_schema
-from src.repository.platform import ClientRepository, OrderRepository
+from src.repository.platform import ClientRepository, OrderRepository, SettingRepository
 from src.repository.tenant import (
     UserRepository, ManagerRepository, RecruiterRepository,
     EmployeeRepository, ApplicantRepository, JobRepository,
-    ApplicationRepository
+    ApplicationRepository, AiInterviewRepository, LeaveEntitlementRepository,
+    LeaveRequestRepository
 )
 from src.services.platform import (
     ClientService, OrderService, WorkspaceService
 )
 from src.services.tenant import (
     UserService, RecruiterService, ManagerService, EmployeeService,
-    ApplicantService, JobService, ApplicationService
+    ApplicantService, JobService, ApplicationService, AiInterviewService,
+    LeaveService
 )
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from src.exceptions.base import RoleNotAllowedError
@@ -23,6 +25,7 @@ from .context import tenant_context, user_context
 from .config import Config
 from .logger import logger
 from src.models.tenant import Role
+from typing import Union
 
 def get_client_service(db: AsyncSession = Depends(get_public_db)):
     repo = ClientRepository(db)
@@ -37,7 +40,8 @@ def get_order_service(
 
 def get_workspace_service(db: AsyncSession = Depends(get_public_db)):
     client_repo = ClientRepository(db)
-    return WorkspaceService(client_repo)
+    setting_repo = SettingRepository(db)
+    return WorkspaceService(client_repo, setting_repo)
     
 
     
@@ -61,7 +65,7 @@ def get_current_user(*, use_tenant: bool = False, roles: list[str] | None = None
             payload = decode_token(credentials.credentials, audience)
             return validate_and_extract_user(payload, roles)
     else:
-        def dependency(
+        async def dependency(
             credentials: HTTPAuthorizationCredentials = Depends(security_guard)
         ):
             audience = Config.DOMAIN_NAME
@@ -84,8 +88,29 @@ async def get_tenant_id(
         raise HTTPException(status_code=404, detail=str(e))
 
 async def get_tenant_db(tenant_id: str = Depends(get_tenant_id)):
-    async for sesion in get_schema(tenant_id):
-        yield sesion 
+    async for session in get_schema(tenant_id):
+        yield session 
+
+# For Websocket connections
+async def get_tenant_id_ws(
+    websocket: WebSocket,
+    client_service: ClientService = Depends(get_client_service)
+) -> str:
+    try:
+        logger.info("1st")
+        host = websocket.headers.get('host')
+        tenant_or_domain = get_tenant_id_or_domain(host)
+        tenant_id = await client_service.get_tenant(tenant_or_domain)
+        tenant_context.set(tenant_id)
+        return tenant_id
+    except TenantNotFoundError as e:
+        await websocket.close(code=1008, reason="Tenant not found")
+        raise
+
+async def get_tenant_db_ws(tenant_id: str = Depends(get_tenant_id_ws)):
+    async for session in get_schema(tenant_id):
+        yield session 
+
 
 async def get_user_service(db: AsyncSession = Depends(get_tenant_db)):
     user_repo = UserRepository(db)
@@ -123,3 +148,23 @@ async def get_application_service(db: AsyncSession = Depends(get_tenant_db)):
     job_repo = JobRepository(db)
     application_repo = ApplicationRepository(db)
     return ApplicationService(job_repo, application_repo)
+
+
+async def get_ai_interview_service(db: AsyncSession = Depends(get_tenant_db)):
+    ai_interview_repo = AiInterviewRepository(db)
+    application_repo = ApplicationRepository(db)
+    return AiInterviewService(ai_interview_repo, application_repo)
+
+# For WebSocket routes
+async def get_ai_interview_service_ws(db: AsyncSession = Depends(get_tenant_db_ws)):
+    ai_interview_repo = AiInterviewRepository(db)
+    application_repo = ApplicationRepository(db)
+    return AiInterviewService(ai_interview_repo, application_repo)
+
+
+async def get_leave_service(db: AsyncSession = Depends(get_tenant_db)):
+    employee_repo = EmployeeRepository(db)
+    manager_repo = ManagerRepository(db)
+    leave_entitlement_repo = LeaveEntitlementRepository(db)
+    leave_request_repo = LeaveRequestRepository(db)
+    return LeaveService(employee_repo, manager_repo, leave_entitlement_repo, leave_request_repo)

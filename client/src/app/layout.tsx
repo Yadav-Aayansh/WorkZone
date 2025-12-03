@@ -7,6 +7,7 @@ import { TenantProvider } from "@/providers/tenant-provider";
 import { TenantAuthProvider } from "@/providers/tenant-auth-provider";
 import { ToastProvider } from "@/providers/toast-provider";
 import { AuthTokenManager } from "@/components/auth/AuthTokenManager";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -108,6 +109,7 @@ export default function RootLayout({
               </TenantProvider>
             </AuthProvider>
           </ToastProvider>
+          <Toaster richColors position="top-right" />
         </ThemeProvider>
       </body>
     </html>

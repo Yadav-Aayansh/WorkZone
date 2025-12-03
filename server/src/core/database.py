@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.schema import CreateSchema
 from .config import Config
 from typing import AsyncGenerator, Generator
+from contextlib import contextmanager
 
 class PublicBase(DeclarativeBase):
     metadata = MetaData(schema="public")
@@ -49,10 +50,13 @@ def create_tenant_schema(tenant_id: str):
         conn.execute(text(f"SET search_path TO {tenant_id}"))
         TenantBase.metadata.create_all(bind=conn)
 
-def get_public_db_sync() -> Generator[Session, None, None]:
-    for sesion in get_tenant_db_sync("public"):
-        yield sesion 
 
+@contextmanager
+def get_public_db_sync() -> Generator[Session, None, None]:
+    with get_tenant_db_sync("public") as session:
+        yield session
+
+@contextmanager
 def get_tenant_db_sync(tenant_id: str) -> Generator[Session, None, None]:
     if not tenant_id.isidentifier():
         raise ValueError("Invalid tenant ID")

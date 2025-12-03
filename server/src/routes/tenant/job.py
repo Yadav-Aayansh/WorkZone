@@ -12,9 +12,9 @@ from src.exceptions.base import RoleNotAllowedError
 from src.genai.jd_builder.main import generate_jd
 from src.genai.schemas.jd_builder_schemas import JDBuilderPrompt
 
-job_router = APIRouter(tags=["Tenant Job"])
+job_router = APIRouter(prefix="/jobs", tags=["Tenant Job"])
 
-@job_router.post(path="/jobs", status_code=201, response_model=JobResponse)
+@job_router.post(path="/", status_code=201, response_model=JobResponse)
 async def create_job(
     data: CreateJobRequest,
     service: JobService = Depends(get_job_service),
@@ -27,7 +27,7 @@ async def create_job(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@job_router.get(path="/jobs", response_model=List[JobResponse])
+@job_router.get(path="/", response_model=List[JobResponse])
 async def list_jobs(
     data: ListJobsRequest = Depends(),
     service: JobService = Depends(get_job_service),
@@ -38,7 +38,7 @@ async def list_jobs(
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@job_router.get(path="/jobs/{job_id}", status_code=200, response_model=JobResponse)
+@job_router.get(path="/{job_id}", status_code=200, response_model=JobResponse)
 async def get_job(
     job_id: str,
     service: JobService = Depends(get_job_service)
@@ -51,7 +51,7 @@ async def get_job(
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@job_router.patch(path="/jobs/{job_id}", status_code=200, response_model=JobResponse)
+@job_router.patch(path="/{job_id}", status_code=200, response_model=JobResponse)
 async def update_job(
     job_id: str,
     data: UpdateJobRequest,
@@ -69,7 +69,7 @@ async def update_job(
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@job_router.post(path="/jobs/{job_id}/close", status_code=200, response_model=JobResponse)
+@job_router.post(path="/{job_id}/close", status_code=200, response_model=JobResponse)
 async def close_job(
     job_id: str,
     service: JobService = Depends(get_job_service),
@@ -85,7 +85,7 @@ async def close_job(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@job_router.delete(path="/jobs/{job_id}", status_code=204)
+@job_router.delete(path="/{job_id}", status_code=204)
 async def delete_job(
     job_id: str,
     service: JobService = Depends(get_job_service),
@@ -105,6 +105,6 @@ async def delete_job(
 
 # AI Features
 
-@job_router.post(path="/jobs/ai/enhance-description")
+@job_router.post(path="/ai/enhance-description")
 async def job_description_enhancer(prompt: JDBuilderPrompt):
     return generate_jd(prompt)
