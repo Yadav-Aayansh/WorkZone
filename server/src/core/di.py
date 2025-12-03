@@ -6,7 +6,7 @@ from src.repository.tenant import (
     UserRepository, ManagerRepository, RecruiterRepository,
     EmployeeRepository, ApplicantRepository, JobRepository,
     ApplicationRepository, AiInterviewRepository, LeaveEntitlementRepository,
-    LeaveRequestRepository, LearningPathRepository
+    LeaveRequestRepository
 )
 from src.services.platform import (
     ClientService, OrderService, WorkspaceService
@@ -14,7 +14,7 @@ from src.services.platform import (
 from src.services.tenant import (
     UserService, RecruiterService, ManagerService, EmployeeService,
     ApplicantService, JobService, ApplicationService, AiInterviewService,
-    LeaveService, LearningPathService
+    LeaveService
 )
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from src.exceptions.base import RoleNotAllowedError
@@ -168,9 +168,3 @@ async def get_leave_service(db: AsyncSession = Depends(get_tenant_db)):
     leave_entitlement_repo = LeaveEntitlementRepository(db)
     leave_request_repo = LeaveRequestRepository(db)
     return LeaveService(employee_repo, manager_repo, leave_entitlement_repo, leave_request_repo)
-
-def get_learning_path_service(
-    employee_repo: EmployeeRepository = Depends(get_tenant_db),
-    learning_path_repo: LearningPathRepository = Depends(get_tenant_db)
-) -> LearningPathService:
-    return LearningPathService(employee_repo, learning_path_repo)

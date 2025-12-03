@@ -8,4 +8,3 @@ from .application import ApplicationRepository
 from .ai_interview import AiInterviewRepository
 from .leave_entitlement import LeaveEntitlementRepository
 from .leave_request import LeaveRequestRepository
-from .learning_path import LearningPathRepository

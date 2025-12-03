@@ -18,4 +18,3 @@ class Employee(TenantBase):
     user = relationship("User", back_populates="employee", uselist=False)
     leave_requests = relationship("LeaveRequest", back_populates="employee", cascade="all, delete-orphan")
     leave_entitlements = relationship("LeaveEntitlement", back_populates="employee", cascade="all, delete-orphan")
-    learning_paths = relationship("LearningPath", back_populates="employee", cascade="all, delete-orphan")

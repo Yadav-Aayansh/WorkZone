@@ -7,4 +7,3 @@ from .job import JobService
 from .application import ApplicationService
 from .ai_interview import AiInterviewService
 from .leave import LeaveService
-from .learning_path import LearningPathService
