@@ -14,43 +14,43 @@ from src.genai.llm_client import llm_client
 
 
 REJECTION_EMAIL_FROM_ANALYSIS_PROMPT = """
-You are an expert HR Manager and a talented email designer.
-Your task is to generate a polite, professional, and empathetic rejection letter as a **well-designed HTML email**.
-You will analyze the provided context to find the reason for rejection and then write the email, incorporating that reason.
+You are an expert HR Manager. Your task is to generate a polite, professional, and **highly personalized** rejection letter as a well-designed HTML email.
+
+**Your Goal:**
+You must analyze the provided Job Description, Resume, and Scores to determine exactly *why* this candidate was rejected. You must then explain this reason to them constructively in the email. **Do not write a generic rejection.**
 
 **Critical Formatting Instructions:**
 - The output MUST be a single, complete HTML file.
-- **Use inline CSS (style attributes) for all styling.** Do NOT use <style> tags or external stylesheets. This is essential for email client compatibility.
-- **Design it professionally.** Do not just write plain text. Create a visually appealing, branded email. This should include:
-    - A clean, centered layout (e.g., using a `<table ... align="center">`).
-    - A **professional header** (e.g., a `<td>` with a solid background color and the company name in a large, white font).
-    - A **clean content body** with generous padding and a readable, sans-serif font.
-    - A **visually distinct footer** (e.g., with a thin top border) for any fine print.
-- **Make it look polished, not bland.** Use spacing, font weights, and subtle colors to create a high-quality design that reflects a modern tech company.
-- Do not include any text, explanation, or markdown backticks before or after the <html> tag.
+- **Use inline CSS (style attributes) for all styling.** Do NOT use <style> tags.
+- **Design:**
+    - Background: `<body style="background-color: #f9f9f9; margin: 0; padding: 20px; font-family: Arial, sans-serif;">`
+    - Container: `<table ... style="width: 100%; max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; border: 1px solid #dddddd; overflow: hidden;">`
+    - Header: `<tr><td style="padding: 30px 40px; background-color: #004a99; color: #ffffff; font-size: 24px; font-weight: bold;">{company_name}</td></tr>`
+    - Content: Main padding `style="padding: 40px;"`. Paragraphs `style="line-height: 1.6; color: #333333; margin: 15px 0;"`.
+    - Footer: `<tr><td style="padding: 30px 40px; background-color: #ffffff; border-top: 1px solid #eeeeee; font-size: 12px; color: #888888; text-align: center;">&copy; {company_name}</td></tr>`
 
-**Data to Include in the Email:**
-- Candidate Name: {candidate_name}
-- Company Name: {company_name}
-- Position: {position}
+**Data:**
+- Candidate: {candidate_name}
+- Role: {position}
 
-**CONTEXT FOR YOUR ANALYSIS:**
-(All context is for your analysis only. Do not repeat it in the email)
-- **Job Description:** Responsibilities: {jd_responsibilities}, Qualifications: {jd_qualifications}
-- **Candidate's Resume:** Experience: {resume_experience}, Skills: {resume_skills}
-- **Automated Scores:** Keyword Match: {keyword_score:.2f}, Experience Similarity: {semantic_score:.2f}
+**CONTEXT FOR ANALYSIS (Use this to find the specific rejection reason):**
+- **Job Requirements:** {jd_qualifications}
+- **Candidate Skills:** {resume_skills}
+- **Candidate Experience:** {resume_experience}
+- **Scores:** Keyword Match: {keyword_score:.2f} (Low is <0.4), Experience Match: {semantic_score:.2f} (Low is <0.5)
 - **Matched Skills:** {matched_skills}
 
-**Content and Logic to Generate:**
-1.  Start with a bold greeting: "Dear {candidate_name},"
-2.  Thank the candidate for their time and interest in the {position} role.
-3.  Analyze all the context. The candidate was rejected. The most likely reason is a low score or just being out-ranked.
-4.  Politely and professionally incorporate this reason into the email.
-    - *Example (low semantic score):* "While the team was impressed with your skills in [matched skill], we have decided to move forward with a candidate whose professional experience is more closely aligned with the day-to-day responsibilities of this specific role."
-    - *Example (low keyword score):* "After careful review, we are looking for candidates with more specific experience in [missing skill from JD] for this position."
-    - *Example (high scores):* "While we were very impressed with your application, this was a very competitive role, and we have decided to move forward with another candidate whose qualifications were a slightly stronger match for our current needs."
-5.  Wish them luck in their job search.
-6.  Sign off with "Sincerely,<br>The {company_name} Team".
+**Content Generation Steps:**
+1.  **Analyze the Gap:** Compare the Job Requirements to the Candidate's Skills/Experience. Identify the *specific* missing skill (e.g., "Missing React") or experience gap (e.g., "Junior experience for a Senior role").
+2.  **Draft the Email:**
+    - Bold Greeting: "Dear {candidate_name},"
+    - Thank them for applying to the {position}.
+    - **The Feedback Paragraph (CRITICAL):** You MUST explain the decision based on your analysis.
+        - *If missing a hard skill:* "While your background is impressive, for this specific role, we are prioritizing candidates with deeper hands-on experience in [Specific Missing Skill from Job Requirements], which is a core part of our stack."
+        - *If experience mismatch:* "Although your experience in [Candidate's Field] is notable, we have decided to move forward with candidates whose recent work history is more closely aligned with [Specific Requirement from JD]."
+        - *If scores are generally high but rejected:* "This was a highly competitive search. While your qualifications are strong, we have identified other candidates who have slightly more direct experience with [Specific Project/Skill mentioned in JD]."
+    - Closing: Wish them success.
+    - Sign-off: "Sincerely,<br>The {company_name} Team"
 """
 
 SHORTLISTED_FEEDBACK_PROMPT_TEMPLATE = """
