@@ -4,9 +4,9 @@ from src.genai.schemas import ChatRequest, ChatResponse
 from src.schemas.tenant import EmployeeProfileResponse, EmployeeInfo
 from src.genai.hr_policy import chat_with_context
 from src.core.context import tenant_context
-from uuid import UUID
 from typing import Optional
 from src.utils.datetime import get_indian_year
+from src.core.storage import storage_client
 
 class EmployeeService:
     def __init__(self, user_repo: UserRepository, employee_repo: EmployeeRepository):
@@ -22,11 +22,14 @@ class EmployeeService:
         if not employee:
             raise EmployeeNotFoundError(f"Employee does not exist!")
         
+        resume_url = storage_client.get_url(employee.resume) if employee.resume else None
         return EmployeeProfileResponse(
             user_id=user.id,
             employee_id=employee.id,
             name=user.name,
-            email=user.email
+            email=user.email,
+            title=employee.title,
+            resume=resume_url
         )
     
     async def helpdesk(self, user_id: str, query: str, chat_id: Optional[str]) -> ChatResponse:

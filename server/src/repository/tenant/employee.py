@@ -19,7 +19,7 @@ class EmployeeRepository:
         await self.db.flush()
         return new_employee
     
-    async def get_employee_by_user_id(self, user_id: str, full_info_year: Optional[int]):
+    async def get_employee_by_user_id(self, user_id: str, full_info_year: Optional[int] = None):
         query = select(Employee).where(Employee.user_id == user_id)
         if full_info_year:
             query = query.options(
