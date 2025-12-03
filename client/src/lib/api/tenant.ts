@@ -806,7 +806,11 @@ export interface ManagerProfileResponse {
   manager_id: string;
   email: string;
   name: string;
+  title?: string;
 }
+
+// Alias for backward compatibility
+export type { ManagerProfileResponse as ManagerProfile };
 
 export const tenantManagerAPI = {
   /**
@@ -832,6 +836,9 @@ export interface EmployeeProfileResponse {
   employee_id: string;
   email: string;
   name: string;
+  title?: string;
+  manager_id?: string;
+  manager_name?: string;
 }
 
 /**
@@ -857,8 +864,12 @@ export interface HelpdeskQueryRequest {
  * Helpdesk Response
  */
 export interface HelpdeskResponse {
-  response: string;
+  answer: string;
   chat_id: string;
+  sources: Array<Record<string, unknown>>;
+  suggestions: string[];
+  current_topic?: string;
+  confidence: number;
 }
 
 export const tenantEmployeeAPI = {

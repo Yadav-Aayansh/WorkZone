@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
-import { ModernEmployeeLayout } from "@/components/common/layout/ModernEmployeeLayout";
-import { tenantEmployeeAPI, EmployeeProfileResponse } from "@/lib/api";
+import { ModernRecruiterLayout } from "@/components/common/layout/ModernRecruiterLayout";
+import { tenantRecruiterAPI, RecruiterProfileResponse } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,20 +21,21 @@ import {
   Mail,
   Briefcase,
   FileText,
-  Calendar,
-  Clock,
+  Hash,
   Copy,
   CheckCircle,
-  Hash,
-  Shield,
   Building2,
+  Users,
+  Calendar,
+  Brain,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTenant } from "@/providers/tenant-provider";
 
-function EmployeeProfileContent() {
+function RecruiterProfileContent() {
   const { tenant } = useTenant();
-  const [profile, setProfile] = useState<EmployeeProfileResponse | null>(null);
+  const [profile, setProfile] = useState<RecruiterProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -45,7 +46,7 @@ function EmployeeProfileContent() {
   const loadProfile = async () => {
     setIsLoading(true);
     try {
-      const data = await tenantEmployeeAPI.getProfile();
+      const data = await tenantRecruiterAPI.getProfile();
       setProfile(data);
     } catch (err: unknown) {
       console.error("Failed to load profile:", err);
@@ -70,7 +71,7 @@ function EmployeeProfileContent() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-96">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -78,7 +79,7 @@ function EmployeeProfileContent() {
 
   if (!profile) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-96">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Profile Not Found</CardTitle>
@@ -96,7 +97,7 @@ function EmployeeProfileContent() {
 
   const initials = profile.name
     .split(" ")
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .join("")
     .toUpperCase();
 
@@ -107,42 +108,42 @@ function EmployeeProfileContent() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between"
       >
-        <h1 className="text-3xl font-bold">My Profile</h1>
+        <h1 className="text-3xl font-bold">Recruiter Profile</h1>
       </motion.div>
 
-      {/* Employee ID Highlight Card */}
+      {/* Recruiter ID Highlight Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+        <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 border-emerald-200 dark:border-emerald-800">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+            <CardTitle className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
               <Hash className="h-5 w-5" />
-              Your Employee ID
+              Your Recruiter ID
             </CardTitle>
             <CardDescription>
-              Your unique identifier in the organization
+              Your unique identifier for recruitment activities
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-3">
-              <code className="flex-1 text-lg font-mono bg-white dark:bg-slate-900 px-4 py-3 rounded-lg border border-blue-200 dark:border-blue-800 truncate">
-                {profile.employee_id}
+              <code className="flex-1 text-lg font-mono bg-white dark:bg-slate-900 px-4 py-3 rounded-lg border border-emerald-200 dark:border-emerald-800 truncate">
+                {profile.recruiter_id}
               </code>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() =>
-                  copyToClipboard(profile.employee_id, "Employee ID")
+                  copyToClipboard(profile.recruiter_id, "Recruiter ID")
                 }
-                className="h-12 w-12 flex-shrink-0 border-blue-200 hover:bg-blue-100 dark:border-blue-800 dark:hover:bg-blue-900/50"
+                className="h-12 w-12 flex-shrink-0 border-emerald-200 hover:bg-emerald-100 dark:border-emerald-800 dark:hover:bg-emerald-900/50"
               >
-                {copiedField === "Employee ID" ? (
+                {copiedField === "Recruiter ID" ? (
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 ) : (
-                  <Copy className="h-5 w-5 text-blue-600" />
+                  <Copy className="h-5 w-5 text-emerald-600" />
                 )}
               </Button>
             </div>
@@ -159,8 +160,8 @@ function EmployeeProfileContent() {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-6">
-              <Avatar className="h-24 w-24 ring-4 ring-blue-100 dark:ring-blue-900">
-                <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+              <Avatar className="h-24 w-24 ring-4 ring-emerald-100 dark:ring-emerald-900">
+                <AvatarFallback className="text-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -170,16 +171,13 @@ function EmployeeProfileContent() {
                   <Mail className="h-4 w-4" />
                   {profile.email}
                 </CardDescription>
-                {profile.title && (
-                  <CardDescription className="text-base flex items-center gap-2 mt-1">
-                    <Briefcase className="h-4 w-4" />
-                    {profile.title}
-                  </CardDescription>
-                )}
                 <div className="flex items-center gap-2 mt-3 flex-wrap">
-                  <Badge variant="secondary" className="gap-1">
-                    <User className="h-3 w-3" />
-                    Employee
+                  <Badge
+                    variant="secondary"
+                    className="gap-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+                  >
+                    <Search className="h-3 w-3" />
+                    Recruiter
                   </Badge>
                   <Badge variant="outline" className="gap-1">
                     <Building2 className="h-3 w-3" />
@@ -236,21 +234,21 @@ function EmployeeProfileContent() {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Hash className="h-4 w-4" />
-                  Employee ID
+                  Recruiter ID
                 </label>
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-mono bg-muted px-3 py-2 rounded flex-1 truncate">
-                    {profile.employee_id}
+                    {profile.recruiter_id}
                   </p>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 flex-shrink-0"
                     onClick={() =>
-                      copyToClipboard(profile.employee_id, "Employee ID")
+                      copyToClipboard(profile.recruiter_id, "Recruiter ID")
                     }
                   >
-                    {copiedField === "Employee ID" ? (
+                    {copiedField === "Recruiter ID" ? (
                       <CheckCircle className="h-4 w-4 text-green-600" />
                     ) : (
                       <Copy className="h-4 w-4" />
@@ -276,61 +274,12 @@ function EmployeeProfileContent() {
                   {profile.email}
                 </p>
               </div>
-              {profile.title && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" />
-                    Job Title
-                  </label>
-                  <p className="text-sm bg-muted px-3 py-2 rounded">
-                    {profile.title}
-                  </p>
-                </div>
-              )}
-              {profile.manager_id && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    Manager ID
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-mono bg-muted px-3 py-2 rounded flex-1 truncate">
-                      {profile.manager_id}
-                    </p>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 flex-shrink-0"
-                      onClick={() =>
-                        copyToClipboard(profile.manager_id!, "Manager ID")
-                      }
-                    >
-                      {copiedField === "Manager ID" ? (
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              )}
-              {profile.manager_name && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Manager Name
-                  </label>
-                  <p className="text-sm bg-muted px-3 py-2 rounded">
-                    {profile.manager_name}
-                  </p>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
       </motion.div>
 
-      {/* Quick Access Card */}
+      {/* Responsibilities Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -339,54 +288,56 @@ function EmployeeProfileContent() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Quick Access
+              <Briefcase className="h-5 w-5" />
+              Recruiter Responsibilities
             </CardTitle>
-            <CardDescription>Your employee tools and resources</CardDescription>
+            <CardDescription>
+              Your role and access within the organization
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg hover:shadow-md transition-shadow">
+            <div className="space-y-3">
+              <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg hover:shadow-md transition-shadow">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded">
-                  <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <Briefcase className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="font-medium">Leave Management</p>
+                  <p className="font-medium text-sm">Job Postings</p>
                   <p className="text-sm text-muted-foreground">
-                    Apply for leaves and view balance
+                    Create and manage job listings for open positions
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg hover:shadow-md transition-shadow">
                 <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded">
-                  <Clock className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <Users className="h-4 w-4 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <p className="font-medium">Attendance</p>
+                  <p className="font-medium text-sm">Candidate Management</p>
                   <p className="text-sm text-muted-foreground">
-                    Track your attendance and hours
+                    Review applications and manage candidate pipeline
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg hover:shadow-md transition-shadow">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded">
-                  <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <p className="font-medium">Documents</p>
+                  <p className="font-medium text-sm">Interview Scheduling</p>
                   <p className="text-sm text-muted-foreground">
-                    Access company documents and policies
+                    Schedule and coordinate interviews with candidates
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-lg hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-3 p-3 bg-orange-50 dark:bg-orange-950/30 rounded-lg hover:shadow-md transition-shadow">
                 <div className="p-2 bg-orange-100 dark:bg-orange-900/50 rounded">
-                  <User className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  <Brain className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
-                  <p className="font-medium">Team Directory</p>
+                  <p className="font-medium text-sm">AI-Powered Tools</p>
                   <p className="text-sm text-muted-foreground">
-                    View colleagues and contact information
+                    Use AI for resume scoring and automated interviews
                   </p>
                 </div>
               </div>
@@ -398,12 +349,12 @@ function EmployeeProfileContent() {
   );
 }
 
-export default function EmployeeProfilePage() {
+export default function RecruiterProfilePage() {
   return (
-    <TenantProtectedRoute allowedRoles={["employee"]}>
-      <ModernEmployeeLayout>
-        <EmployeeProfileContent />
-      </ModernEmployeeLayout>
+    <TenantProtectedRoute allowedRoles={["recruiter"]}>
+      <ModernRecruiterLayout>
+        <RecruiterProfileContent />
+      </ModernRecruiterLayout>
     </TenantProtectedRoute>
   );
 }

@@ -413,6 +413,7 @@ export interface InviteUserRequest {
   name: string;
   email: string;
   role: 'employee' | 'manager' | 'recruiter';
+  title?: string; // Required when role is 'employee' - job title
   manager_id?: string; // Required when role is 'employee'
 }
 
@@ -483,17 +484,20 @@ export interface LeaveTypesResponse {
 }
 
 /**
- * Policy Document Response
+ * Policy Document Response - Backend returns blob names as strings
  */
 export interface PolicyDocument {
-  id: string;
-  name: string;
-  url: string;
-  uploaded_at: string;
+  id: string;      // The blob name (used as ID)
+  name: string;    // Display name extracted from blob name
+  url?: string;    // Optional URL if provided
+  uploaded_at?: string; // Optional upload date
 }
 
+/**
+ * Backend actual response format
+ */
 export interface PolicyListResponse {
-  documents: PolicyDocument[];
+  policies: string[];  // Array of blob names/paths
 }
 
 export const platformWorkspaceAPI = {

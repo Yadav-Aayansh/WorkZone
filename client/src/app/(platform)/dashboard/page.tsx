@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Building2,
   UserPlus,
@@ -31,7 +32,11 @@ import {
   CreditCard,
   BarChart3,
   FileText,
+  Calendar,
+  Shield,
 } from "lucide-react";
+import { LeaveTypesConfig } from "@/components/dashboard/leave-types-config";
+import { PolicyDocumentsManager } from "@/components/dashboard/policy-documents-manager";
 
 type Tab = "overview" | "team" | "settings";
 
@@ -388,159 +393,212 @@ export default function DashboardPage() {
 
             {activeTab === "settings" && (
               <div className="space-y-6">
-                {/* Workspace Info */}
-                <Card className="border-none shadow-xl dark:bg-gray-800">
-                  <CardHeader>
-                    <CardTitle className="text-xl dark:text-white">
-                      Workspace Information
-                    </CardTitle>
-                    <CardDescription className="dark:text-gray-400">
-                      Basic details about your workspace
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label className="dark:text-gray-300">
-                        Organization Name
-                      </Label>
-                      <Input
-                        value={mockTenantData.brandName}
-                        readOnly
-                        className="mt-2 dark:bg-gray-700 dark:border-gray-600"
-                      />
-                    </div>
-                    <div>
-                      <Label className="dark:text-gray-300">Workspace ID</Label>
-                      <Input
-                        value={mockTenantData.tenantId}
-                        readOnly
-                        className="mt-2 dark:bg-gray-700 dark:border-gray-600"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Settings Tabs */}
+                <Tabs defaultValue="general" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid h-auto p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                    <TabsTrigger
+                      value="general"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg px-4 py-2.5 gap-2"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span className="hidden sm:inline">General</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="leave-types"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg px-4 py-2.5 gap-2"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      <span className="hidden sm:inline">Leave Types</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="policies"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg px-4 py-2.5 gap-2"
+                    >
+                      <Shield className="w-4 h-4" />
+                      <span className="hidden sm:inline">Policies</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="theme"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg px-4 py-2.5 gap-2"
+                    >
+                      <Palette className="w-4 h-4" />
+                      <span className="hidden sm:inline">Theme</span>
+                    </TabsTrigger>
+                  </TabsList>
 
-                {/* Theme Customization */}
-                <Card className="border-none shadow-xl dark:bg-gray-800">
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg">
-                        <Palette className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                      </div>
-                      <div>
+                  {/* General Settings Tab */}
+                  <TabsContent value="general" className="mt-6">
+                    <Card className="border-none shadow-xl dark:bg-gray-800">
+                      <CardHeader>
                         <CardTitle className="text-xl dark:text-white">
-                          Theme Customization
+                          Workspace Information
                         </CardTitle>
                         <CardDescription className="dark:text-gray-400">
-                          Customize your tenant&apos;s color scheme
+                          Basic details about your workspace
                         </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <Label className="dark:text-gray-300">
-                          Primary Color
-                        </Label>
-                        <div className="flex gap-3">
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <Label className="dark:text-gray-300">
+                            Organization Name
+                          </Label>
                           <Input
-                            type="color"
-                            value={tenantTheme.primaryColor}
-                            onChange={(e) =>
-                              handleColorChange("primary", e.target.value)
-                            }
-                            className="w-16 h-16 p-1 cursor-pointer"
+                            value={mockTenantData.brandName}
+                            readOnly
+                            className="mt-2 dark:bg-gray-700 dark:border-gray-600"
                           />
-                          <div className="flex-1">
-                            <Input
-                              type="text"
-                              value={tenantTheme.primaryColor}
-                              onChange={(e) =>
-                                handleColorChange("primary", e.target.value)
-                              }
-                              className="dark:bg-gray-700 dark:border-gray-600"
-                            />
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              Main brand color
-                            </p>
+                        </div>
+                        <div>
+                          <Label className="dark:text-gray-300">
+                            Workspace ID
+                          </Label>
+                          <Input
+                            value={mockTenantData.tenantId}
+                            readOnly
+                            className="mt-2 dark:bg-gray-700 dark:border-gray-600"
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  {/* Leave Types Tab */}
+                  <TabsContent value="leave-types" className="mt-6">
+                    <LeaveTypesConfig />
+                  </TabsContent>
+
+                  {/* Policies Tab */}
+                  <TabsContent value="policies" className="mt-6">
+                    <PolicyDocumentsManager />
+                  </TabsContent>
+
+                  {/* Theme Tab */}
+                  <TabsContent value="theme" className="mt-6">
+                    <Card className="border-none shadow-xl dark:bg-gray-800">
+                      <CardHeader>
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg">
+                            <Palette className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-xl dark:text-white">
+                              Theme Customization
+                            </CardTitle>
+                            <CardDescription className="dark:text-gray-400">
+                              Customize your tenant&apos;s color scheme
+                            </CardDescription>
                           </div>
                         </div>
-                      </div>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-3">
+                            <Label className="dark:text-gray-300">
+                              Primary Color
+                            </Label>
+                            <div className="flex gap-3">
+                              <Input
+                                type="color"
+                                value={tenantTheme.primaryColor}
+                                onChange={(e) =>
+                                  handleColorChange("primary", e.target.value)
+                                }
+                                className="w-16 h-16 p-1 cursor-pointer"
+                              />
+                              <div className="flex-1">
+                                <Input
+                                  type="text"
+                                  value={tenantTheme.primaryColor}
+                                  onChange={(e) =>
+                                    handleColorChange("primary", e.target.value)
+                                  }
+                                  className="dark:bg-gray-700 dark:border-gray-600"
+                                />
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  Main brand color
+                                </p>
+                              </div>
+                            </div>
+                          </div>
 
-                      <div className="space-y-3">
-                        <Label className="dark:text-gray-300">
-                          Secondary Color
-                        </Label>
-                        <div className="flex gap-3">
-                          <Input
-                            type="color"
-                            value={tenantTheme.secondaryColor}
-                            onChange={(e) =>
-                              handleColorChange("secondary", e.target.value)
-                            }
-                            className="w-16 h-16 p-1 cursor-pointer"
-                          />
-                          <div className="flex-1">
-                            <Input
-                              type="text"
-                              value={tenantTheme.secondaryColor}
-                              onChange={(e) =>
-                                handleColorChange("secondary", e.target.value)
-                              }
-                              className="dark:bg-gray-700 dark:border-gray-600"
-                            />
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              Accent color
-                            </p>
+                          <div className="space-y-3">
+                            <Label className="dark:text-gray-300">
+                              Secondary Color
+                            </Label>
+                            <div className="flex gap-3">
+                              <Input
+                                type="color"
+                                value={tenantTheme.secondaryColor}
+                                onChange={(e) =>
+                                  handleColorChange("secondary", e.target.value)
+                                }
+                                className="w-16 h-16 p-1 cursor-pointer"
+                              />
+                              <div className="flex-1">
+                                <Input
+                                  type="text"
+                                  value={tenantTheme.secondaryColor}
+                                  onChange={(e) =>
+                                    handleColorChange(
+                                      "secondary",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="dark:bg-gray-700 dark:border-gray-600"
+                                />
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  Accent color
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
 
-                    <div className="p-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                      <h4 className="font-medium mb-4 dark:text-white">
-                        Preview
-                      </h4>
-                      <div className="space-y-3">
-                        <div
-                          className="h-12 rounded-lg flex items-center justify-center text-white font-medium"
-                          style={{
-                            background: `linear-gradient(to right, ${tenantTheme.primaryColor}, ${tenantTheme.secondaryColor})`,
-                          }}
-                        >
-                          Button Preview
+                        <div className="p-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <h4 className="font-medium mb-4 dark:text-white">
+                            Preview
+                          </h4>
+                          <div className="space-y-3">
+                            <div
+                              className="h-12 rounded-lg flex items-center justify-center text-white font-medium"
+                              style={{
+                                background: `linear-gradient(to right, ${tenantTheme.primaryColor}, ${tenantTheme.secondaryColor})`,
+                              }}
+                            >
+                              Button Preview
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div
+                                className="h-20 rounded-lg"
+                                style={{
+                                  backgroundColor: tenantTheme.primaryColor,
+                                }}
+                              />
+                              <div
+                                className="h-20 rounded-lg"
+                                style={{
+                                  backgroundColor: tenantTheme.secondaryColor,
+                                }}
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div
-                            className="h-20 rounded-lg"
-                            style={{
-                              backgroundColor: tenantTheme.primaryColor,
-                            }}
-                          />
-                          <div
-                            className="h-20 rounded-lg"
-                            style={{
-                              backgroundColor: tenantTheme.secondaryColor,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
-                      <Button
-                        variant="outline"
-                        className="dark:border-gray-600"
-                      >
-                        Reset to Default
-                      </Button>
-                      <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
-                        Save Theme
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                        <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
+                          <Button
+                            variant="outline"
+                            className="dark:border-gray-600"
+                          >
+                            Reset to Default
+                          </Button>
+                          <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+                            Save Theme
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
               </div>
             )}
           </div>

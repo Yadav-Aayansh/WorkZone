@@ -11,6 +11,7 @@ import {
   Bell,
   Search,
   Clock,
+  MessageSquare,
 } from "lucide-react";
 import { CollapsibleSidebar } from "@/components/common/layout/CollapsibleSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { FloatingHelpdesk } from "@/components/ai/floating-helpdesk";
 
 const navItems = [
   {
@@ -55,6 +57,11 @@ const navItems = [
     title: "Announcements",
     href: "/tenant/employee-portal/announcements",
     icon: Megaphone,
+  },
+  {
+    title: "AI Helpdesk",
+    href: "/tenant/employee-portal/helpdesk",
+    icon: MessageSquare,
   },
   {
     title: "Profile",
@@ -200,6 +207,9 @@ export function ModernEmployeeLayout({ children }: { children: ReactNode }) {
         {/* Page Content */}
         <main className="flex-1 p-6">{children}</main>
       </SidebarInset>
+
+      {/* Floating AI Helpdesk */}
+      <FloatingHelpdesk />
     </SidebarProvider>
   );
 }

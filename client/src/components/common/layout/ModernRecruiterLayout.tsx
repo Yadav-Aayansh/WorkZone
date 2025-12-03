@@ -15,6 +15,7 @@ import {
   Plus,
   Search,
   Upload,
+  User,
 } from "lucide-react";
 import { CollapsibleSidebar } from "@/components/common/layout/CollapsibleSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -74,6 +75,11 @@ const navItems = [
     title: "Offers",
     href: "/tenant/recruiter-portal/offers",
     icon: Gift,
+  },
+  {
+    title: "Profile",
+    href: "/tenant/recruiter-portal/profile",
+    icon: User,
   },
 ];
 
