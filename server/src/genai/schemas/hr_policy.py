@@ -91,3 +91,5 @@ class RAGResult(BaseModel):
     sources: List[Dict]
     confidence: float
     extracted_context: Dict
+    suggestions: List[str] = [] 
+
