@@ -40,15 +40,12 @@ from src.genai.hr_policy.context_manager import (
     update_chat_context
 )
 from src.genai.hr_policy.rag_engine import (
-    generate_answer,
-    generate_answer_streaming,
-    extract_topic_from_query
+    generate_answer
 )
-from src.genai.hr_policy.personalization import personalize_answer
+
 from src.genai.hr_policy.suggestions_generator import (
     generate_initial_suggestions,
     generate_contextual_suggestions,
-    generate_dynamic_contextual_suggestions
 )
 
 
@@ -134,14 +131,14 @@ async def process_uploaded_document(
             chroma_db_path=request.chroma_db_path,
             blob_name=blob_name
         )
-        logger.info(f" Added to ChromaDB (document_id: {document_id})")
+        logger.info(f"Added to ChromaDB (document_id: {document_id})")
         
         # Clean up temp file
         if os.path.exists(local_pdf_path):
             os.remove(local_pdf_path)
         
         processing_time = time.time() - start_time
-        logger.info(f" Document processed in {processing_time:.2f}s")
+        logger.info(f"Document processed in {processing_time:.2f}s")
         
         return ProcessDocumentResponse(
             status="success",
@@ -207,10 +204,10 @@ async def process_multiple_documents(
                 
                 if result.status == "success":
                     successful += 1
-                    logger.info(f" [{i}/{len(request.document_blob_names)}] Success: {blob_name}")
+                    logger.info(f"✓ [{i}/{len(request.document_blob_names)}] Success: {blob_name}")
                 else:
                     failed += 1
-                    logger.error(f" [{i}/{len(request.document_blob_names)}] Failed: {blob_name}")
+                    logger.error(f"✗ [{i}/{len(request.document_blob_names)}] Failed: {blob_name}")
                 
             except Exception as e:
                 failed += 1
@@ -227,27 +224,28 @@ async def process_multiple_documents(
         
         processing_time = time.time() - start_time
         logger.info(
-            f"Processed {len(request.document_blob_names)} documents: "
+            f"✓ Processed {len(request.document_blob_names)} documents: "
             f"{successful} successful, {failed} failed in {processing_time:.2f}s"
         )
         
         return {
             "status": "success",
             "message": f"Processed {len(request.document_blob_names)} documents",
-            "chroma_db_path": request.chroma_db_path,
-            "total_documents": len(request.document_blob_names),
             "successful": successful,
             "failed": failed,
-            "processing_time": processing_time,
-            "results": results
+            "total": len(request.document_blob_names),
+            "results": results,
+            "processing_time": processing_time
         }
         
     except Exception as e:
-        logger.error(f" Bulk processing failed: {e}")
+        processing_time = time.time() - start_time
+        logger.error(f"Batch processing failed: {e}")
+        
         return {
             "status": "error",
             "message": str(e),
-            "chroma_db_path": request.chroma_db_path
+            "processing_time": processing_time
         }
 
 
@@ -278,7 +276,7 @@ async def process_all_documents_from_gcs(
         ]
         total_files = len(pdf_blobs)
         
-        logger.info(f" Found {total_files} PDF files in {tenant_folder_path}")
+        logger.info(f"Found {total_files} PDF files in {tenant_folder_path}")
         
         if total_files == 0:
             return {
@@ -324,14 +322,14 @@ async def process_all_documents_from_gcs(
                 
                 if result.status == "success":
                     successful += 1
-                    logger.info(f"[{i}/{total_files}] Success: {blob_name}")
+                    logger.info(f" [{i}/{total_files}] Success: {blob_name}")
                 else:
                     failed += 1
                     logger.error(f" [{i}/{total_files}] Failed: {blob_name}")
                 
             except Exception as e:
                 failed += 1
-                logger.error(f"[{i}/{total_files}] Error: {e}")
+                logger.error(f" [{i}/{total_files}] Error: {e}")
                 results.append({
                     "blob_name": blob_name,
                     "status": "error",
@@ -368,7 +366,6 @@ async def process_all_documents_from_gcs(
             "message": str(e),
             "tenant_folder_path": tenant_folder_path
         }
-    
 
 
 async def delete_document(
@@ -427,7 +424,7 @@ async def chat_with_context(request: ChatRequest) -> ChatResponse:
         # Get Conversation History 
         logger.info("Retrieving conversation history...")
         history = await get_conversation_history(chat_id, last_n=5)
-        logger.info(f" Retrieved {len(history)} previous messages")
+        logger.info(f"Retrieved {len(history)} previous messages")
         
         #Get Conversation Context
         logger.info("Getting conversation context...")
@@ -435,8 +432,7 @@ async def chat_with_context(request: ChatRequest) -> ChatResponse:
         current_topic = session_context.get("current_topic", "none")
         logger.info(f"Current topic: {current_topic}")
         
-        # generate ans with rag
-        logger.info("Generating answer with RAG...")
+        logger.info("Generating answer + personalization + suggestions")
         rag_result = await generate_answer(
             query=request.query,
             user_info=request.user_info,
@@ -444,17 +440,13 @@ async def chat_with_context(request: ChatRequest) -> ChatResponse:
             session_context=session_context,
             chroma_db_path=request.chroma_db_path  
         )
-        confidence = rag_result.confidence
-        logger.info(f" Answer generated (confidence: {confidence:.1f}%)")
         
-        #personlaize answer
-        logger.info("Personalizing answer...")
-        personalized_answer = await personalize_answer(
-            raw_answer=rag_result.answer,
-            user_info=request.user_info,
-            query=request.query
-        )
-        logger.info("Answer personalized")
+        # Extract results from unified response
+        personalized_answer = rag_result.answer
+        suggestions = rag_result.suggestions
+        confidence = rag_result.confidence
+        
+        logger.info(f" Unified response generated (confidence: {confidence:.1f}%)")
         
         # save messages
         logger.info("Saving messages to Redis...")
@@ -468,7 +460,7 @@ async def chat_with_context(request: ChatRequest) -> ChatResponse:
                 "confidence": rag_result.confidence
             }
         )
-        logger.info(" Messages saved")
+        logger.info("Messages saved")
         
         # update context
         logger.info("Updating conversation context...")
@@ -478,27 +470,9 @@ async def chat_with_context(request: ChatRequest) -> ChatResponse:
         new_topic = context_update.get("current_topic")
         logger.info(f"Context updated - new topic: {new_topic}")
         
-        # generate suggestions
-        logger.info("Generating follow-up suggestions...")
-        # suggestions = await generate_contextual_suggestions(
-        #     session_context=rag_result.extracted_context,
-        #     user_info=request.user_info
-        #     # conversation_history=history,
-        #     # last_answer=personalized_answer
-        # )
-
-        suggestions = await generate_dynamic_contextual_suggestions(
-            session_context=context_update,
-            user_info=request.user_info,
-            conversation_history=history,
-            last_answer=personalized_answer,
-            chroma_db_path=request.chroma_db_path
-        )
-        logger.info(f"Generated {len(suggestions)} suggestions")
-        
         # return responses
         processing_time = time.time() - start_time
-        logger.info(f"Chat completed in {processing_time:.2f}s")
+        logger.info(f" Chat completed in {processing_time:.2f}s ")
         
         return ChatResponse(
             chat_id=chat_id,
@@ -524,7 +498,6 @@ async def chat_with_context(request: ChatRequest) -> ChatResponse:
             confidence=0.0
         )
 
-
 #suggestion for homepage
 async def get_suggestions(request: SuggestionsRequest) -> SuggestionsResponse:
     logger.info("Generating suggestions...")
@@ -548,7 +521,7 @@ async def get_suggestions(request: SuggestionsRequest) -> SuggestionsResponse:
                 suggestions["contextual"] = contextual
         
         user_name = request.user_info.get("name", "Employee")
-        logger.info(f" Generated suggestions for {user_name}")
+        logger.info(f"Generated suggestions for {user_name}")
         
         return SuggestionsResponse(
             for_you=suggestions.get("for_you", []),
