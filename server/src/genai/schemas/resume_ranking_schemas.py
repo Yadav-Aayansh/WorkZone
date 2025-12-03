@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 
 class ResumeData(BaseModel):
     id: str
+    candidate_name: str
     sections: Dict[str, str]
 
 class ScoringDetails(BaseModel):
@@ -14,6 +15,7 @@ class ScoringDetails(BaseModel):
 class RankedCandidate(BaseModel):
     application_id: str
     final_score: float
+    candidate_name: str
     details: ScoringDetails
     feedback: str = Field(default="", description="LLM-generated feedback for the candidate")
 
@@ -22,6 +24,5 @@ class RankingReport(BaseModel):
     rejected_candidates: List[RankedCandidate]
 
 class FeedbackInformation(BaseModel):
-    candidate_name: str
     company_name: str
     position: str
