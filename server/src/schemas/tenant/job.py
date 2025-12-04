@@ -30,3 +30,6 @@ class ListJobsRequest(BaseModel):
     department: Optional[str] = None
     location: Optional[str] = None
     is_open: Optional[bool] = None
+
+class CloseJobRequest(BaseModel):
+    top_x: int | None
