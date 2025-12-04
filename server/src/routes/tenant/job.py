@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from src.schemas.tenant import (
-    CreateJobRequest, JobResponse, ListJobsRequest, UpdateJobRequest
+    CreateJobRequest, JobResponse, ListJobsRequest, UpdateJobRequest, CloseJobRequest
 )
 from src.core.di import get_job_service, get_current_user
 from src.services.tenant import JobService
@@ -72,12 +72,13 @@ async def update_job(
 @job_router.post(path="/{job_id}/close", status_code=200, response_model=JobResponse)
 async def close_job(
     job_id: str,
+    data: CloseJobRequest, 
     service: JobService = Depends(get_job_service),
     current_user = Depends(get_current_user(use_tenant=True, roles=[Role.RECRUITER]))
 ):
     try:
         user_id = current_user.get("sub")
-        return await service.close_job(job_id, user_id)
+        return await service.close_job(job_id, user_id, data.top_x)
     except JobNotFoundError as e:
             raise HTTPException(status_code=404, detail=str(e))
     except RoleNotAllowedError as e:

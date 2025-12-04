@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from src.schemas.tenant import (
     UserSignupRequest, UserSignupInvitedRequest, UserLoginRequest,
-    UserRefreshRequest
+    UserRefreshRequest, UserForgotPasswordRequest, UserResetPasswordRequest
 )
 from src.core.di import get_user_service
 from src.services.tenant import UserService
@@ -53,5 +53,30 @@ async def refresh(
     service: UserService = Depends(get_user_service)):
     try:
         return await service.refresh(data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@auth_router.post(path="/forgot-password")
+async def forgot_password(
+    data: UserForgotPasswordRequest,
+    service: UserService = Depends(get_user_service)
+):
+    try:
+        return await service.forgot_password(data)
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@auth_router.post(path="/reset-password")
+async def reset_password(
+    data: UserResetPasswordRequest,
+    service: UserService = Depends(get_user_service)
+):
+    try:
+        return await service.reset_password(data)
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
