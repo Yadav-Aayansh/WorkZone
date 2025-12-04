@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width"/>
+<title>Application Update</title>
+<style>
+  :root{--page-bg:#f3e8fb;--card-bg:#ffffff;--accent:#8b5cf6;--text:#0f172a;--muted:#6b7280;}
+  body{margin:0;background:var(--page-bg);font-family:Arial,Helvetica,sans-serif;color:var(--text);}
+  .wrap{max-width:680px;margin:28px auto;padding:16px;}
+  .card{background:var(--card-bg);border-radius:12px;padding:24px;box-shadow:0 6px 22px rgba(15,23,42,0.06);}
+  .header{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .logo{width:44px;height:44px;object-fit:contain;border-radius:6px;}
+  .brand{font-weight:700;color:var(--text);font-size:18px;}
+  h1{font-size:20px;margin-bottom:10px;}
+  p{color:var(--text);line-height:1.6;}
+  .btn{display:inline-block;background:var(--accent);color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:12px;}
+  .footer{text-align:center;margin-top:18px;color:var(--muted);font-size:13px;}
+  a{color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+
+    <div class="header">
+      <img src="{{company_logo_url}}" alt="{{company}} logo" class="logo"/>
+      <div class="brand">{{company}}</div>
+    </div>
+
+    <h1>You Have Been Shortlisted</h1>
+
+    <p>Hi {{name}},</p>
+
+    <p>Congratulations! You have been <strong>shortlisted</strong> for the <strong>{{position}}</strong> role at <strong>{{company}}</strong>.</p>
+
+    <p>Your next step is to complete the AI interview. Please log in to your company workspace to begin.</p>
+
+    <p>Please ensure you:</p>
+
+    <ul>
+      <li>Use a stable internet connection</li>
+      <li>Have your camera and microphone enabled</li>
+      <li>Complete the interview in one sitting</li>
+    </ul>
+
+    <p>If you face any issues while logging in, contact our HR team.</p>
+
+    <p>Best of luck,<br>The {{company}} Hiring Team</p>
+
+    <div class="footer">© {{year}} {{company}}</div>
+
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width"/>
+<title>Onboarding Successfull</title>
+<style>
+  :root{--page-bg:#f3e8fb;--card-bg:#fff;--accent:#8b5cf6;--text:#0f172a;--muted:#6b7280}
+  body{margin:0;background:var(--page-bg);font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+  .wrap{max-width:640px;margin:28px auto;padding:16px}
+  .card{background:var(--card-bg);border-radius:12px;padding:18px;box-shadow:0 6px 22px rgba(15,23,42,0.06)}
+  .hero{background:linear-gradient(180deg,#efe6fb, #f7eefc);padding:14px;border-radius:8px;margin-bottom:12px;text-align:center}
+  .hero h2{margin:0;color:var(--text)}
+  .inner{line-height:1.6;color:var(--text)}
+  .btn{display:inline-block;background:var(--accent);color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:12px}
+  .footer{text-align:center;margin-top:14px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="hero"><h2>Welcome to WorkZone.tech</h2></div>
+      <div class="inner">
+        <p>Hi {{admin_name}},</p>
+        <p>Your company <strong>{{company}}</strong> has been successfully onboarded. Tenant ID: <strong>{{tenant_id}}</strong>.</p>
+
+        <p style="text-align:center">
+          <a class="btn" href="{{dashboard_link}}" target="_blank" rel="noopener">Go to Dashboard</a>
+        </p>
+
+        <p style="margin-top:12px;color:var(--muted)">If you need help setting up users or configuring the workspace, reply to this email or contact support.</p>
+        <p style="margin-top:8px">Thanks,<br/>The WorkZone.tech Team</p>
+      </div>
+      <div class="footer">© {{year}} WorkZone.tech</div>
+    </div>
+  </div>
+</body>
+</html>
