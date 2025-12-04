@@ -413,6 +413,7 @@ export interface InviteUserRequest {
   name: string;
   email: string;
   role: 'employee' | 'manager' | 'recruiter';
+  title?: string; // Required when role is 'employee' - job title
   manager_id?: string; // Required when role is 'employee'
 }
 
@@ -445,6 +446,288 @@ export const platformClientAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     }, 2, true);
+  },
+
+  /**
+   * Link a custom domain to the tenant (requires authentication)
+   * @param domain - The custom domain to link (e.g., "hr.mycompany.com")
+   */
+  async linkCustomDomain(domain: string): Promise<{ message: string }> {
+    return platformApiRequest<{ message: string }>(
+      `${BASE_URL}/api/platform/custom-domain/${encodeURIComponent(domain)}`,
+      { method: 'POST' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Unlink a custom domain from the tenant (requires authentication)
+   * @param domain - The custom domain to unlink
+   */
+  async unlinkCustomDomain(domain: string): Promise<{ message: string }> {
+    return platformApiRequest<{ message: string }>(
+      `${BASE_URL}/api/platform/custom-domain/${encodeURIComponent(domain)}`,
+      { method: 'DELETE' },
+      2,
+      true
+    );
+  },
+};
+
+// ============ Platform Workspace API - Leave Types ============
+
+/**
+ * Leave Type Configuration
+ */
+export interface LeaveTypeConfig {
+  days: number;
+  carry_forward: boolean;
+  max_carry?: number;
+  encashable: boolean;
+}
+
+/**
+ * Leave Types Request - for creating/updating leave types
+ */
+export interface LeaveTypesRequest {
+  casual?: LeaveTypeConfig;
+  sick?: LeaveTypeConfig;
+  earned?: LeaveTypeConfig;
+  maternity?: LeaveTypeConfig;
+  paternity?: LeaveTypeConfig;
+}
+
+/**
+ * Leave Types Response
+ */
+export interface LeaveTypesResponse {
+  casual?: Record<string, any>;
+  sick?: Record<string, any>;
+  earned?: Record<string, any>;
+  maternity?: Record<string, any>;
+  paternity?: Record<string, any>;
+}
+
+/**
+ * Policy Document Response - Backend returns blob names as strings
+ */
+export interface PolicyDocument {
+  id: string;      // The blob name (used as ID)
+  name: string;    // Display name extracted from blob name
+  url?: string;    // Optional URL if provided
+  uploaded_at?: string; // Optional upload date
+}
+
+/**
+ * Backend actual response format
+ */
+export interface PolicyListResponse {
+  policies: string[];  // Array of blob names/paths
+}
+
+export const platformWorkspaceAPI = {
+  // ============ Leave Types Management ============
+
+  /**
+   * Get leave types configuration for the organization
+   */
+  async getLeaveTypes(): Promise<LeaveTypesResponse> {
+    return platformApiRequest<LeaveTypesResponse>(
+      `${BASE_URL}/api/platform/workspace/leave-types`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Create leave types configuration (first time setup)
+   */
+  async createLeaveTypes(data: LeaveTypesRequest): Promise<LeaveTypesResponse> {
+    return platformApiRequest<LeaveTypesResponse>(
+      `${BASE_URL}/api/platform/workspace/leave-types`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Update leave types configuration
+   */
+  async updateLeaveTypes(data: LeaveTypesRequest): Promise<LeaveTypesResponse> {
+    return platformApiRequest<LeaveTypesResponse>(
+      `${BASE_URL}/api/platform/workspace/leave-types`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+
+  // ============ Policy Document Management ============
+
+  /**
+   * Get all policy documents
+   */
+  async getPolicies(): Promise<PolicyListResponse> {
+    return platformApiRequest<PolicyListResponse>(
+      `${BASE_URL}/api/platform/workspace/policy`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Upload policy documents (replaces all existing)
+   * @param files - Array of files to upload (PDF, DOC, DOCX)
+   */
+  async setPolicies(files: File[]): Promise<PolicyListResponse> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('data', file);
+    });
+
+    let lastError: Error;
+    let currentAccessToken = getPlatformTokens().accessToken;
+
+    for (let i = 0; i <= 2; i++) {
+      try {
+        const headers: Record<string, string> = {};
+
+        if (currentAccessToken) {
+          headers['Authorization'] = `Bearer ${currentAccessToken}`;
+        }
+
+        const response = await fetch(`${BASE_URL}/api/platform/workspace/policy`, {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
+
+        return await handleResponse<PolicyListResponse>(response);
+      } catch (error) {
+        lastError = error as Error;
+
+        if (error instanceof PlatformAPIError && error.isTokenExpired && i === 0) {
+          try {
+            if (!platformRefreshPromise) {
+              platformRefreshPromise = refreshPlatformAccessToken();
+            }
+
+            currentAccessToken = await platformRefreshPromise;
+            platformRefreshPromise = null;
+
+            continue;
+          } catch (refreshError) {
+            platformRefreshPromise = null;
+            throw error;
+          }
+        }
+
+        if (error instanceof PlatformAPIError && error.status >= 400 && error.status < 500 && !error.isTokenExpired) {
+          throw error;
+        }
+
+        if (i === 2) {
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, Math.pow(2, i) * 1000));
+      }
+    }
+
+    if (lastError!.name === 'TypeError' || lastError!.message.includes('fetch')) {
+      throw new PlatformAPIError(0, 'Network error. Please check your internet connection and try again.');
+    }
+
+    throw lastError!;
+  },
+
+  /**
+   * Add additional policy documents (appends to existing)
+   * @param files - Array of files to upload (PDF, DOC, DOCX)
+   */
+  async addPolicies(files: File[]): Promise<PolicyListResponse> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('data', file);
+    });
+
+    let lastError: Error;
+    let currentAccessToken = getPlatformTokens().accessToken;
+
+    for (let i = 0; i <= 2; i++) {
+      try {
+        const headers: Record<string, string> = {};
+
+        if (currentAccessToken) {
+          headers['Authorization'] = `Bearer ${currentAccessToken}`;
+        }
+
+        const response = await fetch(`${BASE_URL}/api/platform/workspace/policy`, {
+          method: 'PATCH',
+          headers,
+          body: formData,
+        });
+
+        return await handleResponse<PolicyListResponse>(response);
+      } catch (error) {
+        lastError = error as Error;
+
+        if (error instanceof PlatformAPIError && error.isTokenExpired && i === 0) {
+          try {
+            if (!platformRefreshPromise) {
+              platformRefreshPromise = refreshPlatformAccessToken();
+            }
+
+            currentAccessToken = await platformRefreshPromise;
+            platformRefreshPromise = null;
+
+            continue;
+          } catch (refreshError) {
+            platformRefreshPromise = null;
+            throw error;
+          }
+        }
+
+        if (error instanceof PlatformAPIError && error.status >= 400 && error.status < 500 && !error.isTokenExpired) {
+          throw error;
+        }
+
+        if (i === 2) {
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, Math.pow(2, i) * 1000));
+      }
+    }
+
+    if (lastError!.name === 'TypeError' || lastError!.message.includes('fetch')) {
+      throw new PlatformAPIError(0, 'Network error. Please check your internet connection and try again.');
+    }
+
+    throw lastError!;
+  },
+
+  /**
+   * Delete a policy document
+   * @param documentId - The ID/path of the document to delete
+   */
+  async deletePolicy(documentId: string): Promise<void> {
+    return platformApiRequest<void>(
+      `${BASE_URL}/api/platform/workspace/policy/${encodeURIComponent(documentId)}`,
+      { method: 'DELETE' },
+      2,
+      true
+    );
   },
 };
 

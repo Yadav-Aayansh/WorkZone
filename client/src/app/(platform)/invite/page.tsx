@@ -36,6 +36,7 @@ export default function InviteEmployeePage() {
     email: "",
     name: "",
     role: "employee" as "employee" | "manager" | "recruiter",
+    title: "",
     manager_id: "",
   });
 
@@ -50,10 +51,16 @@ export default function InviteEmployeePage() {
     setError(null);
     setSuccess(false);
 
-    // Validate manager_id is provided for employees
-    if (formData.role === "employee" && !formData.manager_id.trim()) {
-      setError("Manager ID is required for employees");
-      return;
+    // Validate title and manager_id are provided for employees
+    if (formData.role === "employee") {
+      if (!formData.title.trim()) {
+        setError("Job title is required for employees");
+        return;
+      }
+      if (!formData.manager_id.trim()) {
+        setError("Manager ID is required for employees");
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -63,6 +70,7 @@ export default function InviteEmployeePage() {
         email: string;
         name: string;
         role: "employee" | "manager" | "recruiter";
+        title?: string;
         manager_id?: string;
       } = {
         email: formData.email,
@@ -70,8 +78,9 @@ export default function InviteEmployeePage() {
         role: formData.role,
       };
 
-      // Only include manager_id for employees
-      if (formData.role === "employee" && formData.manager_id.trim()) {
+      // Include title and manager_id for employees
+      if (formData.role === "employee") {
+        requestData.title = formData.title.trim();
         requestData.manager_id = formData.manager_id.trim();
       }
 
@@ -89,6 +98,7 @@ export default function InviteEmployeePage() {
         email: "",
         name: "",
         role: "employee",
+        title: "",
         manager_id: "",
       });
 
@@ -344,32 +354,57 @@ export default function InviteEmployeePage() {
                   </p>
                 </div>
 
-                {/* Manager ID field - only shown when role is employee */}
+                {/* Title and Manager ID fields - only shown when role is employee */}
                 {formData.role === "employee" && (
-                  <div className="space-y-3">
-                    <Label
-                      htmlFor="manager_id"
-                      className="text-base font-medium dark:text-white"
-                    >
-                      Manager ID *
-                    </Label>
-                    <Input
-                      id="manager_id"
-                      type="text"
-                      placeholder="Enter manager's UUID"
-                      value={formData.manager_id}
-                      onChange={(e) =>
-                        handleChange("manager_id", e.target.value)
-                      }
-                      required={formData.role === "employee"}
-                      disabled={isSubmitting || success}
-                      className="w-full h-11 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                    <p className="text-xs text-muted-foreground dark:text-gray-400 flex items-center gap-1">
-                      👨‍💼 The UUID of the manager who will supervise this
-                      employee
-                    </p>
-                  </div>
+                  <>
+                    <div className="space-y-3">
+                      <Label
+                        htmlFor="title"
+                        className="text-base font-medium dark:text-white"
+                      >
+                        Job Title *
+                      </Label>
+                      <Input
+                        id="title"
+                        type="text"
+                        placeholder="e.g., Software Engineer, Product Manager"
+                        value={formData.title}
+                        onChange={(e) => handleChange("title", e.target.value)}
+                        required={formData.role === "employee"}
+                        disabled={isSubmitting || success}
+                        className="w-full h-11 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      />
+                      <p className="text-xs text-muted-foreground dark:text-gray-400 flex items-center gap-1">
+                        💼 The employee&apos;s job title/designation in the
+                        organization
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label
+                        htmlFor="manager_id"
+                        className="text-base font-medium dark:text-white"
+                      >
+                        Manager ID *
+                      </Label>
+                      <Input
+                        id="manager_id"
+                        type="text"
+                        placeholder="Enter manager's UUID"
+                        value={formData.manager_id}
+                        onChange={(e) =>
+                          handleChange("manager_id", e.target.value)
+                        }
+                        required={formData.role === "employee"}
+                        disabled={isSubmitting || success}
+                        className="w-full h-11 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      />
+                      <p className="text-xs text-muted-foreground dark:text-gray-400 flex items-center gap-1">
+                        👨‍💼 The UUID of the manager who will supervise this
+                        employee
+                      </p>
+                    </div>
+                  </>
                 )}
 
                 <div className="flex gap-4 pt-6 border-t dark:border-gray-700">

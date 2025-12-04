@@ -4,6 +4,7 @@ export {
   platformOnboardingAPI,
   platformSubscriptionAPI,
   platformClientAPI,
+  platformWorkspaceAPI,
   PlatformAPIError,
   getPlatformTokens,
   setPlatformTokens,
@@ -27,6 +28,11 @@ export type {
   TenantAvailabilityResponse,
   InviteUserRequest,
   InviteUserResponse,
+  LeaveTypeConfig,
+  LeaveTypesRequest,
+  LeaveTypesResponse,
+  PolicyDocument,
+  PolicyListResponse,
 } from './platform';
 
 // Tenant API exports
@@ -74,6 +80,9 @@ export type {
   RecruiterProfileResponse,
   ManagerProfileResponse,
   EmployeeProfileResponse,
+  EmployeeInfo,
+  HelpdeskQueryRequest,
+  HelpdeskResponse,
   ApplyLeaveRequest,
   RejectLeaveRequest,
   LeaveRequestResponse,
