@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import {
   ArrowRight,
   ArrowLeft,
-  Upload,
   Building2,
   Loader2,
   Check,
@@ -459,7 +458,7 @@ export default function WorkspaceOnboarding({
           <div className="mb-5">
             <h1 className="text-2xl font-bold mb-1">Set up your workspace</h1>
             <p className="text-muted-foreground">
-              Create your company's HR portal
+              Create your company&apos;s HR portal
             </p>
           </div>
 

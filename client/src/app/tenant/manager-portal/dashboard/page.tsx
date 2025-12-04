@@ -248,7 +248,7 @@ function DashboardContent() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Manager ID</p>
-                <p className="font-mono text-sm">{managerProfile.id}</p>
+                <p className="font-mono text-sm">{managerProfile.manager_id}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Role</p>

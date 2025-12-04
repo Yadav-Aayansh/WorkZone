@@ -447,6 +447,32 @@ export const platformClientAPI = {
       body: JSON.stringify(data),
     }, 2, true);
   },
+
+  /**
+   * Link a custom domain to the tenant (requires authentication)
+   * @param domain - The custom domain to link (e.g., "hr.mycompany.com")
+   */
+  async linkCustomDomain(domain: string): Promise<{ message: string }> {
+    return platformApiRequest<{ message: string }>(
+      `${BASE_URL}/api/platform/custom-domain/${encodeURIComponent(domain)}`,
+      { method: 'POST' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Unlink a custom domain from the tenant (requires authentication)
+   * @param domain - The custom domain to unlink
+   */
+  async unlinkCustomDomain(domain: string): Promise<{ message: string }> {
+    return platformApiRequest<{ message: string }>(
+      `${BASE_URL}/api/platform/custom-domain/${encodeURIComponent(domain)}`,
+      { method: 'DELETE' },
+      2,
+      true
+    );
+  },
 };
 
 // ============ Platform Workspace API - Leave Types ============

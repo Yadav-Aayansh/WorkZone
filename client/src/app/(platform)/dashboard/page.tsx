@@ -33,10 +33,12 @@ import {
   BarChart3,
   FileText,
   Calendar,
+  Globe,
   Shield,
 } from "lucide-react";
 import { LeaveTypesConfig } from "@/components/dashboard/leave-types-config";
 import { PolicyDocumentsManager } from "@/components/dashboard/policy-documents-manager";
+import { CustomDomainManager } from "@/components/dashboard/custom-domain-manager";
 
 type Tab = "overview" | "team" | "settings";
 
@@ -395,13 +397,20 @@ export default function DashboardPage() {
               <div className="space-y-6">
                 {/* Settings Tabs */}
                 <Tabs defaultValue="general" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid h-auto p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                  <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid h-auto p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
                     <TabsTrigger
                       value="general"
                       className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg px-4 py-2.5 gap-2"
                     >
                       <Settings className="w-4 h-4" />
                       <span className="hidden sm:inline">General</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="domains"
+                      className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg px-4 py-2.5 gap-2"
+                    >
+                      <Globe className="w-4 h-4" />
+                      <span className="hidden sm:inline">Domains</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="leave-types"
@@ -460,6 +469,11 @@ export default function DashboardPage() {
                         </div>
                       </CardContent>
                     </Card>
+                  </TabsContent>
+
+                  {/* Custom Domains Tab */}
+                  <TabsContent value="domains" className="mt-6">
+                    <CustomDomainManager />
                   </TabsContent>
 
                   {/* Leave Types Tab */}

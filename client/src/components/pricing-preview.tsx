@@ -96,7 +96,7 @@ const cardVariants = {
     y: 0,
     transition: {
       duration: 0.5,
-      ease: "easeOut",
+      ease: "easeOut" as const,
     },
   },
 };
@@ -134,7 +134,7 @@ export default function PricingPreview() {
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
             Invest in Your{" "}
             <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Team's Success
+              Team&apos;s Success
             </span>
           </h2>
 

@@ -3,14 +3,39 @@
 /* eslint-disable */
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN || 'workzone.tech';
+
+/**
+ * Check if the current hostname is a custom domain (not a subdomain of the platform)
+ * Custom domains: jobs.noctivagous.me, hr.company.com
+ * Platform subdomains: company.workzone.tech
+ */
+function isCustomDomain(): boolean {
+  if (typeof window === 'undefined') return false;
+  
+  const hostname = window.location.hostname;
+  
+  // Localhost is never a custom domain
+  if (hostname.includes('localhost')) return false;
+  
+  // If hostname doesn't end with platform domain, it's a custom domain
+  return !hostname.endsWith(`.${PLATFORM_DOMAIN}`) && hostname !== PLATFORM_DOMAIN;
+}
 
 /**
  * Get tenant-specific backend URL
- * Returns URL with tenant subdomain (e.g., http://sandesh12.localhost:8000)
- * Backend extracts tenant_id from hostname
+ * For custom domains: Pass full hostname in X-Custom-Domain header instead
+ * For platform subdomains: Returns URL with tenant subdomain (e.g., http://company.api.workzone.tech)
+ * Backend extracts tenant_id from hostname or custom domain header
  */
 function getTenantBackendUrl(): string {
   if (typeof window === 'undefined') return BASE_URL;
+
+  // For custom domains, backend identifies tenant via X-Custom-Domain header
+  // So we use the base URL and the header will be added in fetch calls
+  if (isCustomDomain()) {
+    return BASE_URL;
+  }
 
   const subdomain = getTenantSubdomain();
   if (!subdomain) return BASE_URL;
@@ -36,6 +61,20 @@ function getTenantBackendUrl(): string {
     console.error('Failed to construct tenant backend URL:', error);
     return BASE_URL;
   }
+}
+
+/**
+ * Get custom domain header if on a custom domain
+ * Backend uses this header to identify the tenant for custom domains
+ */
+function getCustomDomainHeader(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  
+  if (isCustomDomain()) {
+    return { 'X-Custom-Domain': window.location.hostname };
+  }
+  
+  return {};
 }
 
 // ============ Type Definitions ============
@@ -132,6 +171,11 @@ function getTenantSubdomain(): string | null {
 
   const hostname = window.location.hostname;
 
+  // For custom domains, return null - tenant will be identified via X-Custom-Domain header
+  if (isCustomDomain()) {
+    return null;
+  }
+
   // For localhost testing: company.localhost
   if (hostname.includes('localhost')) {
     const parts = hostname.split('.');
@@ -141,9 +185,13 @@ function getTenantSubdomain(): string | null {
     return null;
   }
 
-  // For production: company.workzone.tech
+  // For production: company.workzone.tech (or whatever PLATFORM_DOMAIN is set to)
   const parts = hostname.split('.');
-  if (parts.length >= 3) {
+  const platformParts = PLATFORM_DOMAIN.split('.');
+  
+  // Hostname should have more parts than the platform domain
+  // e.g., company.workzone.tech (3 parts) > workzone.tech (2 parts)
+  if (parts.length > platformParts.length) {
     return parts[0]; // Return 'company' from 'company.workzone.tech'
   }
 
@@ -212,10 +260,11 @@ async function refreshTenantAccessToken(): Promise<string> {
   }
 
   try {
-    const response = await fetch(`${BASE_URL}/api/tenant/auth/refresh`, {
+    const response = await fetch(`${getTenantBackendUrl()}/api/tenant/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...getCustomDomainHeader(), // Add custom domain header if on custom domain
       },
       body: JSON.stringify({ refresh_token: refreshToken }),
     });
@@ -255,6 +304,7 @@ async function tenantApiRequest<T>(
     try {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
+        ...getCustomDomainHeader(), // Add custom domain header if on custom domain
         ...(options.headers as Record<string, string>),
       };
 
@@ -623,6 +673,7 @@ export const tenantApplicationAPI = {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${tokens.accessToken}`,
+        ...getCustomDomainHeader(), // Add custom domain header if on custom domain
       },
       body: formData,
     });
@@ -1044,5 +1095,5 @@ export const tenantLeaveAPI = {
 };
 
 // Export utility functions for use in other files
-export { getTenantSubdomain, getTenantBackendUrl, getTenantTokens, setTenantTokens, clearTenantTokens };
+export { getTenantSubdomain, getTenantBackendUrl, getTenantTokens, setTenantTokens, clearTenantTokens, isCustomDomain, getCustomDomainHeader };
 
