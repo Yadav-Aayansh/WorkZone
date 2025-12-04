@@ -2,7 +2,9 @@ from uuid import UUID
 from src.repository.platform import ClientRepository
 from src.schemas.platform import (
     ClientSignupRequest, ClientOnboarding, ClientLoginRequest,
-    TenantAvailabilityRequest, ClientRefreshRequest)
+    TenantAvailabilityRequest, ClientRefreshRequest, ClientForgotPasswordRequest,
+    ClientResetPasswordRequest
+)
 from src.exceptions.platform import (
     ClientAlreadyExistsError, TenantAlreadyExistsError, ClientNotFoundError,
     InvalidClientCredentialsError, TenantNotFoundError, InvalidDomainError,
@@ -15,12 +17,12 @@ from src.models.platform import Client, SubscriptionPlan
 from src.utils.constants import AccountStatus, SubscriptionStatus
 from src.utils.datetime import get_indian_time
 from src.utils.misc import is_valid_domain, verify_domain
-from src.core.security import create_tokens, decode_token
+from src.core.security import create_tokens, decode_token, create_access_token
 from src.core.config import Config
 from datetime import timedelta
 from src.tasks import (
     create_tenant_schema_task, create_tenant_setting, link_domain_and_redirect_task,
-    unlink_domain_task
+    unlink_domain_task, send_platform_reset_password_email_task
 )
 from src.core.logger import logger
 
@@ -89,7 +91,10 @@ class ClientService:
             logo=blob_name
         )
         
-        create_tenant_schema_task.delay(data.tenant_id)
+        create_tenant_schema_task.delay(
+            data.tenant_id, client.name, client.email,
+            client.brand_name, f"{data.tenant_id}.{Config.DOMAIN_NAME}"
+        )
         create_tenant_setting.delay(id)
         account_status = self.get_account_status(client)
         subscription_status = self.get_subscription_status(client)
@@ -147,7 +152,42 @@ class ClientService:
 
         return {**tokens, "account_status": account_status, "subscription_status": subscription_status}
     
+    async def forgot_password(self, data: ClientForgotPasswordRequest) -> dict:
+        client = await self.client_repo.get_client_by_email(data.email)
+        if not client:
+            raise ClientNotFoundError("Account does not exist!")
+        
+        token = create_access_token({
+            "sub": str(client.id),
+            "email": client.email,
+            "aud": Config.DOMAIN_NAME
+        }, expires_minutes=60)
 
+        reset_link = f"https://{Config.DOMAIN_NAME}/reset-password?token={token}"
+        send_platform_reset_password_email_task.delay(data.email, client.name, reset_link)
+        return {"message": "Password reset link sent!"}
+    
+    async def reset_password(self, data: ClientResetPasswordRequest) -> dict:
+        current_user = decode_token(data.token, Config.DOMAIN_NAME, "access")
+        client = await self.client_repo.get_client_by_id(current_user.get("sub"))
+        if not client:
+            raise ClientNotFoundError("Account does not exist!")
+        
+        hashed_password = hash_password(data.password)
+        await self.client_repo.change_password(client.id, hashed_password)
+
+        account_status = self.get_account_status(client)
+        subscription_status = self.get_subscription_status(client)
+
+        tokens = create_tokens({
+            "sub": str(client.id),
+            "email": client.email,
+            "aud": Config.DOMAIN_NAME
+        })
+
+        return {**tokens, "account_status": account_status, "subscription_status": subscription_status}
+    
+    
     async def get_tenant(self, tenant_or_domain: str) -> str:
         is_tenant_exist = await self.client_repo.is_tenant_exist(tenant_or_domain)
         if is_tenant_exist:

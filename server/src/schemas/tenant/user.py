@@ -25,3 +25,10 @@ class UserLoginResponse(BaseModel):
 
 class UserRefreshRequest(BaseModel):
     refresh_token: str
+
+class UserForgotPasswordRequest(BaseModel):
+    email: EmailStr = Field(..., max_length=255)
+
+class UserResetPasswordRequest(BaseModel):
+    token: str
+    password: str = Field(..., min_length=8)

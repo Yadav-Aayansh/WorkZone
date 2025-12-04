@@ -1,8 +1,8 @@
 from src.core.celery import worker
 from src.core.database import get_tenant_db_sync, get_public_db_sync
 from src.genai import process_and_rank_resumes, generate_document
-from src.genai.schemas import RejectionLetterData
-from src.models.tenant import Job, Application, User
+from src.genai.schemas import FeedbackInformation
+from src.models.tenant import Job, Application, ApplicationStatus
 from src.models.platform import Client
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
@@ -23,30 +23,26 @@ def resume_ranking(self, tenant_id: str, job_id: str, top_x: Optional[int]):
                 .options(joinedload(Job.applications).joinedload(Application.user),
                          joinedload(Job.applications).joinedload(Application.job))
                 .where(Job.id == job_id)
-            ).scalar_one_or_none()
-            applicant_details = [(application.id, application.resume) for application in job.applications]
+            ).unique().scalar_one_or_none()
+            applicant_details = [(str(application.id), application.user.name, application.resume) for application in job.applications]
             if not top_x or top_x <= 0:
                 top_x = max(1, len(applicant_details) // 2)
-            ranking_results = process_and_rank_resumes(applicant_details, job.description, top_x)
-            # for shortlisted in ranking_results.shortlisted_candidates:
-                # self.job_repo.update_application(id, Status.SHORTLISTED, score)
-                # send mail to complete ai interview
-                # pass
+
+            feedback_info = FeedbackInformation(company_name=brand, position=job.title)
+            ranking_results = process_and_rank_resumes(applicant_details, job.description, feedback_info, top_x)
+            for shortlisted in ranking_results.shortlisted_candidates:
+                application = db.execute(select(Application).where(Application.id == shortlisted.application_id)).scalar_one_or_none()
+                application.resume_score = shortlisted.final_score
+                application.status = ApplicationStatus.SHORTLISTED
+                # send_shortlisted_email(application.user.email, rejected.feedback, brand)
 
             for rejected in ranking_results.rejected_candidates:
-                application = db.execute(
-                    select(Application)
-                    .options(joinedload(Application.user), joinedload(Application.job))
-                    .where(Application.id == rejected.application_id)
-                ).scalar_one_or_none()
-                data = RejectionLetterData(
-                    candidate_name=application.user.name,
-                    company_name=brand,
-                    position=application.job.title,
-                    feedback=rejected.feedback
-                )
-                html = generate_document(data)
-                send_rejection_email(application.user.email, html, brand)
+                application = db.execute(select(Application).where(Application.id == rejected.application_id)).scalar_one_or_none()
+
+                application.resume_score = rejected.final_score
+                application.status = ApplicationStatus.REJECTED
+                send_rejection_email(application.user.email, rejected.feedback, brand)
+
     except Exception as exc:
         # retry the task (Celery will raise if max_retries exceeded)
         try:

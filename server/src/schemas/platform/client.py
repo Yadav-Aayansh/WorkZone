@@ -15,7 +15,7 @@ class ClientLoginRequest(BaseModel):
     email: EmailStr = Field(..., max_length=255)
     password: str = Field(..., min_length=8)
 
-class ClientLoginResponse(BaseModel):
+class ClientResponse(BaseModel):
     access_token: str
     refresh_token: str
     account_status: str
@@ -30,3 +30,10 @@ class TenantAvailabilityRequest(BaseModel):
 
 class ClientRefreshRequest(BaseModel):
     refresh_token: str
+
+class ClientForgotPasswordRequest(BaseModel):
+    email: EmailStr = Field(..., max_length=255)
+
+class ClientResetPasswordRequest(BaseModel):
+    token: str
+    password: str = Field(..., min_length=8)

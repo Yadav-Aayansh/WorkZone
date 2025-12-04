@@ -1,10 +1,11 @@
 from .user import (
     UserSignupRequest, UserSignupResponse, UserSignupInvitedRequest,
-    UserLoginRequest, UserLoginResponse, UserRefreshRequest
+    UserLoginRequest, UserLoginResponse, UserRefreshRequest, UserForgotPasswordRequest,
+    UserResetPasswordRequest
 )
 
 from .job import (
-    CreateJobRequest, JobResponse, ListJobsRequest, UpdateJobRequest
+    CreateJobRequest, JobResponse, ListJobsRequest, UpdateJobRequest, CloseJobRequest
 )
 
 from .application import (
