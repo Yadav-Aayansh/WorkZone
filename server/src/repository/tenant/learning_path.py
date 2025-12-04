@@ -8,9 +8,10 @@ class LearningPathRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_learning_path(self, learning_path: LearningPath) -> LearningPath:
+    async def create_learning_path(self, data: dict) -> LearningPath:
+        learning_path = LearningPath(**data)
         self.db.add(learning_path)
-        await self.db.flush()
+        await self.db.commit()
         await self.db.refresh(learning_path)
         return learning_path
 

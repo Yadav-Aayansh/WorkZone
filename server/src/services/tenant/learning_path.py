@@ -2,7 +2,6 @@ from uuid import UUID
 from fastapi import HTTPException
 from src.repository.tenant import EmployeeRepository, LearningPathRepository
 from src.exceptions.tenant import EmployeeNotFoundError
-from src.models.tenant import LearningPath
 from src.genai import generate_learning_plan
 from src.genai.schemas import LearningPlanResponse
 from src.core.logger import logger
@@ -43,15 +42,15 @@ class LearningPathService:
         if plan_response.plan_title == "Error":
             raise HTTPException(status_code=500, detail=plan_response.plan_summary)
 
-        new_path = LearningPath(
-            employee_id=employee.id,
-            career_goal=career_goal,
-            current_role_snapshot=current_role,
-            resume_ref=resume_blob_name,
-            plan_data=plan_response.model_dump()
-        )
+        path_data = {
+            "employee_id": employee.id,
+            "career_goal": career_goal,
+            "current_role_snapshot": current_role,
+            "resume_ref": resume_blob_name,
+            "plan_data": plan_response.model_dump()
+        }
         
-        await self.learning_path_repo.create_learning_path(new_path)
+        await self.learning_path_repo.create_learning_path(path_data)
 
         return plan_response
 
