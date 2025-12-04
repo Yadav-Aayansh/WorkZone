@@ -31,6 +31,13 @@ class UserRepository:
         await self.db.flush()
         return new_user
     
+    async def change_password(self, id: str, password: str):
+        user = await self.get_user_by_id(id)
+        user.password = password
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
+    
 
 
         

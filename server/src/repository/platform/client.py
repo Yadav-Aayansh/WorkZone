@@ -43,6 +43,17 @@ class ClientRepository:
             logger.info(f"Error updating subscription: {e}")
             raise
 
+    async def change_password(self, id: str, password: str):
+        try:
+            client = await self.get_client_by_id(id)
+            client.password = password
+            await self.db.commit()
+            await self.db.refresh(client)
+            return client
+        except Exception:
+            await self.db.rollback()
+            raise
+
     async def is_tenant_exist(self, tenant_id: str) -> bool:
         result = await self.db.execute(select(exists().where(Client.tenant_id==tenant_id)))
         return result.scalar()
