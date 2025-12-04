@@ -1,10 +1,10 @@
 from uuid import UUID
-from fastapi import HTTPException
 from src.repository.tenant import EmployeeRepository, LearningPathRepository
 from src.exceptions.tenant import EmployeeNotFoundError
 from src.genai import generate_learning_plan
 from src.genai.schemas import LearningPlanResponse
 from src.core.logger import logger
+from src.exceptions.tenant import ResumeNotFoundError, JobTitleNotFoundError, LearningPathGenerationError
 
 class LearningPathService:
     def __init__(
@@ -24,10 +24,10 @@ class LearningPathService:
         current_role = getattr(employee, "title", None)
         
         if not resume_blob_name:
-            raise HTTPException(status_code=400, detail="No resume found.")
+            raise ResumeNotFoundError("No resume found linked to this employee.")
         
         if not current_role:
-            raise HTTPException(status_code=400, detail="Employee job title not found.")
+            raise JobTitleNotFoundError("Employee job title not found.")
 
         try:
             plan_response = await generate_learning_plan(
@@ -37,10 +37,10 @@ class LearningPathService:
             )
         except Exception as e:
             logger.error(f"GenAI Learning Path Error: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to generate learning path: {str(e)}")
+            raise LearningPathGenerationError(f"Failed to generate learning path: {str(e)}")
 
         if plan_response.plan_title == "Error":
-            raise HTTPException(status_code=500, detail=plan_response.plan_summary)
+            raise LearningPathGenerationError(plan_response.plan_summary)
 
         path_data = {
             "employee_id": employee.id,

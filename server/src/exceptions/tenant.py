@@ -50,3 +50,12 @@ class LeaveRequestNotFoundError(NotFoundError):
 
 class InvalidLeaveActionError(ValidationError):
     pass
+
+class ResumeNotFoundError(ValidationError):
+    pass
+
+class JobTitleNotFoundError(ValidationError):
+    pass
+
+class LearningPathGenerationError(Exception):
+    pass
