@@ -1,9 +1,15 @@
+import enum
 import uuid
-from sqlalchemy import Column, String, ForeignKey, DateTime
+from sqlalchemy import Column, String, ForeignKey, DateTime, Enum
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from src.core.database import TenantBase
 from src.utils.datetime import get_indian_time
+
+class LearningPathStatus(enum.Enum):
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    ARCHIVED = "archived"
 
 class LearningPath(TenantBase):
     __tablename__ = "learning_paths"
@@ -18,7 +24,7 @@ class LearningPath(TenantBase):
 
     plan_data = Column(JSONB, nullable=False)
 
-    status = Column(String, default="active", nullable=False) # 'active', 'completed', 'archived'
+    status = Column(Enum(LearningPathStatus), default=LearningPathStatus.ACTIVE, nullable=False)
 
     created_at = Column(DateTime(timezone=True), default=get_indian_time, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=get_indian_time, onupdate=get_indian_time, nullable=False)

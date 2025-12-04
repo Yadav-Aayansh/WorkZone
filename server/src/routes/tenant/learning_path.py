@@ -1,18 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from uuid import UUID
 from typing import List
-from pydantic import BaseModel
 
 from src.core.di import get_learning_path_service, get_current_user
 from src.services.tenant import LearningPathService
 from src.genai.schemas import LearningPlanResponse
 from src.models.tenant import Role
 from src.exceptions.tenant import EmployeeNotFoundError
+from src.schemas.tenant import GeneratePathRequest
 
 learning_router = APIRouter(prefix="/learning", tags=["Tenant Learning"])
-
-class GeneratePathRequest(BaseModel):
-    career_goal: str
 
 @learning_router.post("/generate", response_model=LearningPlanResponse)
 async def generate_path(
