@@ -4,7 +4,7 @@ from src.repository.tenant import (
 )
 from src.schemas.tenant import (
     UserSignupRequest, UserSignupInvitedRequest, UserLoginRequest, 
-    UserRefreshRequest
+    UserRefreshRequest, UserResetPasswordRequest, UserForgotPasswordRequest
 )
 from src.models.tenant import User
 from src.exceptions.tenant import (
@@ -12,11 +12,11 @@ from src.exceptions.tenant import (
     InvalidUserCredentialsError
 )
 from src.utils.hashing import hash_password, verify_password
-from src.core.security import create_tokens, decode_token
+from src.core.security import create_tokens, decode_token, create_access_token
 from src.core.config import Config
 from src.models.tenant import Role
 from src.core.context import tenant_context
-from src.tasks import create_leave_entitlement_task
+from src.tasks import create_leave_entitlement_task, send_tenant_reset_password_email_task
 
 class UserService:
     def __init__(
@@ -111,5 +111,31 @@ class UserService:
         user = await self.user_repo.get_user_by_id(current_user.get("sub"))
         if not user:
             raise UserNotFoundError("Account does not exist!")
+        
+        return create_tokens(self._build_token_payload(user))
+    
+
+    async def forgot_password(self, data: UserForgotPasswordRequest) -> dict:
+        user = await self.user_repo.get_user_by_email(data.email)
+        if not user:
+            raise UserNotFoundError("Account does not exist!")
+        
+        tenant_id = tenant_context.get()
+        tenant_subdomain = f"{tenant_id}.{Config.DOMAIN_NAME}"
+        token = create_access_token(self._build_token_payload(user), expires_minutes=60)
+
+        reset_link = f"https://{tenant_id}.{Config.DOMAIN_NAME}/reset-password?token={token}"
+        send_tenant_reset_password_email_task.delay(data.email, user.name, reset_link, tenant_id.capitalize(), tenant_subdomain)
+        return {"message": "Password reset link sent!"}
+    
+    async def reset_password(self, data: UserResetPasswordRequest) -> dict:
+        tenant_id = tenant_context.get()
+        current_user = decode_token(data.token, f"{tenant_id}.{Config.DOMAIN_NAME}", "access")
+        user = await self.user_repo.get_user_by_id(current_user.get("sub"))
+        if not user:
+            raise UserNotFoundError("Account does not exist!")
+        
+        hashed_password = hash_password(data.password)
+        await self.user_repo.change_password(user.id, hashed_password)
         
         return create_tokens(self._build_token_payload(user))

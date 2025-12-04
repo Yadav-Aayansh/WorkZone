@@ -51,7 +51,7 @@ class JobService:
         
         return await self.job_repo.update_job(id, data.model_dump(exclude_unset=True,exclude_none=True))
     
-    async def close_job(self, id: str, user_id: str, top_x: Optional[int]):
+    async def close_job(self, id: str, user_id: str, top_x: Optional[int] = None):
         job = await self.job_repo.get_job_by_id(id)
         if not job:
             raise JobNotFoundError(f"Job not found")

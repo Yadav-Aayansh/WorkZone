@@ -52,7 +52,7 @@ class WorkspaceService:
         token = create_access_token(payload, expires_minutes=2592000)
 
         invite_link = f"https://{tenant_id}.{Config.DOMAIN_NAME}/signup/invited?token={token}"
-        task = send_invite_email.delay(data.email, invite_link, client.brand_name)
+        send_invite_email.delay(data.email, invite_link, client.brand_name, data.name, data.role.value)
         return {"message": "Invited!"}
     
 
