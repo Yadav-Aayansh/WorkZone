@@ -15,7 +15,7 @@ from src.schemas.tenant import CreateQueryRequest, QueryResponse, RespondQueryRe
 
 query_router = APIRouter(prefix="/queries", tags=["Tenant Queries"])
 
-@query_router.post("/", response_model=QueryResponse, status_code=status.HTTP_201_CREATED)
+@query_router.post("", response_model=QueryResponse, status_code=status.HTTP_201_CREATED)
 async def create_query(
     request: CreateQueryRequest,
     service: QueryService = Depends(get_query_service),
