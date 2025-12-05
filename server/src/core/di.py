@@ -6,7 +6,7 @@ from src.repository.tenant import (
     UserRepository, ManagerRepository, RecruiterRepository,
     EmployeeRepository, ApplicantRepository, JobRepository,
     ApplicationRepository, AiInterviewRepository, LeaveEntitlementRepository,
-    LeaveRequestRepository, LearningPathRepository
+    LeaveRequestRepository, LearningPathRepository, QueryRepository
 )
 from src.services.platform import (
     ClientService, OrderService, WorkspaceService
@@ -14,7 +14,7 @@ from src.services.platform import (
 from src.services.tenant import (
     UserService, RecruiterService, ManagerService, EmployeeService,
     ApplicantService, JobService, ApplicationService, AiInterviewService,
-    LeaveService, LearningPathService
+    LeaveService, LearningPathService, QueryService
 )
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from src.exceptions.base import RoleNotAllowedError
@@ -174,3 +174,9 @@ def get_learning_path_service(
     learning_path_repo: LearningPathRepository = Depends(get_tenant_db)
 ) -> LearningPathService:
     return LearningPathService(employee_repo, learning_path_repo)
+
+def get_query_service(
+    query_repo: QueryRepository = Depends(get_tenant_db),
+    employee_repo: EmployeeRepository = Depends(get_tenant_db)
+) -> QueryService:
+    return QueryService(query_repo, employee_repo)
