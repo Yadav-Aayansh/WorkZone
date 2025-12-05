@@ -128,12 +128,14 @@ async def get_recruiter_service(db: AsyncSession = Depends(get_tenant_db)):
 async def get_manager_service(db: AsyncSession = Depends(get_tenant_db)):
     user_repo = UserRepository(db)
     manager_repo = ManagerRepository(db)
-    return ManagerService(user_repo, manager_repo)
+    employee_repo = EmployeeRepository(db)
+    return ManagerService(user_repo, manager_repo, employee_repo)
 
 async def get_employee_service(db: AsyncSession = Depends(get_tenant_db)):
     user_repo = UserRepository(db)
     employee_repo = EmployeeRepository(db)
-    return EmployeeService(user_repo, employee_repo)
+    manager_repo = ManagerRepository(db)
+    return EmployeeService(user_repo, employee_repo, manager_repo)
 
 async def get_applicant_service(db: AsyncSession = Depends(get_tenant_db)):
     user_repo = UserRepository(db)
