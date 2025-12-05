@@ -29,3 +29,12 @@ class EmployeeRepository:
             )
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
+    
+    async def get_all_employee_by_manager_id(self, manager_id: str):
+        query = (
+            select(Employee)
+            .where(Employee.manager_id == manager_id)
+            .options(joinedload(Employee.user))
+        )
+        result = await self.db.execute(query)
+        return result.scalars().all()
