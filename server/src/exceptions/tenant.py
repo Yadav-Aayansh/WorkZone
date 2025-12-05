@@ -59,3 +59,12 @@ class JobTitleNotFoundError(ValidationError):
 
 class LearningPathGenerationError(Exception):
     pass
+
+class QueryNotFoundError(NotFoundError):
+    pass
+
+class QueryClassificationError(ValidationError):
+    pass
+
+class QueryUnassignedError(ValidationError):
+    pass
