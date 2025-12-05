@@ -169,8 +169,7 @@ async def get_leave_service(db: AsyncSession = Depends(get_tenant_db)):
     leave_request_repo = LeaveRequestRepository(db)
     return LeaveService(employee_repo, manager_repo, leave_entitlement_repo, leave_request_repo)
 
-def get_learning_path_service(
-    employee_repo: EmployeeRepository = Depends(get_tenant_db),
-    learning_path_repo: LearningPathRepository = Depends(get_tenant_db)
-) -> LearningPathService:
+def get_learning_path_service(db: AsyncSession = Depends(get_tenant_db)):
+    employee_repo = EmployeeRepository(db)
+    learning_path_repo = LearningPathRepository(db)
     return LearningPathService(employee_repo, learning_path_repo)

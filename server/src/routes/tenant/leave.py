@@ -26,7 +26,7 @@ async def apply_leave(
     except InsufficientLeaveBalanceError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
-@leave_router.get(path="/")
+@leave_router.get(path="")
 async def get_leave_requests(
     service: LeaveService = Depends(get_leave_service),
     current_user = Depends(get_current_user(use_tenant=True, roles=[Role.EMPLOYEE]))

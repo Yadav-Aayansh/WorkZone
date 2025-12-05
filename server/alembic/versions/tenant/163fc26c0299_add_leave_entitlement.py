@@ -31,8 +31,6 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('employee_id', 'fiscal_year', name='one_entitlement_per_year')
     )
-    op.drop_table('alembic_version')
-    # ### end Alembic commands ###
 
 
 def downgrade() -> None:
@@ -42,5 +40,3 @@ def downgrade() -> None:
     sa.Column('version_num', sa.VARCHAR(length=32), autoincrement=False, nullable=False),
     sa.PrimaryKeyConstraint('version_num', name=op.f('alembic_version_pkc'))
     )
-    op.drop_table('leave_entitlements')
-    # ### end Alembic commands ###
