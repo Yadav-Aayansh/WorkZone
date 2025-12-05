@@ -21,8 +21,9 @@ import {
   Check,
   X,
 } from "lucide-react";
-import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { platformAuthAPI } from "@/lib/api/platform";
 
 const resetPasswordSchema = z
   .object({
@@ -102,12 +103,22 @@ const steps = [
   },
 ];
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get token from URL
+  useEffect(() => {
+    const tokenParam = searchParams.get("token");
+    if (tokenParam) {
+      setToken(tokenParam);
+    }
+  }, [searchParams]);
 
   const {
     register,
@@ -147,13 +158,45 @@ export default function ResetPasswordPage() {
   const onSubmit = async (data: ResetPasswordFormData) => {
     setIsLoading(true);
     setError("");
+
+    if (!token) {
+      setError(
+        "Invalid or missing reset token. Please request a new password reset link."
+      );
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      console.log(data);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      router.push("/login");
-    } catch (err) {
+      const response = await platformAuthAPI.resetPassword({
+        token,
+        password: data.password,
+      });
+
+      // Store tokens if returned (auto-login after reset)
+      if (response.access_token && response.refresh_token) {
+        localStorage.setItem("access_token", response.access_token);
+        localStorage.setItem("refresh_token", response.refresh_token);
+        localStorage.setItem("account_status", response.account_status);
+        localStorage.setItem(
+          "subscription_status",
+          response.subscription_status
+        );
+      }
+
+      router.push("/login?reset=success");
+    } catch (err: unknown) {
       console.error(err);
-      setError("Failed to reset password. Please try again.");
+      const error = err as { status?: number; message?: string };
+      if (error.status === 404) {
+        setError(
+          "Invalid or expired reset link. Please request a new password reset."
+        );
+      } else {
+        setError(
+          error.message || "Failed to reset password. Please try again."
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -292,11 +335,11 @@ export default function ResetPasswordPage() {
 
           {/* Back Link */}
           <Link
-            href="/verify-code"
+            href="/forgot-password"
             className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6 group"
           >
             <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
-            Back
+            Back to forgot password
           </Link>
 
           {/* Header */}
@@ -494,5 +537,19 @@ export default function ResetPasswordPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen w-full flex items-center justify-center bg-background">
+          <div className="w-8 h-8 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

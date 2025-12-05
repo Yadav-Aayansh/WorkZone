@@ -16,7 +16,6 @@ import {
   Clock,
   Users,
   Calendar,
-  Briefcase,
   Lock,
   LockOpen,
 } from "lucide-react";

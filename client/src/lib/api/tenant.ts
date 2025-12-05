@@ -2,7 +2,10 @@
 // @ts-nocheck
 /* eslint-disable */
 
+// Backend API URL - used for localhost development
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
+// Platform domain for subdomain detection (e.g., workzone.tech)
 const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN || 'workzone.tech';
 
 /**
@@ -24,43 +27,37 @@ function isCustomDomain(): boolean {
 
 /**
  * Get tenant-specific backend URL
- * For custom domains: Pass full hostname in X-Custom-Domain header instead
- * For platform subdomains: Returns URL with tenant subdomain (e.g., http://company.api.workzone.tech)
- * Backend extracts tenant_id from hostname or custom domain header
+ * 
+ * Architecture: Caddy reverse proxy routes /api/* to backend
+ * Backend extracts tenant_id from the Host header
+ * 
+ * So we call the SAME domain the frontend is on:
+ * - https://sandesh.workzone.tech/api/tenant/... (Host: sandesh.workzone.tech)
+ * - https://jobs.noctivagous.me/api/tenant/... (Host: jobs.noctivagous.me)
+ * - http://sandesh.localhost:8000/api/tenant/... (for local dev)
  */
 function getTenantBackendUrl(): string {
   if (typeof window === 'undefined') return BASE_URL;
 
-  // For custom domains, backend identifies tenant via X-Custom-Domain header
-  // So we use the base URL and the header will be added in fetch calls
-  if (isCustomDomain()) {
-    return BASE_URL;
-  }
+  const hostname = window.location.hostname;
 
-  const subdomain = getTenantSubdomain();
-  if (!subdomain) return BASE_URL;
-
-  // Parse BASE_URL to add subdomain
-  try {
-    const url = new URL(BASE_URL);
+  // For localhost: use BASE_URL with subdomain prefix
+  if (hostname.includes('localhost')) {
+    const subdomain = getTenantSubdomain();
+    if (!subdomain) return BASE_URL;
     
-    // For localhost: subdomain.localhost:8000
-    if (url.hostname === 'localhost') {
+    try {
+      const url = new URL(BASE_URL);
       return `${url.protocol}//${subdomain}.${url.hostname}:${url.port}`;
+    } catch {
+      return BASE_URL;
     }
-    
-    // For production: subdomain.api.workzone.tech or subdomain.workzone.tech
-    // Check if hostname already has subdomain
-    const parts = url.hostname.split('.');
-    if (parts.length >= 2) {
-      return `${url.protocol}//${subdomain}.${url.hostname}${url.port ? ':' + url.port : ''}`;
-    }
-    
-    return BASE_URL;
-  } catch (error) {
-    console.error('Failed to construct tenant backend URL:', error);
-    return BASE_URL;
   }
+
+  // For production (both platform subdomains and custom domains):
+  // Use the current origin - Caddy will proxy /api/* to backend
+  // Backend extracts tenant from Host header
+  return window.location.origin;
 }
 
 /**
@@ -114,6 +111,24 @@ export interface TenantUserRefreshRequest {
 export interface TenantUserRefreshResponse {
   access_token: string;
   refresh_token: string;
+}
+
+// Forgot/Reset Password Types
+export interface TenantUserForgotPasswordRequest {
+  email: string;
+}
+
+export interface TenantUserForgotPasswordResponse {
+  message: string;
+}
+
+export interface TenantUserResetPasswordRequest {
+  token: string;
+  password: string;
+}
+
+export interface TenantUserResetPasswordResponse {
+  message: string;
 }
 
 // ============ Error Handling ============
@@ -413,6 +428,28 @@ export const tenantAuthAPI = {
   },
 
   /**
+   * Request password reset email
+   * @param data - Email address for password reset
+   */
+  async forgotPassword(data: TenantUserForgotPasswordRequest): Promise<TenantUserForgotPasswordResponse> {
+    return tenantApiRequest<TenantUserForgotPasswordResponse>(`${getTenantBackendUrl()}/api/tenant/auth/forgot-password`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, 2, false);
+  },
+
+  /**
+   * Reset password with token from email
+   * @param data - Token and new password
+   */
+  async resetPassword(data: TenantUserResetPasswordRequest): Promise<TenantUserResetPasswordResponse> {
+    return tenantApiRequest<TenantUserResetPasswordResponse>(`${getTenantBackendUrl()}/api/tenant/auth/reset-password`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, 2, false);
+  },
+
+  /**
    * Logout tenant user
    */
   async logout(): Promise<void> {
@@ -501,7 +538,6 @@ export interface JobResponse {
   description: string;
   department: string;
   location: string;
-  posted_by: string;
   is_open: boolean;
   created_at: string;
   updated_at: string;
@@ -512,6 +548,11 @@ export interface ListJobsRequest {
   department?: string;
   location?: string;
   is_open?: boolean;
+}
+
+// Close Job Request - for shortlisting top candidates when closing
+export interface CloseJobRequest {
+  top_x?: number | null; // Number of top candidates to shortlist when closing
 }
 
 // AI JD Builder Types
@@ -587,10 +628,13 @@ export const tenantJobAPI = {
   /**
    * Close a job posting (requires RECRUITER role and must be creator)
    * Sets is_open to false to stop accepting new applications
+   * @param jobId - The job ID to close
+   * @param data - Optional: Specify top_x to shortlist top candidates when closing
    */
-  async closeJob(jobId: string): Promise<JobResponse> {
+  async closeJob(jobId: string, data?: CloseJobRequest): Promise<JobResponse> {
     return tenantApiRequest<JobResponse>(`${getTenantBackendUrl()}/api/tenant/jobs/${jobId}/close`, {
       method: 'POST',
+      body: JSON.stringify(data ?? {}),
     }, 2, true);
   },
 
