@@ -43,6 +43,27 @@ export interface PlatformRefreshTokenResponse {
   subscription_status: string;
 }
 
+// Forgot/Reset Password Types
+export interface PlatformForgotPasswordRequest {
+  email: string;
+}
+
+export interface PlatformForgotPasswordResponse {
+  message: string;
+}
+
+export interface PlatformResetPasswordRequest {
+  token: string;
+  password: string;
+}
+
+export interface PlatformResetPasswordResponse {
+  access_token: string;
+  refresh_token: string;
+  account_status: string;
+  subscription_status: string;
+}
+
 // Onboarding Types
 export interface OnboardingRequest {
   tenant_id: string;
@@ -310,6 +331,20 @@ export const platformAuthAPI = {
 
   clearTokens() {
     clearPlatformTokens();
+  },
+
+  async forgotPassword(data: PlatformForgotPasswordRequest): Promise<PlatformForgotPasswordResponse> {
+    return platformApiRequest<PlatformForgotPasswordResponse>(`${BASE_URL}/api/platform/auth/forgot-password`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, 2, false);
+  },
+
+  async resetPassword(data: PlatformResetPasswordRequest): Promise<PlatformResetPasswordResponse> {
+    return platformApiRequest<PlatformResetPasswordResponse>(`${BASE_URL}/api/platform/auth/reset-password`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, 2, false);
   },
 };
 
