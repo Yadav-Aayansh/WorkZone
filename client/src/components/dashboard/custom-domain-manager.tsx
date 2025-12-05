@@ -112,11 +112,15 @@ export function CustomDomainManager() {
     } catch (error) {
       console.error("Failed to add domain:", error);
       const err = error as { status?: number; message?: string };
+      console.log("Error type:", typeof error);
+      console.log("Error status:", err?.status);
+      console.log("Error message:", err?.message);
 
       if (err.status === 400 && err.message) {
         // Backend returns DNS configuration instructions
         // Show structured DNS instructions based on domain type
         const domain = newDomain.trim();
+        console.log("Setting DNS instructions for domain:", domain);
         setDnsInstructions({
           domain,
           isSubdomain: isSubdomain(domain),

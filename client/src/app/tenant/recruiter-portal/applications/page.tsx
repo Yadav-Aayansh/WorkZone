@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { ModernRecruiterLayout } from "@/components/common/layout/ModernRecruiterLayout";
@@ -480,7 +480,15 @@ function ApplicationsContent() {
 export default function ApplicationsPage() {
   return (
     <TenantProtectedRoute allowedRoles={["recruiter"]}>
-      <ApplicationsContent />
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        }
+      >
+        <ApplicationsContent />
+      </Suspense>
     </TenantProtectedRoute>
   );
 }

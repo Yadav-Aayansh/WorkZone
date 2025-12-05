@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,7 @@ import { tenantAIInterviewAPI } from "@/lib/api";
 import { CheckCircle2, Mic, AlertTriangle, Info, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function InterviewSetupPage() {
+function InterviewSetupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const applicationId = searchParams.get("application_id");
@@ -305,5 +305,19 @@ export default function InterviewSetupPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function InterviewSetupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <InterviewSetupContent />
+    </Suspense>
   );
 }
