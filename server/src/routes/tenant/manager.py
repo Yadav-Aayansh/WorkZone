@@ -18,3 +18,17 @@ async def manager_profile(
         raise HTTPException(status_code=404, detail=str(e))
     except ManagerNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    
+
+@manager_router.get(path="/team")
+async def get_team(
+    service: ManagerService = Depends(get_manager_service),
+    current_user = Depends(get_current_user(use_tenant=True, roles=[Role.MANAGER]))
+):
+    try:
+        user_id = current_user.get("sub")
+        return await service.get_team(user_id)
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ManagerNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
