@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from uuid import UUID
-from typing import Optional
+from typing import Optional, List
 
 class EmployeeProfileResponse(BaseModel):
     user_id: UUID
@@ -20,3 +20,12 @@ class EmployeeInfo(BaseModel):
 class HelpdeskQuery(BaseModel):
     query: str
     chat_id: Optional[str] = None
+
+
+class EmployeeTeamInfo(BaseModel):
+    name: str
+    title: str
+
+class EmployeeTeamResponse(BaseModel):
+    manager: str
+    employees: List[EmployeeTeamInfo]
