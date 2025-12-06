@@ -38,6 +38,12 @@ class UserRepository:
         await self.db.refresh(user)
         return user
     
+    async def get_all_users(self):
+        query = select(User.name, User.email, User.role)
+        result = await self.db.execute(query)
+        return result.all()
+        
+    
 
 
         

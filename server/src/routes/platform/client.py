@@ -115,3 +115,15 @@ async def caddy_ask(
         pass
     
     return Response(status_code=403)
+
+
+@client_router.get(path="/members")
+async def get_all_members(
+    service: ClientService = Depends(get_client_service),
+    current_user = Depends(get_current_user()),
+):
+    try:
+        id = current_user.get("sub")
+        return await service.get_members(id)
+    except ClientNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
