@@ -35,4 +35,4 @@ class Query(TenantBase):
     updated_at = Column(DateTime(timezone=True), default=get_indian_time, onupdate=get_indian_time, nullable=False)
 
     employee = relationship("Employee", back_populates="queries")
-    recruiter = relationship("Recruiter", back_populates="assigned_queries")  # assigned_queries instead of queries to prevent ambiguity if recruiter also acts as employee
+    recruiter = relationship("Recruiter", back_populates="queries")

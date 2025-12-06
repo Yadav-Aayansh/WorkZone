@@ -13,3 +13,4 @@ class Recruiter(TenantBase):
     updated_at = Column(DateTime(timezone=True), default=get_indian_time, onupdate=get_indian_time, nullable=False)
 
     user = relationship("User", back_populates="recruiter", uselist=False)
+    queries = relationship("Query", back_populates="recruiter")
