@@ -128,12 +128,14 @@ async def get_recruiter_service(db: AsyncSession = Depends(get_tenant_db)):
 async def get_manager_service(db: AsyncSession = Depends(get_tenant_db)):
     user_repo = UserRepository(db)
     manager_repo = ManagerRepository(db)
-    return ManagerService(user_repo, manager_repo)
+    employee_repo = EmployeeRepository(db)
+    return ManagerService(user_repo, manager_repo, employee_repo)
 
 async def get_employee_service(db: AsyncSession = Depends(get_tenant_db)):
     user_repo = UserRepository(db)
     employee_repo = EmployeeRepository(db)
-    return EmployeeService(user_repo, employee_repo)
+    manager_repo = ManagerRepository(db)
+    return EmployeeService(user_repo, employee_repo, manager_repo)
 
 async def get_applicant_service(db: AsyncSession = Depends(get_tenant_db)):
     user_repo = UserRepository(db)
@@ -169,15 +171,7 @@ async def get_leave_service(db: AsyncSession = Depends(get_tenant_db)):
     leave_request_repo = LeaveRequestRepository(db)
     return LeaveService(employee_repo, manager_repo, leave_entitlement_repo, leave_request_repo)
 
-def get_learning_path_service(
-    employee_repo: EmployeeRepository = Depends(get_tenant_db),
-    learning_path_repo: LearningPathRepository = Depends(get_tenant_db)
-) -> LearningPathService:
+def get_learning_path_service(db: AsyncSession = Depends(get_tenant_db)):
+    employee_repo = EmployeeRepository(db)
+    learning_path_repo = LearningPathRepository(db)
     return LearningPathService(employee_repo, learning_path_repo)
-
-def get_query_service(
-    query_repo: QueryRepository = Depends(get_tenant_db),
-    employee_repo: EmployeeRepository = Depends(get_tenant_db),
-    recruiter_repo: RecruiterRepository = Depends(get_tenant_db)
-) -> QueryService:
-    return QueryService(query_repo, employee_repo, recruiter_repo)

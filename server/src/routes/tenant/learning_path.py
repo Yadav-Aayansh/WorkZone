@@ -28,7 +28,7 @@ async def generate_path(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@learning_router.get("/", response_model=List[LearningPlanResponse])
+@learning_router.get("", response_model=List[LearningPlanResponse])
 async def get_paths(
     service: LearningPathService = Depends(get_learning_path_service),
     current_user = Depends(get_current_user(use_tenant=True, roles=[Role.EMPLOYEE]))

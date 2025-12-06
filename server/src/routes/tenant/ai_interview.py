@@ -11,7 +11,7 @@ from src.exceptions.tenant import AiInterviewAlreadyExistsError, ApplicationNotF
 ai_interview_router = APIRouter(prefix="/ai-interview", tags=["Tenant AI Interview"])
 
 
-@ai_interview_router.post("/")
+@ai_interview_router.post("")
 async def create_session(
     application_id: UUID,
     service: AiInterviewService = Depends(get_ai_interview_service)

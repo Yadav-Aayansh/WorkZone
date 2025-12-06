@@ -1,9 +1,9 @@
 import json
+import asyncio
 from typing import List
 from src.genai.llm_client import llm_client
 from src.genai.hr_interview.answer_analyzer import analyze_answer_quality
 from src.genai.schemas.hr_interview import InterviewQuestion, QuestionResponse, InterviewReport, DetailedQA
-
 
 async def generate_interview_report(
     jd: str,
@@ -15,27 +15,31 @@ async def generate_interview_report(
     session_id: str
 ) -> InterviewReport:
     
-    # Step 1: Analyze each Q&A pair
-    detailed_qa = []
-    total_score = 0
-    
-    for i, resp in enumerate(responses):
+    async def analyze_single_qa(question: InterviewQuestion, response: QuestionResponse) -> DetailedQA:
         analysis = await analyze_answer_quality(
-            questions[i].question,
-            resp.answer,
-            questions[i].focus_area
+            question.question,
+            response.answer,
+            question.focus_area
         )
         
-        detailed_qa.append(DetailedQA(
-            question=questions[i].question,
-            answer=resp.answer,
+        return DetailedQA(
+            question=question.question,
+            answer=response.answer,
             score=analysis.score,
             strength=analysis.strength,
             weakness=analysis.weakness
-        ))
-        total_score += analysis.score
+        )
+    
+    # Step 1: Analyze all Q&A pairs in parallel
+    tasks = [
+        analyze_single_qa(questions[i], responses[i])
+        for i in range(len(responses))
+    ]
+    
+    detailed_qa = await asyncio.gather(*tasks)
     
     # Step 2: Calculate overall score
+    total_score = sum(qa.score for qa in detailed_qa)
     avg_score = total_score / len(responses) if responses else 0
     overall_score = (avg_score / 10) * 100  # Convert to 0-100 scale
     
@@ -127,4 +131,3 @@ Return JSON:
             recommendations=f"Manual review recommended. Calculated score: {overall_score:.1f}/100",
             detailed_qa=detailed_qa
         )
-
