@@ -4,7 +4,7 @@
 
 Based on a comprehensive analysis of the WorkZone application codebase, this document provides detailed Redis storage estimates for running the application with **10 tenants** and **10 rows per table** in each tenant.
 
-**Recommended Redis Memory: 256 MB - 512 MB**
+**Recommended Redis Memory: 512 MB**
 
 For production environments with growth headroom and safety margin: **1 GB**
 
@@ -227,12 +227,12 @@ The application uses PostgreSQL for persistent storage. With 10 tenants and 10 r
 
 ## Recommendations
 
-### 1. **Minimum Redis Configuration**
+### 1. **Recommended Redis Configuration**
 
 For **10 tenants with 10 rows per table:**
-- **Minimum:** 128 MB
-- **Recommended:** 256 MB
-- **Comfortable:** 512 MB
+- **Minimum viable:** 256 MB (limited headroom, not recommended)
+- **Recommended:** 512 MB (optimal for current needs + growth)
+- **Production:** 1 GB (best for production with safety margin)
 
 ### 2. **Production Configuration**
 
@@ -310,8 +310,7 @@ Track these metrics:
 **For your specific use case (10 tenants, 10 rows per table):**
 
 ### Quick Answer:
-- **Minimum viable:** 128 MB Redis
-- **Recommended:** 256-512 MB Redis
+- **Recommended:** 512 MB Redis
 - **Production ready:** 1 GB Redis
 
 ### Why these numbers?
