@@ -19,11 +19,10 @@ class QueryRepository:
         result = await self.db.execute(select(Query).where(Query.id == query_id))
         return result.scalar_one_or_none()
 
-    async def update_response(self, query_id: UUID, response_text: str, recruiter_id: UUID) -> Query | None:
+    async def update_response(self, query_id: UUID, response_text: str) -> Query | None:
         query = await self.get_query_by_id(query_id)
         if query:
             query.response_text = response_text
-            query.recruiter_id = recruiter_id
             query.status = QueryStatus.CLOSED
             
             await self.db.commit()
