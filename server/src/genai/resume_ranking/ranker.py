@@ -14,43 +14,87 @@ from src.genai.llm_client import llm_client
 
 
 REJECTION_EMAIL_FROM_ANALYSIS_PROMPT = """
-You are an expert HR Manager. Your task is to generate a polite, professional, and **highly personalized** rejection letter as a well-designed HTML email.
+You are an expert HR Manager. Your task is to generate a polite, professional, and **highly personalized** rejection letter using the strict HTML template provided below.
 
 **Your Goal:**
-You must analyze the provided Job Description, Resume, and Scores to determine exactly *why* this candidate was rejected. You must then explain this reason to them constructively in the email. **Do not write a generic rejection.**
+1. Analyze the provided Job Description, Resume, and Scores to determine specific areas for improvement.
+2. Generate specific, constructive feedback points explaining exactly what the candidate lacks compared to the job requirements.
+3. Output the **Complete HTML** string below, inserting your generated feedback points into the unordered list (`<ul>`) section.
 
-**Critical Formatting Instructions:**
-- The output MUST be a single, complete HTML file.
-- **Use inline CSS (style attributes) for all styling.** Do NOT use <style> tags.
-- **Design:**
-    - Background: `<body style="background-color: #f9f9f9; margin: 0; padding: 20px; font-family: Arial, sans-serif;">`
-    - Container: `<table ... style="width: 100%; max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; border: 1px solid #dddddd; overflow: hidden;">`
-    - Header: `<tr><td style="padding: 30px 40px; background-color: #004a99; color: #ffffff; font-size: 24px; font-weight: bold;">{company_name}</td></tr>`
-    - Content: Main padding `style="padding: 40px;"`. Paragraphs `style="line-height: 1.6; color: #333333; margin: 15px 0;"`.
-    - Footer: `<tr><td style="padding: 30px 40px; background-color: #ffffff; border-top: 1px solid #eeeeee; font-size: 12px; color: #888888; text-align: center;">&copy; {company_name}</td></tr>`
-
-**Data:**
-- Candidate: {candidate_name}
-- Role: {position}
-
-**CONTEXT FOR ANALYSIS (Use this to find the specific rejection reason):**
-- **Job Requirements:** {jd_qualifications}
+**Context for Analysis:**
+- **Job Requirements:** {jd_qualifications}, {jd_responsibilities}
 - **Candidate Skills:** {resume_skills}
 - **Candidate Experience:** {resume_experience}
-- **Scores:** Keyword Match: {keyword_score:.2f} (Low is <0.4), Experience Match: {semantic_score:.2f} (Low is <0.5)
+- **Scores:** Keyword Match: {keyword_score:.2f} (Low <0.4), Experience Match: {semantic_score:.2f} (Low <0.5)
 - **Matched Skills:** {matched_skills}
 
-**Content Generation Steps:**
-1.  **Analyze the Gap:** Compare the Job Requirements to the Candidate's Skills/Experience. Identify the *specific* missing skill (e.g., "Missing React") or experience gap (e.g., "Junior experience for a Senior role").
-2.  **Draft the Email:**
-    - Bold Greeting: "Dear {candidate_name},"
-    - Thank them for applying to the {position}.
-    - **The Feedback Paragraph (CRITICAL):** You MUST explain the decision based on your analysis.
-        - *If missing a hard skill:* "While your background is impressive, for this specific role, we are prioritizing candidates with deeper hands-on experience in [Specific Missing Skill from Job Requirements], which is a core part of our stack."
-        - *If experience mismatch:* "Although your experience in [Candidate's Field] is notable, we have decided to move forward with candidates whose recent work history is more closely aligned with [Specific Requirement from JD]."
-        - *If scores are generally high but rejected:* "This was a highly competitive search. While your qualifications are strong, we have identified other candidates who have slightly more direct experience with [Specific Project/Skill mentioned in JD]."
-    - Closing: Wish them success.
-    - Sign-off: "Sincerely,<br>The {company_name} Team"
+**Instructions for Feedback Generation:**
+- Identify the specific gap (e.g., "Lack of React experience", "Not enough years in management").
+- Generate 2-3 constructive bullet points wrapped in `<li>` tags.
+- Example: `<li>Improve your project experience in React and modern UI frameworks.</li><li>Gain more hands-on experience with [Missing Skill].</li>`
+
+**Output Template (Strictly adhere to this HTML):**
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width"/>
+<title>Application Update</title>
+<style>
+  :root{{--page-bg:#f3e8fb;--card-bg:#ffffff;--accent:#8b5cf6;--text:#0f172a;--muted:#6b7280;}}
+  body{{margin:0;background:var(--page-bg);font-family:Arial,Helvetica,sans-serif;color:var(--text);}}
+  .wrap{{max-width:680px;margin:28px auto;padding:16px;}}
+  .card{{background:var(--card-bg);border-radius:12px;padding:24px;box-shadow:0 6px 22px rgba(15,23,42,0.06);}}
+  .header{{display:flex;align-items:center;gap:12px;margin-bottom:10px;}}
+  .logo{{width:44px;height:44px;object-fit:contain;border-radius:6px;}}
+  .brand{{font-weight:700;color:var(--text);font-size:18px;}}
+  h1{{font-size:20px;margin:6px 0 10px;color:var(--text);}}
+  p{{color:var(--text);line-height:1.6;}}
+  .note{{background:#fff5f7;border-left:4px solid #f43f5e;padding:12px;border-radius:6px;color:#7a2b2b;margin:14px 0;}}
+  .feedback-box{{background:#f8f5ff;border-left:4px solid var(--accent);padding:14px;border-radius:6px;margin-top:16px;}}
+  .footer{{text-align:center;color:var(--muted);font-size:13px;margin-top:18px;}}
+  a{{color:var(--accent)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+
+    <div class="header">
+      <div class="brand">{company_name}</div>
+    </div>
+
+    <h1>Application Status Update</h1>
+
+    <p>Hi {candidate_name},</p>
+
+    <p>Thank you for applying for the <strong>{position}</strong> role at <strong>{company_name}</strong>. We appreciate the time and effort you invested in the hiring process.</p>
+
+    <div class="note">
+      <strong>Update:</strong> After reviewing your application, we are unable to move forward at this time.
+    </div>
+
+    <p>We want to help you grow and become a stronger fit for similar opportunities in the future. Below is a detailed personalized feedback summary based on your application.</p>
+
+    <!-- Detailed Feedback Section -->
+    <div class="feedback-box">
+      <strong>How to become a stronger fit for this role:</strong>
+      <ul>
+        <!-- INSERT GENERATED FEEDBACK POINTS (<li>...</li>) HERE -->
+      </ul>
+    </div>
+
+    <p style="margin-top:18px;">We encourage you to continue developing your skills and apply again when you feel ready. If you have any questions, you can reply to this email or contact our HR team.</p>
+
+    <p>Warm regards,<br>The {company_name} Hiring Team</p>
+
+    <div class="footer">© 2025 {company_name}</div>
+
+  </div>
+</div>
+</body>
+</html>
 """
 
 SHORTLISTED_FEEDBACK_PROMPT_TEMPLATE = """
