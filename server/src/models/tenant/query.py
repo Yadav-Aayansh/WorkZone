@@ -11,7 +11,6 @@ from src.genai.schemas import QueryCategory, UrgencyLevel, Sentiment
 
 class QueryStatus(enum.Enum):
     OPEN = "open"
-    IN_PROGRESS = "in_progress"
     CLOSED = "closed"
 
 class Query(TenantBase):
@@ -28,7 +27,7 @@ class Query(TenantBase):
     category = Column(Enum(QueryCategory, native_enum=False), nullable=True)
     urgency = Column(Enum(UrgencyLevel, native_enum=False), default=UrgencyLevel.MEDIUM, nullable=False)
     sentiment = Column(Enum(Sentiment, native_enum=False), nullable=True)
-    summary = Column(String, nullable=True) # Short 1-line summary from AI
+    summary = Column(String, nullable=True) # Short summary from AI
 
     status = Column(Enum(QueryStatus, native_enum=False), default=QueryStatus.OPEN, nullable=False)
 
