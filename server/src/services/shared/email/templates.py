@@ -13,12 +13,12 @@ def render_onboarding_success(name: str, brand: str, tenant_id: str, dashboard_l
     return template.render(admin_name=name, company=brand, tenant_id=tenant_id, dashboard_link=dashboard_link, year=get_indian_year())
 
 def render_invite(invite_link: str, brand: str, name: str, role: str) -> str:
-    template_str = load_template("tanent_invitation")
+    template_str = load_template("tenant_invitation")
     template = Template(template_str)
     return template.render(invite_link=invite_link, company=brand, name=name, role=role, year=get_indian_year())
 
 def render_shortlist(brand: str, name: str, position: str) -> str:
-    template_str = load_template("tanent_shortlisted")
+    template_str = load_template("tenant_shortlisted")
     template = Template(template_str)
     return template.render(company=brand, name=name, position=position, year=get_indian_year())
 
