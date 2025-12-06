@@ -52,17 +52,19 @@ Redis is used for three primary purposes:
 #### Data Structure Analysis
 From `src/genai/schemas/hr_interview.py`, the `SessionData` model includes:
 
+**Note**: The following is a conceptual representation for storage estimation purposes. See the actual source code for precise Pydantic definitions.
+
 ```python
 class SessionData:
-    - session_id: str (UUID, ~36 bytes)
-    - resume_text: str (extracted from PDF)
-    - jd_text: str (job description markdown)
-    - candidate_name: str (~50 bytes)
-    - position: str (~50 bytes)
-    - responses: List[QuestionResponse] (5-10 items)
-    - questions_asked: List[InterviewQuestion] (5-10 items)
-    - created_at: datetime (~30 bytes)
-    - current_question_index: int (~8 bytes)
+    session_id: str                          # ~36 bytes (UUID)
+    resume_text: str                         # 5-15 KB (extracted PDF text)
+    jd_text: str                             # 2-5 KB (job description)
+    candidate_name: Optional[str]            # ~50 bytes
+    position: Optional[str]                  # ~50 bytes
+    responses: List[QuestionResponse]        # 5-10 KB (5-10 items)
+    questions_asked: List[InterviewQuestion] # 2-3 KB (5-10 items)
+    created_at: datetime                     # ~30 bytes (ISO string)
+    current_question_index: int              # ~8 bytes
 ```
 
 #### Size Estimation per Session:
@@ -97,14 +99,16 @@ class SessionData:
 #### Data Structure Analysis
 From `src/genai/schemas/hr_policy.py`, the `ChatSession` model includes:
 
+**Note**: The following is a conceptual representation for storage estimation purposes. See the actual source code for precise Pydantic definitions.
+
 ```python
 class ChatSession:
-    - chat_id: str (UUID, ~36 bytes)
-    - user_info: Dict (user context)
-    - messages: List[Message] (conversation history)
-    - context: Dict (session context)
-    - created_at: str (~30 bytes)
-    - last_activity: str (~30 bytes)
+    chat_id: str                  # ~36 bytes (UUID)
+    user_info: Dict               # 200-500 bytes (user context)
+    messages: List[Message]       # Variable (conversation history)
+    context: Dict                 # 500-1000 bytes (session context)
+    created_at: str               # ~30 bytes (ISO timestamp)
+    last_activity: str            # ~30 bytes (ISO timestamp)
 ```
 
 #### Size Estimation per Chat Session:
@@ -262,15 +266,23 @@ maxclients 1000
 
 ### 4. **Key Expiration Strategy**
 
-All keys should have appropriate TTL:
-- Interview sessions: 24 hours
-- Chat sessions: 24 hours
-- Celery results: 1-24 hours (configurable)
+All keys should have appropriate TTL to prevent unbounded growth.
 
 This is already implemented in the codebase:
 ```python
-await redis_client.set_session(session_id, data, hours=24)
+# From src/core/redis.py
+async def set_session(self, session_id: str, data: dict, hours: int = 24):
+    await self.client.setex(
+        f"interview_session:{session_id}",
+        hours * 3600,
+        json.dumps(data, default=str)
+    )
 ```
+
+Recommended TTLs:
+- Interview sessions: 24 hours (default)
+- Chat sessions: 24 hours (default)
+- Celery results: 1-24 hours (configurable)
 
 ### 5. **Monitoring Recommendations**
 
@@ -357,8 +369,7 @@ The number of database rows (10 per table) has **minimal impact** on Redis stora
 
 ## Document Metadata
 
-- **Analysis Date:** 2025-12-06
+- **Analysis Date:** December 2025
 - **Application:** WorkZone HR Management Platform
 - **Version:** v0.1.0
-- **Analyst:** GitHub Copilot
 - **Scope:** 10 tenants, 10 rows per table scenario
