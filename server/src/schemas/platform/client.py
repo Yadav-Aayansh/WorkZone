@@ -1,0 +1,45 @@
+from pydantic import BaseModel, EmailStr, Field
+
+class ClientSignupRequest(BaseModel):
+    name: str = Field(..., min_length=3, max_length=100)
+    email: EmailStr = Field(..., max_length=255)
+    password: str = Field(..., min_length=8)
+
+class ClientSignupResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    account_status: str
+    subscription_status: str
+
+class ClientLoginRequest(BaseModel):
+    email: EmailStr = Field(..., max_length=255)
+    password: str = Field(..., min_length=8)
+
+class ClientResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    account_status: str
+    subscription_status: str
+    domain: str | None = None
+
+class ClientOnboarding(BaseModel):
+    tenant_id: str = Field(..., max_length=50)
+    brand_name: str = Field(..., max_length=100)
+
+class TenantAvailabilityRequest(BaseModel):
+    tenant_id: str = Field(..., max_length=50)
+
+class ClientRefreshRequest(BaseModel):
+    refresh_token: str
+
+class ClientForgotPasswordRequest(BaseModel):
+    email: EmailStr = Field(..., max_length=255)
+
+class ClientResetPasswordRequest(BaseModel):
+    token: str
+    password: str = Field(..., min_length=8)
+
+class ClientMembers(BaseModel):
+    name: str
+    email: EmailStr
+    role: str

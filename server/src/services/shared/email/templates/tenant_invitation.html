@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width"/>
+<title>{{ company }} Workspace Invitation</title>
+<style>
+  :root{
+    --page-bg:#f3e8fb;
+    --card-bg:#fff;
+    --accent:#8b5cf6;
+    --text:#0f172a;
+    --muted:#6b7280;
+  }
+  body{
+    margin:0;
+    background:var(--page-bg);
+    font-family:Arial,Helvetica,sans-serif;
+    color:var(--text);
+  }
+  .wrap{
+    max-width:640px;
+    margin:28px auto;
+    padding:16px;
+  }
+  .card{
+    background:var(--card-bg);
+    border-radius:12px;
+    padding:20px;
+    box-shadow:0 6px 22px rgba(15,23,42,0.06);
+  }
+  .header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .logo{
+    width:40px;
+    height:40px;
+    object-fit:contain;
+    border-radius:6px;
+  }
+  .brand{
+    font-weight:700;
+    color:var(--text);
+    font-size:18px;
+  }
+  .head{
+    font-weight:700;
+    color:var(--text);
+    font-size:16px;
+    margin:8px 0;
+  }
+  .body{
+    color:var(--text);
+    line-height:1.6;
+  }
+  .cta{
+    display:inline-block;
+    background:var(--accent);
+    color:#fff;
+    padding:12px 18px;
+    border-radius:8px;
+    text-decoration:none;
+    font-weight:600;
+    margin-top:12px;
+  }
+  .muted{
+    color:var(--muted);
+    font-size:13px;
+  }
+  .footer{
+    text-align:center;
+    margin-top:14px;
+    color:var(--muted);
+    font-size:13px;
+  }
+  a{
+    color:var(--accent);
+  }
+  @media(max-width:480px){
+    .header{gap:8px}
+    .brand{font-size:16px}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" role="article" aria-label="Invitation">
+
+      <!-- Company logo + name -->
+      <div class="header">
+        <img src="{{company_logo_url}}" alt="{{company}} logo" class="logo" />
+        <div class="brand">{{company}}</div>
+      </div>
+
+      <div class="head">You are invited to join <strong>{{company}}</strong> on their company workspace</div>
+
+      <div class="body">
+        <p>Hi {{name}},</p>
+
+        <p>You have been invited to join <strong>{{company}}</strong> and access their company workspace.</p>
+
+        <p style="text-align:center">
+          <a class="cta" href="{{invite_link}}" target="_blank" rel="noopener">Accept Invitation</a>
+        </p>
+
+        <p class="muted">If the button does not work, copy and paste this link into your browser:</p>
+        <p class="muted"><a href="{{invite_link}}">{{invite_link}}</a></p>
+
+        <p style="margin-top:12px">Role: <strong>{{role}}</strong></p>
+
+        <p style="margin-top:12px">Thanks,<br/>The {{company}} Team</p>
+      </div>
+
+      <div class="footer">© {{year}} {{company}}</div>
+    </div>
+  </div>
+</body>
+</html>

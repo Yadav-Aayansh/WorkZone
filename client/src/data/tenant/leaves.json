@@ -1,0 +1,103 @@
+{
+  "balance": {
+    "casual": {
+      "total": 12,
+      "available": 8,
+      "used": 4
+    },
+    "sick": {
+      "total": 10,
+      "available": 9,
+      "used": 1
+    },
+    "earned": {
+      "total": 15,
+      "available": 15,
+      "used": 0
+    }
+  },
+  "applications": [
+    {
+      "id": "leave-001",
+      "type": "casual",
+      "fromDate": "2025-11-15",
+      "toDate": "2025-11-16",
+      "days": 2,
+      "reason": "Family function",
+      "status": "pending",
+      "appliedDate": "2025-11-02T10:30:00Z",
+      "approver": "Rajesh Kumar",
+      "approverId": "emp-050",
+      "approvedDate": null,
+      "remarks": null
+    },
+    {
+      "id": "leave-002",
+      "type": "sick",
+      "fromDate": "2025-10-18",
+      "toDate": "2025-10-18",
+      "days": 1,
+      "reason": "Fever and cold",
+      "status": "approved",
+      "appliedDate": "2025-10-17T09:15:00Z",
+      "approver": "Rajesh Kumar",
+      "approverId": "emp-050",
+      "approvedDate": "2025-10-17T11:30:00Z",
+      "remarks": "Get well soon"
+    },
+    {
+      "id": "leave-003",
+      "type": "casual",
+      "fromDate": "2025-10-21",
+      "toDate": "2025-10-21",
+      "days": 1,
+      "reason": "Personal work",
+      "status": "approved",
+      "appliedDate": "2025-10-18T14:20:00Z",
+      "approver": "Rajesh Kumar",
+      "approverId": "emp-050",
+      "approvedDate": "2025-10-18T15:45:00Z",
+      "remarks": "Approved"
+    },
+    {
+      "id": "leave-004",
+      "type": "casual",
+      "fromDate": "2025-09-25",
+      "toDate": "2025-09-27",
+      "days": 3,
+      "reason": "Vacation trip",
+      "status": "approved",
+      "appliedDate": "2025-09-15T10:00:00Z",
+      "approver": "Rajesh Kumar",
+      "approverId": "emp-050",
+      "approvedDate": "2025-09-15T14:20:00Z",
+      "remarks": "Approved"
+    },
+    {
+      "id": "leave-005",
+      "type": "casual",
+      "fromDate": "2025-08-10",
+      "toDate": "2025-08-11",
+      "days": 2,
+      "reason": "House relocation",
+      "status": "rejected",
+      "appliedDate": "2025-08-08T09:30:00Z",
+      "approver": "Rajesh Kumar",
+      "approverId": "emp-050",
+      "approvedDate": "2025-08-08T16:00:00Z",
+      "remarks": "Too many team members on leave during this period"
+    }
+  ],
+  "upcomingLeaves": [
+    {
+      "date": "2025-11-15",
+      "type": "casual",
+      "status": "pending"
+    },
+    {
+      "date": "2025-11-16",
+      "type": "casual",
+      "status": "pending"
+    }
+  ]
+}

@@ -1,0 +1,258 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
+    --color-ring: var(--ring);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-destructive: var(--destructive);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ======================
+   🌞 LIGHT THEME (Default)
+   ====================== */
+:root {
+    --radius: 0.625rem;
+    --background: oklch(95.139% 0.02773 301.648); /* soft lavender white */
+    --foreground: oklch(0.2 0.03 275); /* dark purple text */
+
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.22 0.03 275);
+
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.22 0.03 275);
+
+    --primary: oklch(0.55 0.25 290); /* rich mid purple */
+    --primary-foreground: oklch(0.98 0.02 285);
+
+    --secondary: oklch(0.92 0.05 280); /* light lavender gray */
+    --secondary-foreground: oklch(0.25 0.04 275);
+
+    --accent: oklch(0.7 0.2 310); /* violet-blue glow */
+    --accent-foreground: oklch(0.98 0.02 285);
+
+    --muted: oklch(0.95 0.04 285);
+    --muted-foreground: oklch(0.5 0.05 280);
+
+    --destructive: oklch(0.63 0.23 30);
+    --border: oklch(0.92 0.04 285);
+    --input: oklch(0.92 0.04 285);
+    --ring: oklch(0.6 0.25 290);
+
+    --sidebar: oklch(0.98 0.02 285);
+    --sidebar-foreground: oklch(0.2 0.03 275);
+    --sidebar-primary: oklch(0.55 0.25 290);
+    --sidebar-primary-foreground: oklch(0.98 0.02 285);
+    --sidebar-accent: oklch(0.7 0.2 310);
+    --sidebar-accent-foreground: oklch(0.98 0.02 285);
+    --sidebar-border: oklch(0.9 0.03 285);
+    --sidebar-ring: oklch(0.55 0.25 290);
+
+    /* ========== EXTENDED COLORS FOR NEW UI ========== */
+    /* Dashboard Gradients */
+    --gradient-purple-light: oklch(0.95 0.05 290);
+    --gradient-purple-dark: oklch(0.90 0.08 285);
+    --gradient-blue-light: oklch(0.95 0.05 240);
+    --gradient-blue-dark: oklch(0.90 0.08 235);
+    --gradient-pink-light: oklch(0.95 0.05 330);
+    --gradient-pink-dark: oklch(0.90 0.08 325);
+    --gradient-green-light: oklch(0.95 0.05 150);
+    --gradient-green-dark: oklch(0.90 0.08 145);
+    --gradient-orange-light: oklch(0.95 0.05 60);
+    --gradient-orange-dark: oklch(0.90 0.08 55);
+    
+    /* Chart Colors */
+    --chart-purple: oklch(0.55 0.23 290);
+    --chart-blue: oklch(0.6 0.18 235);
+    --chart-green: oklch(0.65 0.17 145);
+    --chart-yellow: oklch(0.75 0.15 85);
+    --chart-red: oklch(0.6 0.22 25);
+    --chart-orange: oklch(0.7 0.18 55);
+    
+    /* Status Colors */
+    --status-pending: oklch(0.75 0.15 85);
+    --status-pending-bg: oklch(0.95 0.05 85);
+    --status-approved: oklch(0.65 0.17 145);
+    --status-approved-bg: oklch(0.95 0.05 145);
+    --status-rejected: oklch(0.6 0.22 25);
+    --status-rejected-bg: oklch(0.95 0.05 25);
+    
+    /* Sidebar Dimensions */
+    --sidebar-width-collapsed: 64px;
+    --sidebar-width-expanded: 240px;
+    
+    /* Glass Effect */
+    --glass-background: oklch(1 0 0 / 0.6);
+    --glass-border: oklch(0.92 0.02 285 / 0.5);
+    
+    /* Shadows */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+}
+
+/* ======================
+   🌚 DARK THEME
+   ====================== */
+.dark {
+    --background: oklch(0.171 0.045 293.729); /* near-black purple */
+    --foreground: oklch(0.97 0.02 285);
+
+    --card: oklch(0.2 0.05 275);
+    --card-foreground: oklch(0.97 0.02 285);
+
+    --popover: oklch(0.2 0.05 275);
+    --popover-foreground: oklch(0.97 0.02 285);
+
+    --primary: oklch(0.75 0.22 300); /* electric violet */
+    --primary-foreground: oklch(0.15 0.03 270);
+
+    --secondary: oklch(0.3 0.05 280);
+    --secondary-foreground: oklch(0.95 0.02 285);
+
+    --accent: oklch(0.65 0.2 310); /* neon purple glow */
+    --accent-foreground: oklch(0.98 0.02 285);
+
+    --muted: oklch(0.25 0.04 275);
+    --muted-foreground: oklch(0.7 0.05 285);
+
+    --destructive: oklch(0.7 0.22 25);
+    --border: oklch(0.3 0.04 285);
+    --input: oklch(0.3 0.04 285);
+    --ring: oklch(0.75 0.22 300);
+
+    --sidebar: oklch(0.2 0.05 275);
+    --sidebar-foreground: oklch(0.97 0.02 285);
+    --sidebar-primary: oklch(0.75 0.22 300);
+    --sidebar-primary-foreground: oklch(0.1 0.02 275);
+    --sidebar-accent: oklch(0.4 0.1 295);
+    --sidebar-accent-foreground: oklch(0.98 0.02 285);
+    --sidebar-border: oklch(0.3 0.04 285);
+    --sidebar-ring: oklch(0.75 0.22 300);
+
+    /* ========== EXTENDED COLORS FOR NEW UI (DARK) ========== */
+    /* Dashboard Gradients */
+    --gradient-purple-light: oklch(0.25 0.08 290);
+    --gradient-purple-dark: oklch(0.20 0.10 285);
+    --gradient-blue-light: oklch(0.25 0.08 240);
+    --gradient-blue-dark: oklch(0.20 0.10 235);
+    --gradient-pink-light: oklch(0.25 0.08 330);
+    --gradient-pink-dark: oklch(0.20 0.10 325);
+    --gradient-green-light: oklch(0.25 0.08 150);
+    --gradient-green-dark: oklch(0.20 0.10 145);
+    --gradient-orange-light: oklch(0.25 0.08 60);
+    --gradient-orange-dark: oklch(0.20 0.10 55);
+    
+    /* Chart Colors (brighter for dark mode) */
+    --chart-purple: oklch(0.65 0.23 290);
+    --chart-blue: oklch(0.7 0.18 235);
+    --chart-green: oklch(0.75 0.17 145);
+    --chart-yellow: oklch(0.8 0.15 85);
+    --chart-red: oklch(0.7 0.22 25);
+    --chart-orange: oklch(0.75 0.18 55);
+    
+    /* Status Colors */
+    --status-pending: oklch(0.8 0.15 85);
+    --status-pending-bg: oklch(0.25 0.08 85);
+    --status-approved: oklch(0.75 0.17 145);
+    --status-approved-bg: oklch(0.25 0.08 145);
+    --status-rejected: oklch(0.7 0.22 25);
+    --status-rejected-bg: oklch(0.25 0.08 25);
+    
+    /* Glass Effect */
+    --glass-background: oklch(0.2 0.04 275 / 0.6);
+    --glass-border: oklch(0.3 0.04 275 / 0.5);
+    
+    /* Shadows (deeper) */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.35);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+}
+
+/* ======================
+   Base layer setup
+   ====================== */
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    body {
+        @apply bg-background text-foreground antialiased;
+    }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+}
+
+/* ======================
+   AI Features Animations
+   ====================== */
+@keyframes gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+/* ======================
+   Logo Cloud Animation
+   ====================== */
+@keyframes logo-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-100% - 3rem));
+  }
+}
+
+.animate-logo-scroll {
+  animation: logo-scroll 25s linear infinite;
+}
