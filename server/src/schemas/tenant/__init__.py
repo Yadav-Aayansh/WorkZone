@@ -24,4 +24,4 @@ from .leave import ApplyLeaveRequest, LeaveRequestResponse, RejectLeaveRequest
 
 from .learning_path import GeneratePathRequest
 
-from .query import CreateQueryRequest, RespondQueryRequest, QueryResponse
+from .query import CreateQueryRequest, RespondQueryRequest, QueryResponse, QueryResolutionResponse

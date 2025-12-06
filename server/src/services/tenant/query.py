@@ -74,8 +74,11 @@ class QueryService:
 
         updated_query = await self.query_repo.update_response(
             query_id=query_id, 
-            response_text=response_text, 
-            recruiter_id=query.recruiter_id
+            response_text=response_text,
         )
-            
-        return updated_query
+
+        return {
+            "message": "Response submitted successfully",
+            "query_id": updated_query.id,
+            "status": updated_query.status
+        }

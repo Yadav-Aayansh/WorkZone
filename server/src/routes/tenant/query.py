@@ -11,7 +11,7 @@ from src.exceptions.tenant import (
     QueryUnassignedError,
     ValidationError
 )
-from src.schemas.tenant import CreateQueryRequest, QueryResponse, RespondQueryRequest
+from src.schemas.tenant import CreateQueryRequest, QueryResponse, RespondQueryRequest, QueryResolutionResponse
 
 query_router = APIRouter(prefix="/queries", tags=["Tenant Queries"])
 
@@ -33,7 +33,7 @@ async def create_query(
         raise HTTPException(status_code=500, detail=f"Internal Error: {str(e)}")
 
 
-@query_router.post("/{query_id}/response", status_code=status.HTTP_200_OK)
+@query_router.post("/{query_id}/response", response_model=QueryResolutionResponse, status_code=status.HTTP_200_OK)
 async def respond_to_query(
     query_id: UUID,
     request: RespondQueryRequest,
@@ -42,8 +42,7 @@ async def respond_to_query(
     current_user: Dict[str, Any] = Depends(get_current_user(use_tenant=True, roles=[Role.RECRUITER]))
 ):
     try:
-        updated_query = await service.respond_to_query(query_id, request.response_text)
-        return {"message": "Response submitted successfully", "query_id": updated_query.id, "status": updated_query.status}
+        return await service.respond_to_query(query_id, request.response_text)
     
     except QueryNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))

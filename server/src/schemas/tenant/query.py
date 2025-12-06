@@ -14,3 +14,8 @@ class QueryResponse(BaseModel):
     urgency: str
     status: str
     ai_summary: Optional[str] = None
+
+class QueryResolutionResponse(BaseModel):
+    message: str
+    query_id: UUID
+    status: str
