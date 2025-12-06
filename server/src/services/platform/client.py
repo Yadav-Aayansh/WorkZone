@@ -136,7 +136,7 @@ class ClientService:
             "aud": Config.DOMAIN_NAME
         })
 
-        return {**tokens, "account_status": account_status, "subscription_status": subscription_status}
+        return {**tokens, "account_status": account_status, "subscription_status": subscription_status, "domain": client.domain}
     
     async def refresh(self, data: ClientRefreshRequest) -> dict:
         current_user = decode_token(data.refresh_token, Config.DOMAIN_NAME, "refresh")
