@@ -12,7 +12,7 @@ from .application import (
     ApplicationResponse, 
 )
 
-from .employee import EmployeeProfileResponse, EmployeeInfo, HelpdeskQuery
+from .employee import EmployeeProfileResponse, EmployeeInfo, HelpdeskQuery, EmployeeTeamInfo, EmployeeTeamResponse
 
 from .applicant import ApplicantProfileResponse
 

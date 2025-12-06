@@ -10,6 +10,7 @@ from src.exceptions.platform import (
     DomainAlreadyExistsError, DomainNotVerifiedError, UnauthorizedAccessError
 )
 from src.exceptions.tenant import UserAlreadyExistsError
+from src.exceptions.base import FileSizeExceededError, FileTypeNotAllowedError
 
 client_router = APIRouter(tags=["Client"])
 
@@ -28,6 +29,10 @@ async def onboarding(
         return response
     except TenantAlreadyExistsError as e:
         raise HTTPException(status_code=409, detail=str(e))
+    except FileTypeNotAllowedError as e:
+        raise HTTPException(status_code=415, detail=str(e))
+    except FileSizeExceededError as e:
+        raise HTTPException(status_code=413, detail=str(e))
 
 
 @client_router.get(path="/tenant-availability")
@@ -115,3 +120,15 @@ async def caddy_ask(
         pass
     
     return Response(status_code=403)
+
+
+@client_router.get(path="/members")
+async def get_all_members(
+    service: ClientService = Depends(get_client_service),
+    current_user = Depends(get_current_user()),
+):
+    try:
+        id = current_user.get("sub")
+        return await service.get_members(id)
+    except ClientNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))

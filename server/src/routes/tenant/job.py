@@ -14,7 +14,7 @@ from src.genai.schemas.jd_builder_schemas import JDBuilderPrompt
 
 job_router = APIRouter(prefix="/jobs", tags=["Tenant Job"])
 
-@job_router.post(path="/", status_code=201, response_model=JobResponse)
+@job_router.post(path="", status_code=201, response_model=JobResponse)
 async def create_job(
     data: CreateJobRequest,
     service: JobService = Depends(get_job_service),
@@ -27,7 +27,7 @@ async def create_job(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@job_router.get(path="/", response_model=List[JobResponse])
+@job_router.get(path="", response_model=List[JobResponse])
 async def list_jobs(
     data: ListJobsRequest = Depends(),
     service: JobService = Depends(get_job_service),

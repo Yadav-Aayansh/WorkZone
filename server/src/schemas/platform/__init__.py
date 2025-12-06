@@ -1,5 +1,5 @@
 from .client import (
-ClientSignupRequest, ClientSignupResponse, ClientOnboarding,
+ClientSignupRequest, ClientSignupResponse, ClientOnboarding, ClientMembers,
 ClientLoginRequest, ClientResponse, TenantAvailabilityRequest,
 ClientRefreshRequest, ClientForgotPasswordRequest, ClientResetPasswordRequest
 )

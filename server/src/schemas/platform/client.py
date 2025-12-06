@@ -37,3 +37,8 @@ class ClientForgotPasswordRequest(BaseModel):
 class ClientResetPasswordRequest(BaseModel):
     token: str
     password: str = Field(..., min_length=8)
+
+class ClientMembers(BaseModel):
+    name: str
+    email: EmailStr
+    role: str

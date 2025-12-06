@@ -1,17 +1,22 @@
-from src.repository.tenant import UserRepository, EmployeeRepository
+from src.repository.tenant import UserRepository, EmployeeRepository, ManagerRepository
 from src.exceptions.tenant import UserNotFoundError, EmployeeNotFoundError
 from src.genai.schemas import ChatRequest, ChatResponse
-from src.schemas.tenant import EmployeeProfileResponse, EmployeeInfo
+from src.schemas.tenant import (
+    EmployeeProfileResponse, EmployeeInfo, EmployeeTeamResponse, EmployeeTeamInfo
+)
 from src.genai.hr_policy import chat_with_context
 from src.core.context import tenant_context
 from typing import Optional
 from src.utils.datetime import get_indian_year
 from src.core.storage import storage_client
+from src.core.logger import logger
+from fastapi import UploadFile
 
 class EmployeeService:
-    def __init__(self, user_repo: UserRepository, employee_repo: EmployeeRepository):
+    def __init__(self, user_repo: UserRepository, employee_repo: EmployeeRepository, manager_repo: ManagerRepository):
         self.user_repo = user_repo
         self.employee_repo = employee_repo
+        self.manager_repo = manager_repo
 
     async def profile(self, user_id: str):
         user = await self.user_repo.get_user_by_id(user_id)
@@ -31,6 +36,27 @@ class EmployeeService:
             title=employee.title,
             resume=resume_url
         )
+    
+
+    async def update_profile(self, user_id: str, resume: UploadFile):
+        user = await self.user_repo.get_user_by_id(user_id)
+        if not user:
+            raise UserNotFoundError(f"User does not exist!")
+        
+        employee = await self.employee_repo.get_employee_by_user_id(user_id)
+        if not employee:
+            raise EmployeeNotFoundError(f"Employee does not exist!")
+        
+        logger.info(resume)
+        if resume:
+            tenant_id = tenant_context.get()
+            storage_client.validate_file(resume, [".pdf"])
+            blob_name, url = storage_client.upload(resume, f"tenant/{tenant_id}/resume")
+
+            employee = await self.employee_repo.update_employee(employee.id, resume=blob_name)
+            logger.info(employee)
+        return {"message": "Profile updated successfully!"}
+        
     
     async def helpdesk(self, user_id: str, query: str, chat_id: Optional[str]) -> ChatResponse:
         user = await self.user_repo.get_user_by_id(user_id)
@@ -58,4 +84,20 @@ class EmployeeService:
 
         return await chat_with_context(request)
     
+
+    async def get_team(self, user_id: str):
+        user = await self.user_repo.get_user_by_id(user_id)
+        if not user:
+            raise UserNotFoundError(f"User does not exist!")
+        
+        employee = await self.employee_repo.get_employee_by_user_id(user_id)
+        if not employee:
+            raise EmployeeNotFoundError(f"Employee does not exist!")
+        
+        employees = await self.employee_repo.get_all_employee_by_manager_id(employee.manager_id)
+        manager = await self.manager_repo.get_manager_by_id(employee.manager_id)
+        logger.info(employees)
+        logger.info(manager)
+
+        return EmployeeTeamResponse(manager=manager.user.name, employees=[EmployeeTeamInfo(name=e.user.name, title=e.title) for e in employees])
         

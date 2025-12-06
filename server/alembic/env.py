@@ -44,7 +44,7 @@ def run_migrations_online() -> None:
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
-    
+
     with connectable.connect() as connection:
         if not is_tenant:
             # PUBLIC migrations
@@ -64,17 +64,19 @@ def run_migrations_online() -> None:
                 "SELECT tenant_id FROM public.clients WHERE tenant_id IS NOT NULL"
             ))
             tenants = [row[0] for row in result]
-            
-            # DON'T do this table creation during stamp - remove it:
-            # raw_conn = connection.connection.dbapi_connection
-            # cursor = raw_conn.cursor()
-            # for tenant_id in tenants:
-            #     cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{tenant_id}"')
-            #     cursor.execute(f"""CREATE TABLE IF NOT EXISTS...""")
-            
+
             for tenant_id in tenants:
                 print(f"Migrating tenant: {tenant_id}")
                 connection.execute(text(f'SET search_path TO "{tenant_id}"'))
+                
+                # Create alembic_version table if it doesn't exist
+                connection.execute(text(f"""
+                    CREATE TABLE IF NOT EXISTS "{tenant_id}".alembic_version (
+                        version_num VARCHAR(32) NOT NULL,
+                        CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
+                    )
+                """))
+                connection.commit()  # Commit the table creation
                 
                 context.configure(
                     connection=connection,
@@ -82,13 +84,13 @@ def run_migrations_online() -> None:
                     version_table=version_table,
                     version_table_schema=tenant_id,
                     include_schemas=False,
+                    include_object=lambda obj, name, type_, *args: name != 'alembic_version'
                 )
-                
                 with context.begin_transaction():
                     context.run_migrations()
-                    
-                print(f"✓ Migrated {tenant_id}")
                 
+                print(f"✓ Migrated {tenant_id}")
+
 if context.is_offline_mode():
     run_migrations_offline()
 else:

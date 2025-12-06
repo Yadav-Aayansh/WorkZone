@@ -3,7 +3,7 @@ from src.repository.platform import ClientRepository
 from src.schemas.platform import (
     ClientSignupRequest, ClientOnboarding, ClientLoginRequest,
     TenantAvailabilityRequest, ClientRefreshRequest, ClientForgotPasswordRequest,
-    ClientResetPasswordRequest
+    ClientResetPasswordRequest, ClientMembers
 )
 from src.exceptions.platform import (
     ClientAlreadyExistsError, TenantAlreadyExistsError, ClientNotFoundError,
@@ -25,6 +25,9 @@ from src.tasks import (
     unlink_domain_task, send_platform_reset_password_email_task
 )
 from src.core.logger import logger
+from src.core.database import get_schema
+from src.repository.tenant import UserRepository
+
 
 class ClientService:
     def __init__(self, client_repo: ClientRepository):
@@ -251,10 +254,25 @@ class ClientService:
         unlink_domain_task.delay(domain, f"{client.tenant_id}.{Config.DOMAIN_NAME}")
         return {"message": "Domain deleted successfully!"}
     
+
     async def is_domain_linked(self, domain: str):
         if not is_valid_domain(domain):
             raise InvalidDomainError(f"Invalid domain: {domain}")
         return await self.client_repo.is_domain_exist(domain)
+    
+
+    async def get_members(self, id: UUID) -> list[ClientMembers]:
+        client = await self.client_repo.get_client_by_id(id)
+        if not client:
+            raise ClientNotFoundError(f"Client {id} does not exist!")
+        
+
+        async for session in get_schema(client.tenant_id):
+            user_repo = UserRepository(session)
+            all_members = await user_repo.get_all_users()
+
+        return [ClientMembers(name=m.name, email=m.email, role=m.role.value) for m in all_members]
+
 
             
 
