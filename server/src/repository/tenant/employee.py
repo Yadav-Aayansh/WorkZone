@@ -19,6 +19,20 @@ class EmployeeRepository:
         await self.db.flush()
         return new_employee
     
+    async def update_employee(self, id: str, **data):
+        result = await self.db.execute(select(Employee).where(Employee.id==id))
+        employee = result.scalar_one_or_none()
+
+        if not employee:
+            return None
+
+        for key, value in data.items():
+                setattr(employee, key, value)
+
+        await self.db.commit()
+        await self.db.refresh(employee)
+        return employee
+    
     async def get_employee_by_user_id(self, user_id: str, full_info_year: Optional[int] = None):
         query = select(Employee).where(Employee.user_id == user_id)
         if full_info_year:
