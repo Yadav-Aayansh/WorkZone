@@ -20,6 +20,7 @@ class ClientResponse(BaseModel):
     refresh_token: str
     account_status: str
     subscription_status: str
+    domain: str | None = None
 
 class ClientOnboarding(BaseModel):
     tenant_id: str = Field(..., max_length=50)

@@ -175,3 +175,9 @@ def get_learning_path_service(db: AsyncSession = Depends(get_tenant_db)):
     employee_repo = EmployeeRepository(db)
     learning_path_repo = LearningPathRepository(db)
     return LearningPathService(employee_repo, learning_path_repo)
+
+def get_query_service(db: AsyncSession = Depends(get_tenant_db)):
+    query_repo = QueryRepository(db)
+    employee_repo = EmployeeRepository(db)
+    recruiter_repo = RecruiterRepository(db)
+    return QueryService(query_repo, employee_repo, recruiter_repo)
