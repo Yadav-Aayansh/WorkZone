@@ -19,14 +19,12 @@ class QueryService:
         if not employee:
             raise EmployeeNotFoundError("Employee profile not found for this user.")
         
-        recruiters = await self.recruiter_repo.get_all_recruiters()
-        if not recruiters:
+        recruiter_id = await self.recruiter_repo.get_random_recruiter()
+        if not recruiter_id:
             # Fallback if no recruiters exist in the system yet
-            # You might want to log a warning or raise an error depending on business rules
             assigned_recruiter_id = None
         else:
-            assigned_recruiter = random.choice(recruiters)
-            assigned_recruiter_id = assigned_recruiter.id
+            assigned_recruiter_id = recruiter_id
 
         try:
             classification = await classify_query(query_text)
