@@ -24,7 +24,7 @@ def link_domain_and_redirect_task(self, domain: str, tenant_subdomain: str):
         "match": [{"host": [tenant_subdomain]}],
         "handle": [{
             "handler": "static_response",
-            "headers": {"Location": [f"https://{domain}{{uri}}"]},
+            "headers": {"Location": [f"https://{domain}{{http.request.uri}}"]},
             "status_code": 308
         }],
         "terminal": True
