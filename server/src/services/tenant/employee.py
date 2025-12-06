@@ -10,6 +10,7 @@ from typing import Optional
 from src.utils.datetime import get_indian_year
 from src.core.storage import storage_client
 from src.core.logger import logger
+from fastapi import UploadFile
 
 class EmployeeService:
     def __init__(self, user_repo: UserRepository, employee_repo: EmployeeRepository, manager_repo: ManagerRepository):
@@ -35,6 +36,23 @@ class EmployeeService:
             title=employee.title,
             resume=resume_url
         )
+    
+
+    async def update_profile(self, user_id: str, resume: UploadFile):
+        user = await self.user_repo.get_user_by_id(user_id)
+        if not user:
+            raise UserNotFoundError(f"User does not exist!")
+        
+        employee = await self.employee_repo.get_employee_by_user_id(user_id)
+        if not employee:
+            raise EmployeeNotFoundError(f"Employee does not exist!")
+        
+        if resume:
+            tenant_id = tenant_context.get()
+            storage_client.validate_file(resume, [".pdf"])
+            blob_name, url = storage_client.upload(resume, f"tenant/{tenant_id}/resume")
+        
+
     
     async def helpdesk(self, user_id: str, query: str, chat_id: Optional[str]) -> ChatResponse:
         user = await self.user_repo.get_user_by_id(user_id)
