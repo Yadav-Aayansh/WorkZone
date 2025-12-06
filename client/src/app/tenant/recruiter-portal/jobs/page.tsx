@@ -39,6 +39,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface JobWithStats extends JobResponse {
   applicationsCount?: number;
@@ -56,6 +65,9 @@ function JobsManagementContent() {
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [closeJobId, setCloseJobId] = useState<string | null>(null);
+  const [topXCandidates, setTopXCandidates] = useState<string>("");
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     loadJobs();
@@ -163,15 +175,33 @@ function JobsManagementContent() {
   };
 
   const handleCloseJob = async (jobId: string) => {
+    setCloseJobId(jobId);
+  };
+
+  const confirmCloseJob = async () => {
+    if (!closeJobId) return;
+    setIsClosing(true);
     try {
-      await tenantJobAPI.closeJob(jobId);
-      setJobs((prev) =>
-        prev.map((j) => (j.id === jobId ? { ...j, is_open: false } : j))
+      const topX = topXCandidates ? parseInt(topXCandidates) : undefined;
+      await tenantJobAPI.closeJob(
+        closeJobId,
+        topX ? { top_x: topX } : undefined
       );
-      toast.success("Job closed successfully");
+      setJobs((prev) =>
+        prev.map((j) => (j.id === closeJobId ? { ...j, is_open: false } : j))
+      );
+      toast.success(
+        `Job closed successfully!${
+          topX ? ` Top ${topX} candidates will be shortlisted.` : ""
+        }`
+      );
+      setCloseJobId(null);
+      setTopXCandidates("");
     } catch (err: any) {
       console.error("Failed to close job:", err);
       toast.error(err.message || "Failed to close job");
+    } finally {
+      setIsClosing(false);
     }
   };
 
@@ -443,6 +473,63 @@ function JobsManagementContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Close Job Dialog */}
+      <Dialog
+        open={closeJobId !== null}
+        onOpenChange={(open) => !open && setCloseJobId(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Close Job Posting</DialogTitle>
+            <DialogDescription>
+              Closing this job will stop accepting new applications. You can
+              optionally specify how many top candidates to shortlist based on
+              AI resume scoring.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="topX">
+                Number of candidates to shortlist (optional)
+              </Label>
+              <Input
+                id="topX"
+                type="number"
+                min="1"
+                placeholder="Enter a number"
+                value={topXCandidates}
+                onChange={(e) => setTopXCandidates(e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground">
+                Leave empty to close without auto-shortlisting.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCloseJobId(null);
+                setTopXCandidates("");
+              }}
+              disabled={isClosing}
+            >
+              Cancel
+            </Button>
+            <Button onClick={confirmCloseJob} disabled={isClosing}>
+              {isClosing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Closing...
+                </>
+              ) : (
+                "Close Job"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ModernRecruiterLayout>
   );
 }

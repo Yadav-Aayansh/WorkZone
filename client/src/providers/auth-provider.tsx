@@ -16,6 +16,7 @@ export interface AuthState {
   refreshToken: string | null;
   accountStatus: string | null;
   subscriptionStatus: string | null;
+  customDomain: string | null;
   isLoading: boolean;
   isInitialized: boolean;
 }
@@ -26,6 +27,7 @@ interface AuthContextType extends AuthState {
     refresh_token: string;
     account_status: string;
     subscription_status: string;
+    domain?: string | null;
   }) => Promise<void>;
   logout: () => Promise<void>;
   updateStatus: (accountStatus: string, subscriptionStatus: string) => void;
@@ -42,6 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshToken: null,
     accountStatus: null,
     subscriptionStatus: null,
+    customDomain: null,
     isLoading: true,
     isInitialized: false,
   });
@@ -68,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               refreshToken: null,
               accountStatus: null,
               subscriptionStatus: null,
+              customDomain: null,
               isLoading: false,
               isInitialized: true,
             });
@@ -77,12 +81,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // For now, just trust the stored tokens since refresh endpoint doesn't exist yet
         if (mounted) {
+          const customDomain = localStorage.getItem("custom_domain");
           setAuthState({
             isAuthenticated: true,
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken,
             accountStatus,
             subscriptionStatus,
+            customDomain,
             isLoading: false,
             isInitialized: true,
           });
@@ -113,12 +119,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refresh_token: string;
       account_status: string;
       subscription_status: string;
+      domain?: string | null;
     }) => {
       // Store tokens
       localStorage.setItem("access_token", tokens.access_token);
       localStorage.setItem("refresh_token", tokens.refresh_token);
       localStorage.setItem("account_status", tokens.account_status);
       localStorage.setItem("subscription_status", tokens.subscription_status);
+      if (tokens.domain) {
+        localStorage.setItem("custom_domain", tokens.domain);
+      } else {
+        localStorage.removeItem("custom_domain");
+      }
 
       setAuthState({
         isAuthenticated: true,
@@ -126,6 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshToken: tokens.refresh_token,
         accountStatus: tokens.account_status,
         subscriptionStatus: tokens.subscription_status,
+        customDomain: tokens.domain || null,
         isLoading: false,
         isInitialized: true,
       });
@@ -140,12 +153,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Logout error:", error);
     }
 
+    localStorage.removeItem("custom_domain");
+
     setAuthState({
       isAuthenticated: false,
       accessToken: null,
       refreshToken: null,
       accountStatus: null,
       subscriptionStatus: null,
+      customDomain: null,
       isLoading: false,
       isInitialized: true,
     });

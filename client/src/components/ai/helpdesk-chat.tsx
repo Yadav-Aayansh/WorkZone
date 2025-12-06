@@ -237,9 +237,9 @@ export function HelpdeskChat() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-gradient-to-b from-background to-background/95">
       {/* Floating Header */}
-      <div className="sticky top-0 z-10 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-b border-gray-200/50 dark:border-gray-800/50">
+      <div className="shrink-0 backdrop-blur-xl bg-background/70 border-b border-border/50">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -281,7 +281,7 @@ export function HelpdeskChat() {
       </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         <div className="max-w-4xl mx-auto px-4 py-6">
           {/* Welcome State */}
           {messages.length === 0 && (
@@ -289,7 +289,7 @@ export function HelpdeskChat() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
-              className="flex flex-col items-center justify-center min-h-[60vh]"
+              className="flex flex-col items-center justify-center py-12"
             >
               {/* Animated Logo */}
               <motion.div
@@ -365,17 +365,6 @@ export function HelpdeskChat() {
                     </motion.button>
                   );
                 })}
-              </motion.div>
-
-              {/* Tip */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.9 }}
-                className="flex items-center gap-2 mt-10 text-sm text-gray-400 dark:text-gray-500"
-              >
-                <Lightbulb className="w-4 h-4" />
-                <span>Press Enter to send, Shift+Enter for new line</span>
               </motion.div>
             </motion.div>
           )}
@@ -622,10 +611,10 @@ export function HelpdeskChat() {
       </div>
 
       {/* Fixed Input Bar */}
-      <div className="sticky bottom-0 border-t border-gray-200/50 dark:border-gray-800/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl">
+      <div className="shrink-0 border-t border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <form onSubmit={handleSubmit}>
-            <div className="relative flex items-end gap-2 p-2 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
+            <div className="relative flex items-end gap-2 p-2 rounded-2xl border border-border bg-card shadow-lg focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all">
               <Textarea
                 ref={textareaRef}
                 value={input}
@@ -634,7 +623,7 @@ export function HelpdeskChat() {
                 placeholder="Ask me anything..."
                 disabled={isLoading}
                 rows={1}
-                className="flex-1 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm placeholder:text-gray-400 dark:placeholder:text-gray-500 min-h-[44px] max-h-[200px] py-3 px-2"
+                className="flex-1 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm placeholder:text-muted-foreground min-h-[44px] max-h-[200px] py-3 px-2"
               />
 
               <div className="flex items-center gap-2 pb-1">

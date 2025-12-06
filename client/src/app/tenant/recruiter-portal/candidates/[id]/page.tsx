@@ -1,10 +1,6 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-/* eslint-disable */
-
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { ModernRecruiterLayout } from "@/components/common/layout/ModernRecruiterLayout";
@@ -18,84 +14,111 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft,
-  Mail,
-  Phone,
-  MapPin,
   Briefcase,
   Calendar,
-  GraduationCap,
   FileText,
   CheckCircle,
   XCircle,
   Clock,
-  Star,
-  TrendingUp,
-  TrendingDown,
   Download,
   ExternalLink,
+  Loader2,
+  User,
 } from "lucide-react";
-import candidatesData from "@/data/tenant/candidates.json";
 import { toast } from "sonner";
+import {
+  tenantApplicationAPI,
+  tenantJobAPI,
+  ApplicationResponse,
+  ApplicationStatus,
+  JobResponse,
+} from "@/lib/api";
 
 function CandidateProfileContent() {
   const params = useParams();
   const router = useRouter();
-  const candidateId = params.id as string;
+  const applicationId = params.id as string;
   const [notes, setNotes] = useState("");
+  const [application, setApplication] = useState<ApplicationResponse | null>(
+    null
+  );
+  const [job, setJob] = useState<JobResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const candidate = candidatesData.find((c) => c.id === candidateId);
+  useEffect(() => {
+    loadApplicationData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applicationId]);
 
-  if (!candidate) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Candidate Not Found</h2>
-          <p className="text-muted-foreground mb-4">
-            The candidate you're looking for doesn't exist.
-          </p>
-          <Button
-            onClick={() => router.push("/tenant/recruiter-portal/candidates")}
-          >
-            Back to Candidates
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const loadApplicationData = async () => {
+    setIsLoading(true);
+    try {
+      // Try to find the application in all jobs
+      const jobs = await tenantJobAPI.listJobs();
 
-  const getStatusBadge = (status: string) => {
+      for (const j of jobs) {
+        try {
+          const applications = await tenantApplicationAPI.listJobApplications(
+            j.id
+          );
+          const found = applications.find((a) => a.id === applicationId);
+          if (found) {
+            setApplication(found);
+            setJob(j);
+            break;
+          }
+        } catch (err) {
+          console.error(`Error fetching applications for job ${j.id}:`, err);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load application data:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to load application"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getStatusBadge = (status: ApplicationStatus) => {
     switch (status) {
-      case "shortlisted":
+      case ApplicationStatus.SHORTLISTED:
         return (
           <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
             Shortlisted
           </Badge>
         );
-      case "under_review":
+      case ApplicationStatus.PENDING:
         return (
           <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-            Under Review
+            Pending
           </Badge>
         );
-      case "rejected":
+      case ApplicationStatus.REJECTED:
         return (
           <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
             Rejected
           </Badge>
         );
+      case ApplicationStatus.HIRED:
+        return (
+          <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+            Hired
+          </Badge>
+        );
+      case ApplicationStatus.AI_INTERVIEW_COMPLETED:
+        return (
+          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+            AI Interview Completed
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline">{status.replace(/_/g, " ")}</Badge>;
     }
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600 dark:text-green-400";
-    if (score >= 60) return "text-yellow-600 dark:text-yellow-400";
-    return "text-red-600 dark:text-red-400";
   };
 
   const formatDate = (dateString: string) => {
@@ -107,50 +130,64 @@ function CandidateProfileContent() {
   };
 
   const handleShortlist = () => {
-    toast.success("Candidate shortlisted successfully!");
+    toast.info(
+      "Status changes are managed through the job close process with AI ranking"
+    );
   };
 
   const handleReject = () => {
-    toast.success("Candidate rejected successfully!");
+    toast.info(
+      "Status changes are managed through the job close process with AI ranking"
+    );
   };
 
   const handleScheduleInterview = () => {
-    router.push(`/tenant/recruiter-portal/interviews?candidate=${candidateId}`);
+    router.push(
+      `/tenant/recruiter-portal/interviews?application=${applicationId}`
+    );
   };
 
   const handleDownloadResume = () => {
-    toast.success("Resume download started!");
+    if (application?.resume) {
+      // The resume is stored as a blob path, would need a signed URL from backend
+      toast.info("Resume download requires backend support for signed URLs");
+    }
   };
 
   const handleSaveNotes = () => {
     toast.success("Notes saved successfully!");
   };
 
-  // AI Score breakdown
-  const scoreBreakdown = [
-    {
-      category: "Technical Skills",
-      score: candidate.aiAnalysis.strengths.includes(
-        "Strong technical background"
-      )
-        ? 90
-        : 75,
-    },
-    {
-      category: "Experience Match",
-      score: candidate.aiAnalysis.strengths.includes("experience") ? 85 : 70,
-    },
-    {
-      category: "Education",
-      score: 80,
-    },
-    {
-      category: "Communication",
-      score: candidate.aiAnalysis.weaknesses.includes("experience in")
-        ? 70
-        : 85,
-    },
-  ];
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[600px]">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">
+            Loading application details...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!application) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Application Not Found</h2>
+          <p className="text-muted-foreground mb-4">
+            The application you&apos;re looking for doesn&apos;t exist.
+          </p>
+          <Button
+            onClick={() => router.push("/tenant/recruiter-portal/candidates")}
+          >
+            Back to Candidates
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -168,20 +205,19 @@ function CandidateProfileContent() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex gap-4">
             <div className="h-20 w-20 rounded-full bg-primary/10 text-primary flex items-center justify-center text-2xl font-bold">
-              {candidate.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
+              <User className="h-10 w-10" />
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">
-                {candidate.name}
+                Application #{application.id.slice(0, 8)}
               </h1>
-              <p className="text-muted-foreground mt-1">{candidate.jobTitle}</p>
+              <p className="text-muted-foreground mt-1">
+                {job?.title || "Unknown Position"}
+              </p>
               <div className="flex items-center gap-2 mt-2">
-                {getStatusBadge(candidate.status)}
+                {getStatusBadge(application.status)}
                 <Badge variant="outline">
-                  Applied {formatDate(candidate.appliedDate)}
+                  Applied {formatDate(application.applied_on)}
                 </Badge>
               </div>
             </div>
@@ -203,182 +239,120 @@ function CandidateProfileContent() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left Column - Main Info */}
         <div className="lg:col-span-2 space-y-6">
-          {/* AI Score Card */}
+          {/* Application Details */}
           <Card>
             <CardHeader>
-              <CardTitle>AI Matching Score</CardTitle>
+              <CardTitle>Application Details</CardTitle>
               <CardDescription>
-                AI-powered analysis of candidate fit for {candidate.jobTitle}
+                Information about this job application
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Overall Score */}
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="text-sm font-medium mb-2">Overall Match</div>
-                  <Progress value={candidate.aiScore} className="h-3" />
-                </div>
-                <div
-                  className={`ml-6 text-5xl font-bold ${getScoreColor(
-                    candidate.aiScore
-                  )}`}
-                >
-                  {candidate.aiScore}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Score Breakdown */}
-              <div className="space-y-4">
-                <h4 className="font-semibold">Detailed Breakdown</h4>
-                {scoreBreakdown.map((item) => (
-                  <div key={item.category} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {item.category}
-                      </span>
-                      <span
-                        className={`font-semibold ${getScoreColor(item.score)}`}
-                      >
-                        {item.score}%
-                      </span>
-                    </div>
-                    <Progress value={item.score} className="h-2" />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* AI Analysis */}
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Analysis</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Strengths */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
-                  <h4 className="font-semibold text-green-600 dark:text-green-400">
-                    Strengths
-                  </h4>
-                </div>
-                <div className="grid gap-2">
-                  {candidate.aiAnalysis.strengths.map((strength, index) => (
-                    <div
-                      key={index}
-                      className="p-3 rounded-lg bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-900/50"
-                    >
-                      <div className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{strength}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Weaknesses */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
-                  <h4 className="font-semibold text-red-600 dark:text-red-400">
-                    Areas for Consideration
-                  </h4>
-                </div>
-                <div className="grid gap-2">
-                  {candidate.aiAnalysis.weaknesses.map((weakness, index) => (
-                    <div
-                      key={index}
-                      className="p-3 rounded-lg bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50"
-                    >
-                      <div className="flex items-start gap-2">
-                        <XCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{weakness}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Professional Experience */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Professional Experience</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Briefcase className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex items-center gap-3">
+                  <Briefcase className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <div className="font-semibold">
-                      {candidate.currentCompany}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {candidate.experience}
+                    <p className="text-sm text-muted-foreground">Position</p>
+                    <p className="font-medium">{job?.title || "Unknown"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Applied On</p>
+                    <p className="font-medium">
+                      {formatDate(application.applied_on)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    <div className="mt-1">
+                      {getStatusBadge(application.status)}
                     </div>
                   </div>
                 </div>
-                <Separator />
-                <div className="flex items-start gap-3">
-                  <GraduationCap className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex items-center gap-3">
+                  <User className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <div className="font-semibold">Education</div>
-                    <div className="text-sm text-muted-foreground">
-                      Degree information would be displayed here
-                    </div>
+                    <p className="text-sm text-muted-foreground">User ID</p>
+                    <p className="font-medium font-mono text-xs">
+                      {application.user_id}
+                    </p>
                   </div>
                 </div>
               </div>
+
+              {job && (
+                <>
+                  <Separator />
+                  <div>
+                    <h4 className="font-semibold mb-2">Job Details</h4>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <p>
+                        <strong>Department:</strong> {job.department}
+                      </p>
+                      <p>
+                        <strong>Location:</strong> {job.location}
+                      </p>
+                      <p>
+                        <strong>Status:</strong>{" "}
+                        {job.is_open ? "Open" : "Closed"}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
-          {/* Timeline */}
+          {/* Application Timeline */}
           <Card>
             <CardHeader>
               <CardTitle>Application Timeline</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {candidate.timeline.map((event, index) => (
-                  <div key={index} className="flex gap-4">
-                    <div className="flex flex-col items-center">
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        {event.status === "applied" && (
-                          <FileText className="h-4 w-4" />
-                        )}
-                        {event.status === "screening" && (
-                          <CheckCircle className="h-4 w-4" />
-                        )}
-                        {event.status === "interview_scheduled" && (
-                          <Calendar className="h-4 w-4" />
-                        )}
-                        {event.status === "shortlisted" && (
-                          <Star className="h-4 w-4" />
-                        )}
-                      </div>
-                      {index < candidate.timeline.length - 1 && (
-                        <div className="w-px h-12 bg-border mt-2" />
-                      )}
+                <div className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <FileText className="h-4 w-4" />
                     </div>
-                    <div className="flex-1 pb-6">
-                      <div className="font-semibold capitalize">
-                        {event.status.replace("_", " ")}
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {event.note}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {formatDate(event.date)}
-                      </div>
+                    <div className="w-px h-12 bg-border mt-2" />
+                  </div>
+                  <div className="flex-1 pb-6">
+                    <div className="font-semibold">Application Submitted</div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      Resume uploaded and application created
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {formatDate(application.applied_on)}
                     </div>
                   </div>
-                ))}
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      {application.status === ApplicationStatus.SHORTLISTED ? (
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      ) : application.status === ApplicationStatus.REJECTED ? (
+                        <XCircle className="h-4 w-4 text-red-600" />
+                      ) : (
+                        <Clock className="h-4 w-4" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold">Current Status</div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {application.status.replace(/_/g, " ")}
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -388,7 +362,7 @@ function CandidateProfileContent() {
             <CardHeader>
               <CardTitle>Recruiter Notes</CardTitle>
               <CardDescription>
-                Add private notes about this candidate
+                Add private notes about this application
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -403,40 +377,8 @@ function CandidateProfileContent() {
           </Card>
         </div>
 
-        {/* Right Column - Contact & Actions */}
+        {/* Right Column - Actions */}
         <div className="space-y-6">
-          {/* Contact Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-muted-foreground" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-muted-foreground">Email</div>
-                  <div className="font-medium truncate">{candidate.email}</div>
-                </div>
-              </div>
-              <Separator />
-              <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-muted-foreground" />
-                <div className="flex-1">
-                  <div className="text-sm text-muted-foreground">Phone</div>
-                  <div className="font-medium">{candidate.phone}</div>
-                </div>
-              </div>
-              <Separator />
-              <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground" />
-                <div className="flex-1">
-                  <div className="text-sm text-muted-foreground">Location</div>
-                  <div className="font-medium">{candidate.location}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Quick Actions */}
           <Card>
             <CardHeader>
@@ -468,7 +410,7 @@ function CandidateProfileContent() {
             </CardContent>
           </Card>
 
-          {/* Resume Preview */}
+          {/* Resume */}
           <Card>
             <CardHeader>
               <CardTitle>Resume</CardTitle>
@@ -478,6 +420,9 @@ function CandidateProfileContent() {
                 <div className="text-center text-muted-foreground">
                   <FileText className="h-12 w-12 mx-auto mb-2" />
                   <div className="text-sm">Resume Preview</div>
+                  <div className="text-xs mt-1">
+                    {application.resume ? "File attached" : "No file"}
+                  </div>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -492,36 +437,47 @@ function CandidateProfileContent() {
                 <Button
                   className="flex-1"
                   variant="outline"
-                  onClick={() => toast.info("Opening in new tab...")}
+                  onClick={() =>
+                    toast.info("Resume viewing requires backend support")
+                  }
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Open
                 </Button>
               </div>
+              {application.resume && (
+                <p className="text-xs text-muted-foreground break-all">
+                  Path: {application.resume}
+                </p>
+              )}
             </CardContent>
           </Card>
 
-          {/* Additional Info */}
+          {/* Application Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Additional Information</CardTitle>
+              <CardTitle>Application Info</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Notice Period</span>
-                <span className="font-medium">30 days</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Expected Salary</span>
-                <span className="font-medium">
-                  ₹{(candidate.aiScore * 1000).toLocaleString()}
+                <span className="text-muted-foreground">Application ID</span>
+                <span className="font-mono text-xs">
+                  {application.id.slice(0, 12)}...
                 </span>
               </div>
               <Separator />
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Referral</span>
-                <span className="font-medium">Direct Apply</span>
+                <span className="text-muted-foreground">Job ID</span>
+                <span className="font-mono text-xs">
+                  {application.job_id.slice(0, 12)}...
+                </span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">User ID</span>
+                <span className="font-mono text-xs">
+                  {application.user_id.slice(0, 12)}...
+                </span>
               </div>
             </CardContent>
           </Card>

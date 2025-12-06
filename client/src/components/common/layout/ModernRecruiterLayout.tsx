@@ -7,9 +7,6 @@ import {
   Briefcase,
   Users,
   FileText,
-  Calendar,
-  Gift,
-  Brain,
   Inbox,
   Bell,
   Plus,
@@ -60,21 +57,6 @@ const navItems = [
     title: "Resume Scoring",
     href: "/tenant/recruiter-portal/resume-scoring",
     icon: FileText,
-  },
-  {
-    title: "Interviews",
-    href: "/tenant/recruiter-portal/interviews",
-    icon: Calendar,
-  },
-  {
-    title: "AI Interviews",
-    href: "/tenant/recruiter-portal/ai-interviews",
-    icon: Brain,
-  },
-  {
-    title: "Offers",
-    href: "/tenant/recruiter-portal/offers",
-    icon: Gift,
   },
   {
     title: "Profile",

@@ -30,6 +30,7 @@ export interface PlatformLoginResponse {
   refresh_token: string;
   account_status: string;
   subscription_status: string;
+  domain?: string | null;
 }
 
 export interface PlatformRefreshTokenRequest {
@@ -41,6 +42,7 @@ export interface PlatformRefreshTokenResponse {
   refresh_token: string;
   account_status: string;
   subscription_status: string;
+  domain?: string | null;
 }
 
 // Forgot/Reset Password Types

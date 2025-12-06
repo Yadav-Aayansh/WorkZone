@@ -93,7 +93,7 @@ function DashboardContent() {
   };
 
   // Calculate KPIs from real data
-  const activeJobs = jobs.filter((job) => job.is_active).length;
+  const activeJobs = jobs.filter((job) => job.is_open).length;
   const totalApplications = applications.length;
   const shortlistedApplications = applications.filter(
     (app) => app.status === ApplicationStatus.SHORTLISTED
