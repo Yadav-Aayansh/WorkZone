@@ -1,6 +1,6 @@
 from uuid import UUID
 from src.repository.tenant import QueryRepository, EmployeeRepository, RecruiterRepository
-from src.exceptions.tenant import EmployeeNotFoundError, QueryNotFoundError, QueryClassificationError, QueryUnassignedError
+from src.exceptions.tenant import EmployeeNotFoundError, QueryNotFoundError, QueryClassificationError, QueryUnassignedError, NoRecruiterFoundError
 from src.genai import classify_query
 from src.genai.schemas import ClassificationResponse, UrgencyLevel, QueryCategory, Sentiment
 from src.core.logger import logger
@@ -21,8 +21,7 @@ class QueryService:
         
         recruiter_id = await self.recruiter_repo.get_random_recruiter()
         if not recruiter_id:
-            # Fallback if no recruiters exist in the system yet
-            assigned_recruiter_id = None
+            raise NoRecruiterFoundError("No recruiter was found when getting a random recruiter")
         else:
             assigned_recruiter_id = recruiter_id
 

@@ -68,3 +68,6 @@ class QueryClassificationError(ValidationError):
 
 class QueryUnassignedError(ValidationError):
     pass
+
+class NoRecruiterFoundError(NotFoundError):
+    pass
