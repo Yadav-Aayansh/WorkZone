@@ -9,7 +9,6 @@ import {
   Wand2,
   Target,
 } from "lucide-react";
-import { ReactNode } from "react";
 import { motion } from "framer-motion";
 
 const aiFeatures = [

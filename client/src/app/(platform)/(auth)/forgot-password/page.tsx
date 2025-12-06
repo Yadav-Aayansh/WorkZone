@@ -18,7 +18,7 @@ import {
   KeyRound,
   CheckCircle2,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { platformAuthAPI } from "@/lib/api/platform";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -86,7 +86,6 @@ const steps = [
 export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
-  const router = useRouter();
 
   const {
     register,
@@ -96,17 +95,26 @@ export default function ForgotPasswordPage() {
     resolver: zodResolver(forgotPasswordSchema),
   });
 
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
+
   const onSubmit = async (data: ForgotPasswordFormData) => {
     setIsLoading(true);
     setError("");
     try {
-      // TODO: Implement forgot password API call
-      console.log(data);
-      // Redirect to verify code page
-      router.push(`/verify-code?email=${encodeURIComponent(data.email)}`);
-    } catch (err) {
+      await platformAuthAPI.forgotPassword({ email: data.email });
+      setSubmittedEmail(data.email);
+      setIsSuccess(true);
+    } catch (err: unknown) {
       console.error(err);
-      setError("Failed to send verification code. Please try again.");
+      const error = err as { status?: number; message?: string };
+      if (error.status === 404) {
+        setError("No account found with this email address.");
+      } else {
+        setError(
+          error.message || "Failed to send reset link. Please try again."
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -248,9 +256,44 @@ export default function ForgotPasswordPage() {
           <div className="mb-6">
             <h1 className="text-2xl font-bold mb-1">Forgot password?</h1>
             <p className="text-muted-foreground text-sm">
-              Enter your email and we&apos;ll send you a verification code.
+              Enter your email and we&apos;ll send you a reset link.
             </p>
           </div>
+
+          {/* Success State */}
+          <AnimatePresence>
+            {isSuccess && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-6 p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center"
+              >
+                <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
+                  Check your email
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  We&apos;ve sent a password reset link to
+                  <br />
+                  <span className="font-medium text-foreground">
+                    {submittedEmail}
+                  </span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Didn&apos;t receive the email? Check your spam folder or{" "}
+                  <button
+                    onClick={() => setIsSuccess(false)}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    try again
+                  </button>
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Error Message */}
           <AnimatePresence>
@@ -266,50 +309,56 @@ export default function ForgotPasswordPage() {
             )}
           </AnimatePresence>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Email */}
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email address
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  {...register("email")}
-                  placeholder="john@company.com"
-                  className="h-11 pl-11 pr-4 rounded-xl border-border/50 bg-muted/30 focus:bg-background transition-colors"
-                />
+          {/* Form - Hide on success */}
+          {!isSuccess && (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              {/* Email */}
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-sm font-medium">
+                  Email address
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    {...register("email")}
+                    placeholder="john@company.com"
+                    className="h-11 pl-11 pr-4 rounded-xl border-border/50 bg-muted/30 focus:bg-background transition-colors"
+                  />
+                </div>
+                {errors.email && (
+                  <p className="text-xs text-destructive">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
-              {errors.email && (
-                <p className="text-xs text-destructive">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
 
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full h-11 rounded-xl text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40"
-            >
-              {isLoading ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                />
-              ) : (
-                <>
-                  Send verification code
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </>
-              )}
-            </Button>
-          </form>
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-11 rounded-xl text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40"
+              >
+                {isLoading ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                  />
+                ) : (
+                  <>
+                    Send reset link
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </>
+                )}
+              </Button>
+            </form>
+          )}
 
           {/* Sign In Link */}
           <p className="mt-6 text-center text-sm text-muted-foreground">

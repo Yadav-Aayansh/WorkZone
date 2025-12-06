@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { CheckCircle, Home, FileText } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
-export default function InterviewReportPage() {
+function InterviewReportContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const report = searchParams.get("report") || "";
@@ -104,5 +105,19 @@ export default function InterviewReportPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function InterviewReportPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <InterviewReportContent />
+    </Suspense>
   );
 }

@@ -18,16 +18,43 @@ import {
   HelpCircle,
   Trash2,
   ArrowUp,
+  ExternalLink,
+  ChevronRight,
+  BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import { tenantEmployeeAPI, HelpdeskResponse } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { useTenant } from "@/providers/tenant-provider";
+
+// GCS bucket for policy documents
+const GCS_BUCKET_NAME =
+  process.env.NEXT_PUBLIC_GCS_BUCKET_NAME || "workzone-bucket";
+
+// Build full GCS URL for policy document
+const getGCSPolicyUrl = (fileName: string, tenantId: string): string => {
+  // Full path: platform/policies/{tenant_id}/{filename}
+  const fullPath = `platform/policies/${tenantId}/${fileName}`;
+  const encodedPath = fullPath.split("/").map(encodeURIComponent).join("/");
+  return `https://storage.googleapis.com/${GCS_BUCKET_NAME}/${encodedPath}`;
+};
+
+interface Source {
+  source?: string; // filename/blob path from backend
+  category?: string; // leave, payroll, benefits, policies
+  relevance_score?: number;
+  [key: string]: unknown;
+}
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  sources?: Source[];
+  suggestions?: string[];
+  confidence?: number;
+  current_topic?: string;
 }
 
 const suggestedQuestions = [
@@ -87,6 +114,7 @@ function ThinkingAnimation() {
 }
 
 export function HelpdeskChat() {
+  const { tenant } = useTenant();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -154,6 +182,10 @@ export function HelpdeskChat() {
           role: "assistant",
           content: response.answer,
           timestamp: new Date(),
+          sources: response.sources as Source[],
+          suggestions: response.suggestions,
+          confidence: response.confidence,
+          current_topic: response.current_topic,
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
@@ -371,12 +403,149 @@ export function HelpdeskChat() {
                           <Bot className="w-5 h-5 text-white" />
                         </div>
                       </div>
-                      <div className="flex flex-col gap-1 max-w-[85%]">
+                      <div className="flex flex-col gap-2 max-w-[85%]">
+                        {/* Main Answer */}
                         <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-md px-4 py-3 shadow-sm">
+                          {/* Topic Badge */}
+                          {message.current_topic && (
+                            <div className="mb-2">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
+                                <BookOpen className="w-3 h-3" />
+                                {message.current_topic}
+                              </span>
+                            </div>
+                          )}
+
                           <p className="text-gray-800 dark:text-gray-200 text-sm leading-relaxed whitespace-pre-wrap">
                             {message.content}
                           </p>
                         </div>
+
+                        {/* Sources Section */}
+                        {message.sources &&
+                          message.sources.length > 0 &&
+                          message.sources.some((s) => s.source) && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.2 }}
+                              className="bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl px-3 py-2"
+                            >
+                              <div className="flex items-center gap-1.5 mb-2">
+                                <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                                <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                                  Sources (
+                                  {
+                                    message.sources.filter((s) => s.source)
+                                      .length
+                                  }
+                                  )
+                                </span>
+                              </div>
+                              <div className="space-y-1.5">
+                                {message.sources
+                                  .filter((s) => s.source)
+                                  .slice(0, 3)
+                                  .map((source, idx) => {
+                                    const fileName =
+                                      source.source || "Document";
+                                    const displayName = fileName
+                                      .replace(/[-_]/g, " ")
+                                      .replace(/\.[^/.]+$/, "");
+                                    const fileUrl =
+                                      source.source && tenant?.id
+                                        ? getGCSPolicyUrl(
+                                            source.source,
+                                            tenant.id
+                                          )
+                                        : null;
+
+                                    // If we have a valid URL, render as a link; otherwise just show info
+                                    if (fileUrl) {
+                                      return (
+                                        <a
+                                          key={idx}
+                                          href={fileUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-start gap-2 p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-xs hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all cursor-pointer group"
+                                        >
+                                          <FileText className="w-3.5 h-3.5 text-indigo-500 mt-0.5 flex-shrink-0" />
+                                          <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-gray-700 dark:text-gray-300 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                              {displayName}
+                                            </p>
+                                            {source.category && (
+                                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 mt-1">
+                                                {source.category}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-indigo-500 flex-shrink-0" />
+                                        </a>
+                                      );
+                                    }
+
+                                    // No valid URL - render as non-clickable div
+                                    return (
+                                      <div
+                                        key={idx}
+                                        className="flex items-start gap-2 p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-xs"
+                                      >
+                                        <FileText className="w-3.5 h-3.5 text-indigo-500 mt-0.5 flex-shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-medium text-gray-700 dark:text-gray-300 truncate">
+                                            {displayName}
+                                          </p>
+                                          {source.category && (
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 mt-1">
+                                              {source.category}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                            </motion.div>
+                          )}
+
+                        {/* Suggestions Section */}
+                        {message.suggestions &&
+                          message.suggestions.length > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                              className="flex flex-col gap-1.5"
+                            >
+                              <div className="flex items-center gap-1.5 px-1">
+                                <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+                                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                  Follow-up questions
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap gap-1.5">
+                                {message.suggestions
+                                  .slice(0, 4)
+                                  .map((suggestion, idx) => (
+                                    <motion.button
+                                      key={idx}
+                                      whileHover={{ scale: 1.02 }}
+                                      whileTap={{ scale: 0.98 }}
+                                      onClick={() => sendMessage(suggestion)}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all"
+                                    >
+                                      <ChevronRight className="w-3 h-3 text-indigo-500" />
+                                      <span className="truncate max-w-[200px]">
+                                        {suggestion}
+                                      </span>
+                                    </motion.button>
+                                  ))}
+                              </div>
+                            </motion.div>
+                          )}
+
                         <span className="text-xs text-gray-400 dark:text-gray-500 ml-1">
                           {formatTime(message.timestamp)}
                         </span>
