@@ -4,6 +4,7 @@ from src.exceptions.tenant import EmployeeNotFoundError, QueryNotFoundError, Que
 from src.genai import classify_query
 from src.genai.schemas import ClassificationResponse, UrgencyLevel, QueryCategory, Sentiment
 from src.core.logger import logger
+from src.schemas.tenant import QueryResponse
 
 import random
 
@@ -14,7 +15,7 @@ class QueryService:
         self.recruiter_repo = recruiter_repo
         
 
-    async def create_query(self, user_id: UUID, query_text: str) -> dict:
+    async def create_query(self, user_id: UUID, query_text: str) -> QueryResponse:
         employee = await self.employee_repo.get_employee_by_user_id(user_id)
         if not employee:
             raise EmployeeNotFoundError("Employee profile not found for this user.")
@@ -54,13 +55,15 @@ class QueryService:
 
         new_query = await self.query_repo.create_query(query_data)
         
-        return {
-            "id": new_query.id,
-            "category": new_query.category,
-            "urgency": new_query.urgency,
-            "status": new_query.status,
-            "ai_summary": new_query.summary
-        }
+        return QueryResponse(
+            id = new_query.id,
+            category = new_query.category,
+            urgency = new_query.urgency,
+            status = new_query.status,
+            ai_summary = new_query.summary
+        )
+            
+        
 
     async def respond_to_query(self, query_id: UUID, response_text: str):
         query = await self.query_repo.get_query_by_id(query_id)
