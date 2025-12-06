@@ -11,6 +11,7 @@ from .application import application_router
 from .ai_interview import ai_interview_router
 from .leave import leave_router
 from .learning_path import learning_router
+from .query import query_router
 
 # Tenant Routers (HTTP & WS)
 tenant_router = APIRouter(prefix="/api/tenant")
@@ -28,6 +29,7 @@ http_router.include_router(job_router)
 http_router.include_router(application_router)
 http_router.include_router(leave_router)
 http_router.include_router(learning_router)
+http_router.include_router(query_router)
 
 tenant_router.include_router(http_router)
 
