@@ -177,6 +177,7 @@ def get_learning_path_service(
 
 def get_query_service(
     query_repo: QueryRepository = Depends(get_tenant_db),
-    employee_repo: EmployeeRepository = Depends(get_tenant_db)
+    employee_repo: EmployeeRepository = Depends(get_tenant_db),
+    recruiter_repo: RecruiterRepository = Depends(get_tenant_db)
 ) -> QueryService:
-    return QueryService(query_repo, employee_repo)
+    return QueryService(query_repo, employee_repo, recruiter_repo)

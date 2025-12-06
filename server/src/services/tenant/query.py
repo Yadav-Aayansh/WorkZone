@@ -1,19 +1,32 @@
 from uuid import UUID
-from src.repository.tenant import QueryRepository, EmployeeRepository
+from src.repository.tenant import QueryRepository, EmployeeRepository, RecruiterRepository
 from src.exceptions.tenant import EmployeeNotFoundError, QueryNotFoundError, QueryClassificationError, QueryUnassignedError
 from src.genai import classify_query
 from src.genai.schemas import ClassificationResponse, UrgencyLevel, QueryCategory, Sentiment
 from src.core.logger import logger
 
+import random
+
 class QueryService:
-    def __init__(self, query_repo: QueryRepository, employee_repo: EmployeeRepository):
+    def __init__(self, query_repo: QueryRepository, employee_repo: EmployeeRepository, recruiter_repo: RecruiterRepository):
         self.query_repo = query_repo
         self.employee_repo = employee_repo
+        self.recruiter_repo = recruiter_repo
+        
 
     async def create_query(self, user_id: UUID, query_text: str) -> dict:
         employee = await self.employee_repo.get_employee_by_user_id(user_id)
         if not employee:
             raise EmployeeNotFoundError("Employee profile not found for this user.")
+        
+        recruiters = await self.recruiter_repo.get_all_recruiters()
+        if not recruiters:
+            # Fallback if no recruiters exist in the system yet
+            # You might want to log a warning or raise an error depending on business rules
+            assigned_recruiter_id = None
+        else:
+            assigned_recruiter = random.choice(recruiters)
+            assigned_recruiter_id = assigned_recruiter.id
 
         try:
             classification = await classify_query(query_text)
@@ -38,8 +51,8 @@ class QueryService:
             "category": classification.category,
             "urgency": classification.urgency,
             "sentiment": classification.sentiment,
-            "summary": classification.summary
-            # recruiter_id is left None (Unassigned) initially
+            "summary": classification.summary,
+            "recruiter_id": assigned_recruiter_id
         }
 
         new_query = await self.query_repo.create_query(query_data)
