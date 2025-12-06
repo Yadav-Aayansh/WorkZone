@@ -5,12 +5,10 @@ import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Calendar,
-  FileText,
   Megaphone,
   User,
   Bell,
   Search,
-  Clock,
   MessageSquare,
   GraduationCap,
   Users,
@@ -54,16 +52,6 @@ const navItems = [
     title: "Learning Paths",
     href: "/tenant/employee-portal/learning",
     icon: GraduationCap,
-  },
-  {
-    title: "My Requests",
-    href: "/tenant/employee-portal/requests",
-    icon: FileText,
-  },
-  {
-    title: "Attendance",
-    href: "/tenant/employee-portal/attendance",
-    icon: Clock,
   },
   {
     title: "Announcements",

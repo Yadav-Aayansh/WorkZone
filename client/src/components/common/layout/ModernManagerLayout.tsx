@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
-  Calendar,
   CheckSquare,
-  TrendingUp,
-  FileText,
   Bell,
   Search,
   User,
@@ -46,21 +43,6 @@ const navItems = [
     title: "Leave Approvals",
     href: "/tenant/manager-portal/leaves",
     icon: CheckSquare,
-  },
-  {
-    title: "Attendance",
-    href: "/tenant/manager-portal/attendance",
-    icon: Calendar,
-  },
-  {
-    title: "Performance",
-    href: "/tenant/manager-portal/performance",
-    icon: TrendingUp,
-  },
-  {
-    title: "Reports",
-    href: "/tenant/manager-portal/reports",
-    icon: FileText,
   },
   {
     title: "Profile",

@@ -6,7 +6,7 @@ import { HelpdeskChat } from "@/components/ai/helpdesk-chat";
 
 function HelpdeskContent() {
   return (
-    <div className="h-[calc(100vh-4rem)]">
+    <div className="h-full">
       <HelpdeskChat />
     </div>
   );

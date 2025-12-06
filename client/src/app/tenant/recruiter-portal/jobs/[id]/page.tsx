@@ -34,6 +34,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
   ArrowLeft,
   Edit,
   Archive,
@@ -56,8 +66,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -66,8 +74,6 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import candidatesData from "@/data/tenant/candidates.json";
-import analyticsData from "@/data/tenant/analytics.json";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import {
@@ -75,6 +81,7 @@ import {
   tenantApplicationAPI,
   JobResponse,
   ApplicationResponse,
+  ApplicationStatus,
 } from "@/lib/api";
 
 function JobDetailsContent() {
@@ -85,6 +92,9 @@ function JobDetailsContent() {
   const [job, setJob] = useState<JobResponse | null>(null);
   const [applications, setApplications] = useState<ApplicationResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
+  const [topXCandidates, setTopXCandidates] = useState<string>("");
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     if (jobId) {
@@ -110,14 +120,43 @@ function JobDetailsContent() {
     }
   };
 
-  // Get candidates for this job (mock data for now)
-  const jobCandidates = candidatesData.filter((c) => c.jobId === jobId);
+  // Calculate stats from real applications
+  const statusCounts = applications.reduce((acc, app) => {
+    acc[app.status] = (acc[app.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
-  // Get analytics for this job (mock data)
-  const jobAnalytics =
-    analyticsData.jobAnalytics[
-      jobId as keyof typeof analyticsData.jobAnalytics
-    ];
+  const pendingCount = statusCounts[ApplicationStatus.PENDING] || 0;
+  const shortlistedCount = statusCounts[ApplicationStatus.SHORTLISTED] || 0;
+  const aiInterviewCount =
+    statusCounts[ApplicationStatus.AI_INTERVIEW_COMPLETED] || 0;
+  const humanInterviewScheduledCount =
+    statusCounts[ApplicationStatus.HUMAN_INTERVIEW_SCHEDULED] || 0;
+  const humanInterviewCompletedCount =
+    statusCounts[ApplicationStatus.HUMAN_INTERVIEW_COMPLETED] || 0;
+  const offeredCount = statusCounts[ApplicationStatus.OFFERED] || 0;
+  const rejectedCount = statusCounts[ApplicationStatus.REJECTED] || 0;
+  const hiredCount = statusCounts[ApplicationStatus.HIRED] || 0;
+  const withdrawnCount = statusCounts[ApplicationStatus.WITHDRAWN] || 0;
+
+  // Build analytics data from real applications
+  const statusPieData = Object.entries(statusCounts)
+    .filter(([_, count]) => count > 0)
+    .map(([status, count]) => ({ status, count }));
+
+  // Group applications by date for timeline chart
+  const applicationsByDate = applications.reduce((acc, app) => {
+    const date = new Date(app.applied_at || app.created_at).toLocaleDateString(
+      "en-US",
+      { month: "short", day: "numeric" }
+    );
+    acc[date] = (acc[date] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const applicationsTimelineData = Object.entries(applicationsByDate)
+    .slice(-7) // Last 7 days
+    .map(([date, count]) => ({ date, count }));
 
   if (isLoading) {
     return (
@@ -174,37 +213,6 @@ function JobDetailsContent() {
     return `₹${(min / 100000).toFixed(1)}L - ₹${(max / 100000).toFixed(1)}L`;
   };
 
-  const getCandidateStatusBadge = (status: string) => {
-    switch (status) {
-      case "shortlisted":
-        return (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-            Shortlisted
-          </Badge>
-        );
-      case "under_review":
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-            Under Review
-          </Badge>
-        );
-      case "rejected":
-        return (
-          <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-            Rejected
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600 dark:text-green-400";
-    if (score >= 60) return "text-yellow-600 dark:text-yellow-400";
-    return "text-red-600 dark:text-red-400";
-  };
-
   const handleCopyJobLink = () => {
     const jobLink = `${window.location.origin}/tenant/careers/${jobId}`;
     navigator.clipboard.writeText(jobLink);
@@ -214,13 +222,26 @@ function JobDetailsContent() {
   const handleCloseJob = async () => {
     try {
       if (!job) return;
+      setIsClosing(true);
 
-      const updated = await tenantJobAPI.closeJob(job.id);
+      const topX = topXCandidates ? parseInt(topXCandidates) : undefined;
+      const updated = await tenantJobAPI.closeJob(
+        job.id,
+        topX ? { top_x: topX } : undefined
+      );
       setJob(updated);
-      toast.success("Job closed successfully!");
+      setShowCloseDialog(false);
+      setTopXCandidates("");
+      toast.success(
+        `Job closed successfully!${
+          topX ? ` Top ${topX} candidates will be shortlisted.` : ""
+        }`
+      );
     } catch (err: any) {
       console.error("Failed to close job:", err);
       toast.error(err.message || "Failed to close job");
+    } finally {
+      setIsClosing(false);
     }
   };
 
@@ -228,15 +249,15 @@ function JobDetailsContent() {
     toast.success("Job archived successfully!");
   };
 
-  // Pie chart data for status breakdown
-  const statusPieData = jobAnalytics?.statusBreakdown || [];
-  const COLORS = ["#fbbf24", "#10b981", "#ef4444"];
-
-  // Source breakdown data
-  const sourceData = jobAnalytics?.sourceBreakdown || [];
-
-  // Applications over time data
-  const applicationsData = jobAnalytics?.applicationsByDate || [];
+  // Pie chart colors for status breakdown
+  const COLORS = [
+    "#fbbf24",
+    "#10b981",
+    "#ef4444",
+    "#8b5cf6",
+    "#3b82f6",
+    "#ec4899",
+  ];
 
   return (
     <div className="p-6 space-y-6">
@@ -278,7 +299,10 @@ function JobDetailsContent() {
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Job
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCloseJob}>
+              <DropdownMenuItem
+                onClick={() => setShowCloseDialog(true)}
+                disabled={!job?.is_open}
+              >
                 <XCircle className="mr-2 h-4 w-4" />
                 Close Job
               </DropdownMenuItem>
@@ -419,7 +443,7 @@ function JobDetailsContent() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="applicants">
-            Applicants ({jobCandidates.length})
+            Applicants ({applications.length})
           </TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
@@ -589,7 +613,7 @@ function JobDetailsContent() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {jobCandidates.length === 0 ? (
+              {applications.length === 0 ? (
                 <div className="text-center py-8">
                   <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">
@@ -602,19 +626,18 @@ function JobDetailsContent() {
                     <TableRow>
                       <TableHead>Candidate</TableHead>
                       <TableHead>Applied Date</TableHead>
-                      <TableHead className="text-center">AI Score</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {jobCandidates.map((candidate) => (
+                    {applications.map((application) => (
                       <TableRow
-                        key={candidate.id}
+                        key={application.id}
                         className="cursor-pointer hover:bg-accent/50"
                         onClick={() =>
                           router.push(
-                            `/tenant/recruiter-portal/candidates/${candidate.id}`
+                            `/tenant/recruiter-portal/applications/${application.id}`
                           )
                         }
                       >
@@ -622,36 +645,38 @@ function JobDetailsContent() {
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
                               <AvatarFallback className="bg-primary/10 text-primary">
-                                {candidate.name
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")}
+                                A{application.id.slice(0, 1).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="font-semibold">
-                                {candidate.name}
+                                Applicant #{application.id.slice(0, 8)}
                               </div>
                               <div className="text-sm text-muted-foreground">
-                                {candidate.email}
+                                User ID: {application.user_id.slice(0, 8)}...
                               </div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          {formatDate(candidate.appliedDate)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span
-                            className={`text-2xl font-bold ${getScoreColor(
-                              candidate.aiScore
-                            )}`}
-                          >
-                            {candidate.aiScore}
-                          </span>
+                          {formatDate(application.applied_on)}
                         </TableCell>
                         <TableCell>
-                          {getCandidateStatusBadge(candidate.status)}
+                          <Badge
+                            variant={
+                              application.status ===
+                              ApplicationStatus.SHORTLISTED
+                                ? "default"
+                                : application.status ===
+                                  ApplicationStatus.REJECTED
+                                ? "destructive"
+                                : application.status === ApplicationStatus.HIRED
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
+                            {application.status.replace(/_/g, " ")}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
@@ -660,7 +685,7 @@ function JobDetailsContent() {
                             onClick={(e) => {
                               e.stopPropagation();
                               router.push(
-                                `/tenant/recruiter-portal/candidates/${candidate.id}`
+                                `/tenant/recruiter-portal/applications/${application.id}`
                               );
                             }}
                           >
@@ -683,40 +708,46 @@ function JobDetailsContent() {
             <Card>
               <CardHeader>
                 <CardTitle>Applications Over Time</CardTitle>
-                <CardDescription>Daily application trends</CardDescription>
+                <CardDescription>Recent application trends</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={applicationsData}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      className="stroke-muted"
-                    />
-                    <XAxis
-                      dataKey="date"
-                      className="text-xs"
-                      tick={{ fill: "hsl(var(--muted-foreground))" }}
-                    />
-                    <YAxis
-                      className="text-xs"
-                      tick={{ fill: "hsl(var(--muted-foreground))" }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="count"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={2}
-                      dot={{ fill: "hsl(var(--primary))" }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                {applicationsTimelineData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={applicationsTimelineData}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        className="stroke-muted"
+                      />
+                      <XAxis
+                        dataKey="date"
+                        className="text-xs"
+                        tick={{ fill: "hsl(var(--muted-foreground))" }}
+                      />
+                      <YAxis
+                        className="text-xs"
+                        tick={{ fill: "hsl(var(--muted-foreground))" }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="count"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        dot={{ fill: "hsl(var(--primary))" }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    No application data available
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -727,74 +758,41 @@ function JobDetailsContent() {
                 <CardDescription>Current status distribution</CardDescription>
               </CardHeader>
               <CardContent className="flex items-center justify-center">
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={statusPieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={(entry) => `${entry.status}: ${entry.count}`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="count"
-                    >
-                      {statusPieData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Source Breakdown */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Application Sources</CardTitle>
-                <CardDescription>
-                  Where candidates found this job
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={sourceData}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      className="stroke-muted"
-                    />
-                    <XAxis
-                      dataKey="source"
-                      className="text-xs"
-                      tick={{ fill: "hsl(var(--muted-foreground))" }}
-                    />
-                    <YAxis
-                      className="text-xs"
-                      tick={{ fill: "hsl(var(--muted-foreground))" }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Bar
-                      dataKey="count"
-                      fill="hsl(var(--primary))"
-                      radius={[8, 8, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                {statusPieData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={statusPieData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={(entry) =>
+                          `${entry.status.replace(/_/g, " ")}: ${entry.count}`
+                        }
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="count"
+                      >
+                        {statusPieData.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    No applications yet
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             {/* Conversion Funnel */}
-            <Card>
+            <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle>Hiring Funnel</CardTitle>
                 <CardDescription>
@@ -804,49 +802,139 @@ function JobDetailsContent() {
               <CardContent className="space-y-4">
                 {[
                   {
-                    stage: "Applications",
-                    count: job.applications,
+                    stage: "Total Applications",
+                    count: applications.length,
                     color: "bg-blue-500",
                   },
                   {
+                    stage: "Pending Review",
+                    count: pendingCount,
+                    color: "bg-yellow-500",
+                  },
+                  {
                     stage: "Shortlisted",
-                    count: job.shortlistedCount,
+                    count: shortlistedCount,
                     color: "bg-green-500",
                   },
                   {
-                    stage: "Interviews",
-                    count: job.interviewsScheduled,
+                    stage: "AI Interview Completed",
+                    count: aiInterviewCount,
+                    color: "bg-cyan-500",
+                  },
+                  {
+                    stage: "Human Interview",
+                    count:
+                      humanInterviewScheduledCount +
+                      humanInterviewCompletedCount,
                     color: "bg-purple-500",
                   },
                   {
+                    stage: "Offered",
+                    count: offeredCount,
+                    color: "bg-indigo-500",
+                  },
+                  {
+                    stage: "Hired",
+                    count: hiredCount,
+                    color: "bg-emerald-500",
+                  },
+                  {
                     stage: "Rejected",
-                    count: job.rejectedCount,
+                    count: rejectedCount,
                     color: "bg-red-500",
                   },
-                ].map((item) => (
-                  <div key={item.stage}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium">{item.stage}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {item.count} (
-                        {((item.count / job.applications) * 100).toFixed(1)}%)
-                      </span>
+                ]
+                  .filter(
+                    (item) =>
+                      item.count > 0 || item.stage === "Total Applications"
+                  )
+                  .map((item) => (
+                    <div key={item.stage}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-medium">
+                          {item.stage}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {item.count}{" "}
+                          {applications.length > 0
+                            ? `(${(
+                                (item.count / applications.length) *
+                                100
+                              ).toFixed(1)}%)`
+                            : ""}
+                        </span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div
+                          className={`${item.color} h-2 rounded-full transition-all`}
+                          style={{
+                            width:
+                              applications.length > 0
+                                ? `${(item.count / applications.length) * 100}%`
+                                : "0%",
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className={`${item.color} h-2 rounded-full transition-all`}
-                        style={{
-                          width: `${(item.count / job.applications) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </CardContent>
             </Card>
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Close Job Dialog */}
+      <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Close Job Posting</DialogTitle>
+            <DialogDescription>
+              Closing this job will stop accepting new applications. You can
+              optionally specify how many top candidates to shortlist based on
+              AI resume scoring.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="topX">
+                Number of candidates to shortlist (optional)
+              </Label>
+              <Input
+                id="topX"
+                type="number"
+                min="1"
+                max={applications.length}
+                placeholder={`Enter a number (max: ${applications.length})`}
+                value={topXCandidates}
+                onChange={(e) => setTopXCandidates(e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground">
+                Leave empty to close without auto-shortlisting. Current
+                applicants: {applications.length}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCloseDialog(false)}
+              disabled={isClosing}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleCloseJob} disabled={isClosing}>
+              {isClosing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Closing...
+                </>
+              ) : (
+                "Close Job"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

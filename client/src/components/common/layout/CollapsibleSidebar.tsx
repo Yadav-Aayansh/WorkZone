@@ -80,14 +80,14 @@ function SidebarContentWrapper({
   }, [setOpen]);
 
   return (
-    <div ref={sidebarRef} className="flex h-full flex-col py-4">
+    <div ref={sidebarRef} className="flex h-full flex-col py-6">
       {/* Header with Brand - Left Aligned */}
-      <SidebarHeader className="px-3 -ml-1">
+      <SidebarHeader className="px-4 -mx-3">
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-foreground shadow-sm">
-                <span className="text-xl font-bold text-background">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary shadow-sm">
+                <span className="text-xl font-bold text-primary-foreground">
                   {brandName[0]}
                 </span>
               </div>
@@ -221,7 +221,7 @@ export function CollapsibleSidebar(props: CollapsibleSidebarProps) {
     <Sidebar
       collapsible="icon"
       variant="floating"
-      className="border-none bg-gradient-to-br from-white via-gray-50/50 to-gray-100/30 dark:from-neutral-950 dark:via-neutral-900/50 dark:to-neutral-800/30 backdrop-blur-sm"
+      className="border-none bg-sidebar"
     >
       <SidebarContentWrapper {...props} />
     </Sidebar>

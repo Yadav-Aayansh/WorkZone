@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { platformClientAPI } from "@/lib/api";
+import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,6 +61,7 @@ interface CustomDomain {
 }
 
 export function CustomDomainManager() {
+  const { customDomain } = useAuth();
   const [domains, setDomains] = useState<CustomDomain[]>([]);
   const [newDomain, setNewDomain] = useState("");
   const [isAdding, setIsAdding] = useState(false);
@@ -70,6 +72,19 @@ export function CustomDomainManager() {
     isSubdomain: boolean;
     message?: string;
   } | null>(null);
+
+  // Load existing domain from auth state on mount
+  useEffect(() => {
+    if (customDomain) {
+      setDomains([
+        {
+          domain: customDomain,
+          status: "active",
+          addedAt: new Date().toISOString(),
+        },
+      ]);
+    }
+  }, [customDomain]);
 
   const validateDomain = (domain: string): boolean => {
     const domainRegex =
@@ -96,13 +111,14 @@ export function CustomDomainManager() {
     try {
       await platformClientAPI.linkCustomDomain(newDomain.trim());
 
-      // Add to local state
+      // Add to local state and localStorage
       const newCustomDomain: CustomDomain = {
         domain: newDomain.trim(),
         status: "active",
         addedAt: new Date().toISOString(),
       };
-      setDomains((prev) => [...prev, newCustomDomain]);
+      setDomains([newCustomDomain]); // Replace existing (only one domain allowed)
+      localStorage.setItem("custom_domain", newDomain.trim());
       setNewDomain("");
       setShowAddForm(false);
 
@@ -148,6 +164,7 @@ export function CustomDomainManager() {
     try {
       await platformClientAPI.unlinkCustomDomain(domain);
       setDomains((prev) => prev.filter((d) => d.domain !== domain));
+      localStorage.removeItem("custom_domain");
       toast.success("Domain removed successfully");
     } catch (error) {
       console.error("Failed to remove domain:", error);

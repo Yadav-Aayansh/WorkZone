@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-// import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { ModernRecruiterLayout } from "@/components/common/layout/ModernRecruiterLayout";
 import {
   Card,
@@ -28,267 +29,61 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
-import {
-  Upload,
+  AlertCircle,
   FileText,
-  Download,
-  Trash2,
-  MoreVertical,
-  CheckCircle,
-  XCircle,
+  Loader2,
   Sparkles,
-  TrendingUp,
+  Users,
+  Briefcase,
+  CheckCircle,
+  Clock,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
-import jobsData from "@/data/tenant/jobs.json";
-
-interface ScoredResume {
-  id: string;
-  fileName: string;
-  candidateName: string;
-  jobId: string;
-  jobTitle: string;
-  uploadedDate: string;
-  aiScore: number;
-  status: "pending" | "scored" | "shortlisted" | "rejected";
-  skills: string[];
-  experience: string;
-  education: string;
-  strengths: string[];
-  weaknesses: string[];
-}
+import {
+  tenantJobAPI,
+  tenantApplicationAPI,
+  JobResponse,
+  ApplicationResponse,
+  ApplicationStatus,
+} from "@/lib/api";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 function ResumeScoringContent() {
+  const router = useRouter();
+  const [jobs, setJobs] = useState<JobResponse[]>([]);
+  const [applications, setApplications] = useState<ApplicationResponse[]>([]);
   const [selectedJob, setSelectedJob] = useState<string>("all");
-  const [dragActive, setDragActive] = useState(false);
-  const [isScoring, setIsScoring] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock scored resumes data
-  const [scoredResumes, setScoredResumes] = useState<ScoredResume[]>([
-    {
-      id: "resume-1",
-      fileName: "rahul_sharma_resume.pdf",
-      candidateName: "Rahul Sharma",
-      jobId: "job-1",
-      jobTitle: "Senior Full Stack Developer",
-      uploadedDate: "2025-11-01T10:30:00Z",
-      aiScore: 87,
-      status: "scored",
-      skills: ["React", "Node.js", "TypeScript", "AWS", "Docker"],
-      experience: "6 years",
-      education: "B.Tech - IIT Delhi",
-      strengths: [
-        "Strong technical skills in required tech stack",
-        "Excellent cloud platform experience",
-        "Leadership experience",
-      ],
-      weaknesses: [
-        "Limited PostgreSQL experience",
-        "Could benefit from microservices experience",
-      ],
-    },
-    {
-      id: "resume-2",
-      fileName: "priya_patel_resume.pdf",
-      candidateName: "Priya Patel",
-      jobId: "job-2",
-      jobTitle: "DevOps Engineer",
-      uploadedDate: "2025-11-02T14:20:00Z",
-      aiScore: 92,
-      status: "shortlisted",
-      skills: ["Kubernetes", "Docker", "AWS", "Terraform", "Jenkins"],
-      experience: "5 years",
-      education: "B.E. - Mumbai University",
-      strengths: [
-        "Expert-level Kubernetes knowledge",
-        "Strong automation skills",
-        "Excellent problem-solving abilities",
-      ],
-      weaknesses: [
-        "Limited experience with Azure",
-        "Could improve documentation skills",
-      ],
-    },
-    {
-      id: "resume-3",
-      fileName: "amit_kumar_resume.pdf",
-      candidateName: "Amit Kumar",
-      jobId: "job-1",
-      jobTitle: "Senior Full Stack Developer",
-      uploadedDate: "2025-11-03T09:15:00Z",
-      aiScore: 65,
-      status: "scored",
-      skills: ["React", "JavaScript", "Node.js", "MongoDB"],
-      experience: "4 years",
-      education: "B.Tech - NIT Trichy",
-      strengths: [
-        "Good understanding of React ecosystem",
-        "Strong JavaScript fundamentals",
-      ],
-      weaknesses: [
-        "Lacks TypeScript experience",
-        "Limited cloud platform exposure",
-        "No experience with testing frameworks",
-      ],
-    },
-  ]);
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const jobsData = await tenantJobAPI.listJobs();
+      setJobs(jobsData);
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
-    }
-  };
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFiles(e.target.files);
-    }
-  };
-
-  const handleFiles = (files: FileList) => {
-    const file = files[0];
-    if (file && file.type === "application/pdf") {
-      toast.success(`Uploading ${file.name}...`);
-
-      // Simulate AI scoring
-      setIsScoring(true);
-      setTimeout(() => {
-        const newResume: ScoredResume = {
-          id: `resume-${Date.now()}`,
-          fileName: file.name,
-          candidateName: "New Candidate",
-          jobId: selectedJob === "all" ? "job-1" : selectedJob,
-          jobTitle:
-            jobsData.find(
-              (j) => j.id === (selectedJob === "all" ? "job-1" : selectedJob)
-            )?.title || "",
-          uploadedDate: new Date().toISOString(),
-          aiScore: Math.floor(Math.random() * 30) + 70,
-          status: "scored",
-          skills: ["React", "JavaScript", "Node.js"],
-          experience: "3-5 years",
-          education: "B.Tech",
-          strengths: ["Good technical foundation", "Relevant experience"],
-          weaknesses: ["Could improve cloud skills"],
-        };
-        setScoredResumes([newResume, ...scoredResumes]);
-        setIsScoring(false);
-        toast.success("Resume scored successfully!");
-      }, 2000);
-    } else {
-      toast.error("Please upload a PDF file");
-    }
-  };
-
-  const handleShortlist = (id: string) => {
-    setScoredResumes((resumes) =>
-      resumes.map((r) =>
-        r.id === id ? { ...r, status: "shortlisted" as const } : r
-      )
-    );
-    toast.success("Resume shortlisted!");
-  };
-
-  const handleReject = (id: string) => {
-    setScoredResumes((resumes) =>
-      resumes.map((r) =>
-        r.id === id ? { ...r, status: "rejected" as const } : r
-      )
-    );
-    toast.success("Resume rejected!");
-  };
-
-  const handleDelete = (id: string) => {
-    setScoredResumes((resumes) => resumes.filter((r) => r.id !== id));
-    toast.success("Resume deleted!");
-  };
-
-  const handleBulkScore = () => {
-    toast.info("Scoring all pending resumes...");
-    setTimeout(() => {
-      toast.success("All resumes scored successfully!");
-    }, 1500);
-  };
-
-  const handleExport = () => {
-    toast.success("Exporting resume analysis...");
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600 dark:text-green-400";
-    if (score >= 60) return "text-yellow-600 dark:text-yellow-400";
-    return "text-red-600 dark:text-red-400";
-  };
-
-  const getScoreBadge = (score: number) => {
-    if (score >= 80)
-      return (
-        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-          Excellent
-        </Badge>
-      );
-    if (score >= 60)
-      return (
-        <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-          Good
-        </Badge>
-      );
-    return (
-      <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-        Poor
-      </Badge>
-    );
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "shortlisted":
-        return (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-            Shortlisted
-          </Badge>
-        );
-      case "scored":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-            Scored
-          </Badge>
-        );
-      case "rejected":
-        return (
-          <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-            Rejected
-          </Badge>
-        );
-      case "pending":
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-            Pending
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+      // Load applications for all jobs
+      const allApplications: ApplicationResponse[] = [];
+      for (const job of jobsData) {
+        try {
+          const jobApps = await tenantApplicationAPI.listJobApplications(
+            job.id
+          );
+          allApplications.push(...jobApps);
+        } catch (err) {
+          console.error(`Failed to load applications for job ${job.id}:`, err);
+        }
+      }
+      setApplications(allApplications);
+    } catch (err) {
+      console.error("Failed to load data:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to load data");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -297,22 +92,85 @@ function ResumeScoringContent() {
       month: "short",
       day: "numeric",
       year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
-  const filteredResumes =
+  const getStatusBadge = (status: ApplicationStatus) => {
+    switch (status) {
+      case ApplicationStatus.SHORTLISTED:
+        return (
+          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+            Shortlisted
+          </Badge>
+        );
+      case ApplicationStatus.REJECTED:
+        return (
+          <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+            Rejected
+          </Badge>
+        );
+      case ApplicationStatus.PENDING:
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+            Pending
+          </Badge>
+        );
+      case ApplicationStatus.AI_INTERVIEW_COMPLETED:
+        return (
+          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+            AI Interview Done
+          </Badge>
+        );
+      case ApplicationStatus.HIRED:
+        return (
+          <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+            Hired
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">{status.replace(/_/g, " ")}</Badge>;
+    }
+  };
+
+  const filteredApplications =
     selectedJob === "all"
-      ? scoredResumes
-      : scoredResumes.filter((r) => r.jobId === selectedJob);
+      ? applications
+      : applications.filter((a) => a.job_id === selectedJob);
+
+  // Group applications by job for stats
+  const applicationsByJob = applications.reduce((acc, app) => {
+    acc[app.job_id] = (acc[app.job_id] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Count by status
+  const statusCounts = applications.reduce((acc, app) => {
+    acc[app.status] = (acc[app.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   const stats = {
-    total: scoredResumes.length,
-    scored: scoredResumes.filter((r) => r.status === "scored").length,
-    shortlisted: scoredResumes.filter((r) => r.status === "shortlisted").length,
-    pending: scoredResumes.filter((r) => r.status === "pending").length,
+    total: applications.length,
+    pending: statusCounts[ApplicationStatus.PENDING] || 0,
+    shortlisted: statusCounts[ApplicationStatus.SHORTLISTED] || 0,
+    activeJobs: jobs.filter((j) => j.is_open).length,
   };
+
+  const getJobTitle = (jobId: string) => {
+    const job = jobs.find((j) => j.id === jobId);
+    return job?.title || "Unknown Position";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[600px]">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">Loading applications...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -324,24 +182,29 @@ function ResumeScoringContent() {
             AI-powered resume analysis and candidate matching
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExport}>
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <Button onClick={handleBulkScore}>
-            <Sparkles className="mr-2 h-4 w-4" />
-            Bulk Score
-          </Button>
-        </div>
       </div>
+
+      {/* Info Alert */}
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>How Resume Scoring Works</AlertTitle>
+        <AlertDescription>
+          Resume scores are calculated automatically when you{" "}
+          <strong>close a job posting</strong>. When closing a job, you can
+          specify how many top candidates to shortlist, and our AI will analyze
+          all resumes against the job description to rank candidates. Go to a
+          job&apos;s detail page and click &quot;Close Job&quot; to trigger AI
+          scoring.
+        </AlertDescription>
+      </Alert>
 
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Resumes
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Total Applications
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -350,19 +213,21 @@ function ResumeScoringContent() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Scored
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Pending Review
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-              {stats.scored}
+            <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+              {stats.pending}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
               Shortlisted
             </CardTitle>
           </CardHeader>
@@ -374,233 +239,184 @@ function ResumeScoringContent() {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pending
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Briefcase className="h-4 w-4" />
+              Active Jobs
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
-              {stats.pending}
+            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              {stats.activeJobs}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Upload Area */}
+      {/* Jobs with Applications */}
       <Card>
         <CardHeader>
-          <CardTitle>Upload Resumes</CardTitle>
+          <CardTitle>Jobs Ready for AI Scoring</CardTitle>
           <CardDescription>
-            Drag and drop PDF resumes or click to browse
+            Close a job to trigger AI resume ranking and shortlisting
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <Select value={selectedJob} onValueChange={setSelectedJob}>
-                <SelectTrigger className="w-[300px]">
-                  <SelectValue placeholder="Select Job Position" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Positions</SelectItem>
-                  {jobsData.map((job) => (
-                    <SelectItem key={job.id} value={job.id}>
-                      {job.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {jobs.length === 0 ? (
+            <div className="text-center py-8">
+              <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No jobs found</p>
+              <Button
+                variant="link"
+                onClick={() =>
+                  router.push("/tenant/recruiter-portal/jobs/create")
+                }
+              >
+                Create a job posting
+              </Button>
             </div>
-
-            <div
-              className={`relative border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-                dragActive
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50 hover:bg-accent/50"
-              } ${isScoring ? "opacity-50 pointer-events-none" : ""}`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <input
-                type="file"
-                id="file-upload"
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                accept=".pdf"
-                onChange={handleFileInput}
-                disabled={isScoring}
-              />
-              <div className="flex flex-col items-center gap-4">
-                {isScoring ? (
-                  <>
-                    <Sparkles className="h-12 w-12 text-primary animate-pulse" />
-                    <div className="space-y-2">
-                      <div className="text-lg font-semibold">
-                        AI is analyzing the resume...
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        This will take just a moment
-                      </div>
+          ) : (
+            <div className="space-y-3">
+              {jobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{job.title}</span>
+                      {job.is_open ? (
+                        <Badge variant="outline" className="text-green-600">
+                          Open
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-gray-500">
+                          Closed
+                        </Badge>
+                      )}
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-12 w-12 text-muted-foreground" />
-                    <div className="space-y-2">
-                      <div className="text-lg font-semibold">
-                        Drag and drop resume here
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        or click to browse files (PDF only)
-                      </div>
+                    <div className="text-sm text-muted-foreground">
+                      {job.department} • {job.location} •{" "}
+                      {applicationsByJob[job.id] || 0} applications
                     </div>
-                    <Button type="button" variant="outline" size="sm">
-                      <FileText className="mr-2 h-4 w-4" />
-                      Browse Files
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {job.is_open && (applicationsByJob[job.id] || 0) > 0 && (
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          router.push(`/tenant/recruiter-portal/jobs/${job.id}`)
+                        }
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        View & Close Job
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        router.push(`/tenant/recruiter-portal/jobs/${job.id}`)
+                      }
+                    >
+                      <ExternalLink className="h-4 w-4" />
                     </Button>
-                  </>
-                )}
-              </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Scored Resumes Table */}
+      {/* Applications Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Scored Resumes</CardTitle>
-          <CardDescription>
-            AI-analyzed resumes with matching scores
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>All Applications</CardTitle>
+              <CardDescription>
+                View all applications across jobs
+              </CardDescription>
+            </div>
+            <Select value={selectedJob} onValueChange={setSelectedJob}>
+              <SelectTrigger className="w-[250px]">
+                <SelectValue placeholder="Filter by Job" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Jobs</SelectItem>
+                {jobs.map((job) => (
+                  <SelectItem key={job.id} value={job.id}>
+                    {job.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Candidate / File</TableHead>
+                <TableHead>Applicant</TableHead>
                 <TableHead>Job Position</TableHead>
-                <TableHead className="text-center">AI Score</TableHead>
-                <TableHead>Key Skills</TableHead>
+                <TableHead>Applied On</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Uploaded</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredResumes.length === 0 ? (
+              {filteredApplications.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={5} className="text-center py-8">
                     <div className="text-muted-foreground">
-                      No resumes uploaded yet. Start by uploading some resumes
-                      above.
+                      No applications found
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredResumes.map((resume) => (
+                filteredApplications.map((app) => (
                   <TableRow
-                    key={resume.id}
+                    key={app.id}
                     className="cursor-pointer hover:bg-accent/50"
+                    onClick={() =>
+                      router.push(
+                        `/tenant/recruiter-portal/applications/${app.id}`
+                      )
+                    }
                   >
                     <TableCell>
                       <div className="space-y-1">
                         <div className="font-semibold">
-                          {resume.candidateName}
+                          Applicant #{app.id.slice(0, 8)}
                         </div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <FileText className="h-3 w-3" />
-                          {resume.fileName}
+                          Resume attached
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="max-w-[200px]">
-                        <div className="font-medium truncate">
-                          {resume.jobTitle}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {resume.experience}
-                        </div>
+                      <div className="font-medium">
+                        {getJobTitle(app.job_id)}
                       </div>
                     </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-full max-w-[80px]">
-                          <Progress value={resume.aiScore} className="h-2" />
-                        </div>
-                        <span
-                          className={`text-2xl font-bold ${getScoreColor(
-                            resume.aiScore
-                          )}`}
-                        >
-                          {resume.aiScore}
-                        </span>
-                        {getScoreBadge(resume.aiScore)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1 max-w-[200px]">
-                        {resume.skills.slice(0, 3).map((skill, idx) => (
-                          <Badge
-                            key={idx}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            {skill}
-                          </Badge>
-                        ))}
-                        {resume.skills.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{resume.skills.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(resume.status)}</TableCell>
                     <TableCell className="text-sm">
-                      {formatDate(resume.uploadedDate)}
+                      {formatDate(app.applied_on)}
                     </TableCell>
+                    <TableCell>{getStatusBadge(app.status)}</TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <TrendingUp className="mr-2 h-4 w-4" />
-                            View Analysis
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Download className="mr-2 h-4 w-4" />
-                            Download Resume
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => handleShortlist(resume.id)}
-                          >
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Shortlist
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleReject(resume.id)}
-                          >
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Reject
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(resume.id)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(
+                            `/tenant/recruiter-portal/applications/${app.id}`
+                          );
+                        }}
+                      >
+                        View
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -615,8 +431,10 @@ function ResumeScoringContent() {
 
 export default function ResumeScoringPage() {
   return (
-    <ModernRecruiterLayout>
-      <ResumeScoringContent />
-    </ModernRecruiterLayout>
+    <TenantProtectedRoute allowedRoles={["recruiter"]}>
+      <ModernRecruiterLayout>
+        <ResumeScoringContent />
+      </ModernRecruiterLayout>
+    </TenantProtectedRoute>
   );
 }

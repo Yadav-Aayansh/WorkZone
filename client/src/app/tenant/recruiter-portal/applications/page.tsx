@@ -85,7 +85,9 @@ function ApplicationsContent() {
           const appsWithJob = jobApps.map((app) => ({
             ...app,
             job,
-            score: Math.floor(Math.random() * 60) + 35, // Mock score for demo
+            // Note: resume_score is available in backend model but not exposed in API response
+            // Score will be undefined/null until backend schema is updated
+            score: undefined,
           }));
           allApplications.push(...appsWithJob);
         } catch (err) {
@@ -376,14 +378,18 @@ function ApplicationsContent() {
 
                   {/* AI Score */}
                   <div className="text-center">
-                    <div
-                      className={cn(
-                        "text-lg font-bold",
-                        getScoreColor(app.score || 0)
-                      )}
-                    >
-                      ● {app.score}%
-                    </div>
+                    {app.score !== undefined ? (
+                      <div
+                        className={cn(
+                          "text-lg font-bold",
+                          getScoreColor(app.score || 0)
+                        )}
+                      >
+                        ● {app.score}%
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">N/A</div>
+                    )}
                   </div>
 
                   {/* Applied Role */}
