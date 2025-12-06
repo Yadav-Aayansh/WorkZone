@@ -6,6 +6,8 @@ from src.schemas.tenant import HelpdeskQuery
 from src.exceptions.tenant import (
     UserNotFoundError, EmployeeNotFoundError
 )
+from src.exceptions.base import FileTypeNotAllowedError, FileSizeExceededError
+from src.core.logger import logger
 
 employee_router = APIRouter(prefix="/employee", tags=["Tenant Employee"])
 
@@ -31,11 +33,16 @@ async def update_employee_profile(
 ):
     try:
         user_id = current_user.get("sub")
-        return await service.profile(user_id)
+        logger.info(resume)
+        return await service.update_profile(user_id, resume)
     except UserNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except EmployeeNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except FileTypeNotAllowedError as e:
+        raise HTTPException(status_code=415, detail=str(e))
+    except FileSizeExceededError as e:
+        raise HTTPException(status_code=413, detail=str(e))
 
 
 @employee_router.post("/helpdesk") 

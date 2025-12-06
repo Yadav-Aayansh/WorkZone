@@ -47,12 +47,16 @@ class EmployeeService:
         if not employee:
             raise EmployeeNotFoundError(f"Employee does not exist!")
         
+        logger.info(resume)
         if resume:
             tenant_id = tenant_context.get()
             storage_client.validate_file(resume, [".pdf"])
             blob_name, url = storage_client.upload(resume, f"tenant/{tenant_id}/resume")
-        
 
+            employee = await self.employee_repo.update_employee(employee.id, resume=blob_name)
+            logger.info(employee)
+        return {"message": "Profile updated successfully!"}
+        
     
     async def helpdesk(self, user_id: str, query: str, chat_id: Optional[str]) -> ChatResponse:
         user = await self.user_repo.get_user_by_id(user_id)

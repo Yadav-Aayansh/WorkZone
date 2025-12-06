@@ -10,6 +10,7 @@ from src.exceptions.platform import (
     DomainAlreadyExistsError, DomainNotVerifiedError, UnauthorizedAccessError
 )
 from src.exceptions.tenant import UserAlreadyExistsError
+from src.exceptions.base import FileSizeExceededError, FileTypeNotAllowedError
 
 client_router = APIRouter(tags=["Client"])
 
@@ -28,6 +29,10 @@ async def onboarding(
         return response
     except TenantAlreadyExistsError as e:
         raise HTTPException(status_code=409, detail=str(e))
+    except FileTypeNotAllowedError as e:
+        raise HTTPException(status_code=415, detail=str(e))
+    except FileSizeExceededError as e:
+        raise HTTPException(status_code=413, detail=str(e))
 
 
 @client_router.get(path="/tenant-availability")
