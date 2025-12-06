@@ -457,6 +457,15 @@ export interface InviteUserResponse {
   invitation_token?: string;
 }
 
+/**
+ * Member of the client/tenant organization
+ */
+export interface ClientMember {
+  name: string;
+  email: string;
+  role: string;
+}
+
 export const platformClientAPI = {
   /**
    * Check if a tenant_id is available
@@ -504,6 +513,18 @@ export const platformClientAPI = {
     return platformApiRequest<{ message: string }>(
       `${BASE_URL}/api/platform/custom-domain/${encodeURIComponent(domain)}`,
       { method: 'DELETE' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get all members of the tenant organization (requires authentication)
+   */
+  async getMembers(): Promise<ClientMember[]> {
+    return platformApiRequest<ClientMember[]>(
+      `${BASE_URL}/api/platform/members`,
+      { method: 'GET' },
       2,
       true
     );

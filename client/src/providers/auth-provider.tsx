@@ -201,10 +201,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (accountStatus: string) => {
       switch (accountStatus?.toLowerCase()) {
         case "onboarding":
-          router.push("/signup");
+          // User has created account but not completed workspace onboarding
+          // Redirect to step 2 (WorkspaceOnboarding)
+          router.push("/signup?step=2");
           break;
         case "subscription":
-          // Redirect directly to payment step (step 3) in signup
+          // User has completed onboarding but not subscribed
+          // Redirect to step 3 (Payment)
           router.push("/signup?step=3");
           break;
         case "active":

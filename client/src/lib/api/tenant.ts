@@ -304,7 +304,8 @@ async function tenantApiRequest<T>(
   url: string,
   options: RequestInit,
   retries: number = 1,
-  requiresAuth: boolean = false
+  requiresAuth: boolean = false,
+  isFormData: boolean = false
 ): Promise<T> {
   let lastError: Error;
   let currentAccessToken: string | null = null;
@@ -318,10 +319,15 @@ async function tenantApiRequest<T>(
   for (let i = 0; i <= retries; i++) {
     try {
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
         ...getCustomDomainHeader(), // Add custom domain header if on custom domain
         ...(options.headers as Record<string, string>),
       };
+
+      // Only set Content-Type for non-FormData requests
+      // For FormData, let the browser set it with the correct boundary
+      if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+      }
 
       // Add authorization header if token is available
       if (currentAccessToken) {
@@ -919,6 +925,18 @@ export const tenantManagerAPI = {
       true
     );
   },
+
+  /**
+   * Get manager's team (all employees under this manager)
+   */
+  async getTeam(): Promise<TeamResponse> {
+    return tenantApiRequest<TeamResponse>(
+      `${getTenantBackendUrl()}/api/tenant/manager/team`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
 };
 
 // ============ Employee Profile API ============
@@ -932,8 +950,7 @@ export interface EmployeeProfileResponse {
   email: string;
   name: string;
   title?: string;
-  manager_id?: string;
-  manager_name?: string;
+  resume?: string | null; // Resume URL from storage
 }
 
 /**
@@ -967,6 +984,29 @@ export interface HelpdeskResponse {
   confidence: number;
 }
 
+/**
+ * Update Employee Profile Request (for resume upload)
+ */
+export interface UpdateEmployeeProfileResponse {
+  message: string;
+}
+
+/**
+ * Team Member Info
+ */
+export interface TeamMemberInfo {
+  name: string;
+  title: string;
+}
+
+/**
+ * Team Response (for both employee and manager)
+ */
+export interface TeamResponse {
+  manager: string;
+  employees: TeamMemberInfo[];
+}
+
 export const tenantEmployeeAPI = {
   /**
    * Get current employee's profile (requires EMPLOYEE role)
@@ -977,6 +1017,27 @@ export const tenantEmployeeAPI = {
       { method: 'GET' },
       2,
       true
+    );
+  },
+
+  /**
+   * Update employee profile (upload resume)
+   * @param resume - The resume file to upload (PDF only)
+   */
+  async updateProfile(resume: File): Promise<UpdateEmployeeProfileResponse> {
+    const formData = new FormData();
+    formData.append('resume', resume);
+    
+    return tenantApiRequest<UpdateEmployeeProfileResponse>(
+      `${getTenantBackendUrl()}/api/tenant/employee/me`,
+      {
+        method: 'POST',
+        body: formData,
+        // Don't set Content-Type header - let browser set it with boundary for FormData
+      },
+      2,
+      true,
+      true // isFormData flag
     );
   },
 
@@ -993,6 +1054,18 @@ export const tenantEmployeeAPI = {
         method: 'POST',
         body: JSON.stringify(data),
       },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get employee's team (manager and colleagues)
+   */
+  async getTeam(): Promise<TeamResponse> {
+    return tenantApiRequest<TeamResponse>(
+      `${getTenantBackendUrl()}/api/tenant/employee/team`,
+      { method: 'GET' },
       2,
       true
     );
@@ -1032,26 +1105,21 @@ export interface RejectLeaveRequest {
 export interface LeaveRequestResponse {
   id: string;
   employee_id: string;
-  manager_id: string | null;
+  manager_id: string;
   leave_type: LeaveRequestType;
   status: LeaveRequestStatus;
   start_date: string;
   end_date: string;
   reason: string;
   rejection_reason: string | null;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface LeaveBalanceResponse {
-  employee_id: string;
   casual: number;
   sick: number;
   earned: number;
   maternity: number;
   paternity: number;
-  total_available: number;
-  total_used: number;
 }
 
 // ============================================
@@ -1132,6 +1200,65 @@ export const tenantLeaveAPI = {
         method: 'POST',
         body: JSON.stringify(data),
       },
+      2,
+      true
+    );
+  },
+};
+
+// ============================================
+// Learning Path Types
+// ============================================
+
+export interface GenerateLearningPathRequest {
+  career_goal: string;
+}
+
+export interface LearningResource {
+  title: string;
+  url: string;
+  type: string; // e.g., 'Article', 'Video', 'Course', 'Documentation'
+}
+
+export interface SkillArea {
+  skill_name: string;
+  reason: string; // Why this skill is important for the goal
+  resources: LearningResource[];
+}
+
+export interface LearningPlanResponse {
+  plan_title: string;
+  plan_summary: string;
+  skill_areas: SkillArea[];
+}
+
+// ============================================
+// Tenant Learning Path API (Employee)
+// ============================================
+
+export const tenantLearningAPI = {
+  /**
+   * Generate a personalized learning path based on career goal (requires EMPLOYEE role)
+   */
+  async generatePath(data: GenerateLearningPathRequest): Promise<LearningPlanResponse> {
+    return tenantApiRequest<LearningPlanResponse>(
+      `${getTenantBackendUrl()}/api/tenant/learning/generate`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get all learning paths for current employee (requires EMPLOYEE role)
+   */
+  async getMyPaths(): Promise<LearningPlanResponse[]> {
+    return tenantApiRequest<LearningPlanResponse[]>(
+      `${getTenantBackendUrl()}/api/tenant/learning/`,
+      { method: 'GET' },
       2,
       true
     );

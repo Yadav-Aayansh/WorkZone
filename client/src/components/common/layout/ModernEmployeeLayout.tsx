@@ -12,6 +12,8 @@ import {
   Search,
   Clock,
   MessageSquare,
+  GraduationCap,
+  Users,
 } from "lucide-react";
 import { CollapsibleSidebar } from "@/components/common/layout/CollapsibleSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -42,6 +44,16 @@ const navItems = [
     title: "Leave Management",
     href: "/tenant/employee-portal/leaves",
     icon: Calendar,
+  },
+  {
+    title: "My Team",
+    href: "/tenant/employee-portal/team",
+    icon: Users,
+  },
+  {
+    title: "Learning Paths",
+    href: "/tenant/employee-portal/learning",
+    icon: GraduationCap,
   },
   {
     title: "My Requests",

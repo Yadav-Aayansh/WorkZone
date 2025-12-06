@@ -210,6 +210,15 @@ function LeaveManagementContent() {
     return diffDays;
   };
 
+  // Calculate total leave balance (sum of all leave types)
+  const totalAvailable = leaveBalance
+    ? (leaveBalance.casual ?? 0) +
+      (leaveBalance.sick ?? 0) +
+      (leaveBalance.earned ?? 0) +
+      (leaveBalance.maternity ?? 0) +
+      (leaveBalance.paternity ?? 0)
+    : 0;
+
   // Filter requests by status
   const pendingRequests = leaveRequests.filter(
     (req) => req.status === LeaveRequestStatus.PENDING
@@ -427,7 +436,7 @@ function LeaveManagementContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              {leaveBalance?.total_available ?? 0}
+              {totalAvailable}
             </div>
             <p className="text-xs text-muted-foreground">days</p>
           </CardContent>
@@ -497,7 +506,6 @@ function LeaveManagementContent() {
             <TableHead>Days</TableHead>
             <TableHead>Reason</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Applied On</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -518,7 +526,6 @@ function LeaveManagementContent() {
                 {request.reason}
               </TableCell>
               <TableCell>{getStatusBadge(request.status)}</TableCell>
-              <TableCell>{formatDate(request.created_at)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
