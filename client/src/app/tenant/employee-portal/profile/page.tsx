@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { ModernEmployeeLayout } from "@/components/common/layout/ModernEmployeeLayout";
@@ -26,17 +26,25 @@ import {
   Copy,
   CheckCircle,
   Hash,
-  Shield,
   Building2,
+  Download,
+  ExternalLink,
+  FileUp,
+  Upload,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTenant } from "@/providers/tenant-provider";
+import { Input } from "@/components/ui/input";
 
 function EmployeeProfileContent() {
   const { tenant } = useTenant();
   const [profile, setProfile] = useState<EmployeeProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadProfile();
@@ -65,6 +73,56 @@ function EmployeeProfileContent() {
       setTimeout(() => setCopiedField(null), 2000);
     } catch {
       toast.error(`Failed to copy ${field}`);
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (file.type !== "application/pdf") {
+        toast.error("Please select a PDF file");
+        return;
+      }
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size must be less than 10MB");
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
+  const handleUploadResume = async () => {
+    if (!selectedFile) {
+      toast.error("Please select a file first");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      await tenantEmployeeAPI.updateProfile(selectedFile);
+      toast.success("Resume uploaded successfully!");
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      // Reload profile to get updated resume URL
+      await loadProfile();
+    } catch (err: unknown) {
+      console.error("Failed to upload resume:", err);
+      const message =
+        err instanceof Error ? err.message : "Failed to upload resume";
+      toast.error(message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const clearSelectedFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -287,44 +345,160 @@ function EmployeeProfileContent() {
                   </p>
                 </div>
               )}
-              {profile.manager_id && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    Manager ID
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-mono bg-muted px-3 py-2 rounded flex-1 truncate">
-                      {profile.manager_id}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Resume Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileUp className="h-5 w-5" />
+              Resume / CV
+            </CardTitle>
+            <CardDescription>
+              Your uploaded resume for learning path generation and career
+              development
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Current Resume Status */}
+            {profile.resume ? (
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-green-100 dark:bg-green-900/50 rounded-lg">
+                    <FileText className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-green-800 dark:text-green-200">
+                      Resume Uploaded
                     </p>
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      Your resume is available for AI-powered features
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-green-300 hover:bg-green-100 dark:border-green-700 dark:hover:bg-green-900/50"
+                    onClick={() => window.open(profile.resume!, "_blank")}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    View
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-green-300 hover:bg-green-100 dark:border-green-700 dark:hover:bg-green-900/50"
+                    asChild
+                  >
+                    <a href={profile.resume} download>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center p-6 bg-muted/50 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+                <div className="p-3 bg-muted rounded-full mb-3">
+                  <FileUp className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="font-medium text-muted-foreground">
+                  No Resume Uploaded
+                </p>
+                <p className="text-sm text-muted-foreground/70 text-center mt-1 max-w-md">
+                  Upload your resume to enable AI-powered learning path
+                  recommendations
+                </p>
+              </div>
+            )}
+
+            {/* Upload New Resume Section */}
+            <div className="pt-4 border-t">
+              <p className="text-sm font-medium mb-3">
+                {profile.resume ? "Update Your Resume" : "Upload Your Resume"}
+              </p>
+              <div className="space-y-3">
+                {/* Hidden file input */}
+                <Input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="resume-upload"
+                />
+
+                {/* File selection area */}
+                {!selectedFile ? (
+                  <label
+                    htmlFor="resume-upload"
+                    className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors"
+                  >
+                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                    <p className="font-medium text-sm">
+                      Click to select PDF file
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      PDF only, max 10MB
+                    </p>
+                  </label>
+                ) : (
+                  <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded">
+                        <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm text-blue-800 dark:text-blue-200">
+                          {selectedFile.name}
+                        </p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400">
+                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 flex-shrink-0"
-                      onClick={() =>
-                        copyToClipboard(profile.manager_id!, "Manager ID")
-                      }
+                      onClick={clearSelectedFile}
+                      className="h-8 w-8 text-blue-600 hover:text-blue-800 hover:bg-blue-100"
                     >
-                      {copiedField === "Manager ID" ? (
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-              )}
-              {profile.manager_name && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Manager Name
-                  </label>
-                  <p className="text-sm bg-muted px-3 py-2 rounded">
-                    {profile.manager_name}
-                  </p>
-                </div>
-              )}
+                )}
+
+                {/* Upload button */}
+                {selectedFile && (
+                  <Button
+                    onClick={handleUploadResume}
+                    disabled={isUploading}
+                    className="w-full"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Resume
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -22,6 +22,8 @@ import {
   CalendarDays,
   AlertCircle,
   ArrowRight,
+  GraduationCap,
+  Sparkles,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -132,6 +134,28 @@ function DashboardContent() {
     (req) => req.status === LeaveRequestStatus.APPROVED
   ).length;
 
+  // Calculate total leave balance (sum of all leave types)
+  const totalAvailable = leaveBalance
+    ? (leaveBalance.casual ?? 0) +
+      (leaveBalance.sick ?? 0) +
+      (leaveBalance.earned ?? 0) +
+      (leaveBalance.maternity ?? 0) +
+      (leaveBalance.paternity ?? 0)
+    : 0;
+
+  // Calculate total used from approved leave requests
+  const totalUsed = leaveRequests
+    .filter((req) => req.status === LeaveRequestStatus.APPROVED)
+    .reduce((acc, req) => {
+      const startDate = new Date(req.start_date);
+      const endDate = new Date(req.end_date);
+      const days =
+        Math.ceil(
+          (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+        ) + 1;
+      return acc + days;
+    }, 0);
+
   // Get recent requests (last 5)
   const recentRequests = leaveRequests.slice(0, 5);
 
@@ -217,9 +241,7 @@ function DashboardContent() {
             <CalendarDays className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {leaveBalance?.total_used ?? 0}
-            </div>
+            <div className="text-2xl font-bold">{totalUsed}</div>
             <p className="text-xs text-muted-foreground">days taken</p>
           </CardContent>
         </Card>
@@ -240,7 +262,7 @@ function DashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-blue-600">
-              {leaveBalance?.total_available ?? 0}
+              {totalAvailable}
             </div>
             <p className="text-sm text-muted-foreground mt-1">
               days remaining this year
@@ -269,6 +291,37 @@ function DashboardContent() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Learning Paths Quick Access */}
+      <Card className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white border-0 overflow-hidden relative">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:20px_20px]" />
+        <CardHeader className="relative">
+          <CardTitle className="flex items-center gap-2 text-white">
+            <div className="p-2 rounded-lg bg-white/20">
+              <GraduationCap className="h-5 w-5" />
+            </div>
+            AI-Powered Learning Paths
+          </CardTitle>
+          <CardDescription className="text-white/80">
+            Accelerate your career with personalized learning recommendations
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="relative">
+          <p className="text-sm text-white/90 mb-4">
+            Set your career goals and get a customized learning path with
+            curated resources, courses, and tutorials to help you grow
+            professionally.
+          </p>
+          <Button
+            onClick={() => router.push("/tenant/employee-portal/learning")}
+            className="bg-white text-indigo-600 hover:bg-white/90 hover:text-indigo-700"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            Explore Learning Paths
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Recent Leave Requests */}
       <Card>

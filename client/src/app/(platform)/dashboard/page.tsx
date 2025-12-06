@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
@@ -17,6 +17,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Building2,
   UserPlus,
@@ -35,10 +37,18 @@ import {
   Calendar,
   Globe,
   Shield,
+  Loader2,
+  RefreshCw,
+  Search,
+  Briefcase,
+  Crown,
+  User,
 } from "lucide-react";
 import { LeaveTypesConfig } from "@/components/dashboard/leave-types-config";
 import { PolicyDocumentsManager } from "@/components/dashboard/policy-documents-manager";
 import { CustomDomainManager } from "@/components/dashboard/custom-domain-manager";
+import { platformClientAPI, ClientMember } from "@/lib/api";
+import { toast } from "sonner";
 
 type Tab = "overview" | "team" | "settings";
 
@@ -59,6 +69,79 @@ export default function DashboardPage() {
     primaryColor: "#6366f1",
     secondaryColor: "#8b5cf6",
   });
+
+  // Members state
+  const [members, setMembers] = useState<ClientMember[]>([]);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  const [membersSearchQuery, setMembersSearchQuery] = useState("");
+
+  // Load members on initial load and when team tab is active
+  useEffect(() => {
+    loadMembers();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "team" && members.length === 0) {
+      loadMembers();
+    }
+  }, [activeTab]);
+
+  const loadMembers = async () => {
+    setIsLoadingMembers(true);
+    try {
+      const data = await platformClientAPI.getMembers();
+      setMembers(data);
+    } catch (err) {
+      console.error("Failed to load members:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to load members"
+      );
+    } finally {
+      setIsLoadingMembers(false);
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role.toLowerCase()) {
+      case "manager":
+        return "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300";
+      case "employee":
+        return "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300";
+      case "recruiter":
+        return "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300";
+      case "applicant":
+        return "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300";
+      default:
+        return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+    }
+  };
+
+  const getRoleIcon = (role: string) => {
+    switch (role.toLowerCase()) {
+      case "manager":
+        return <Crown className="h-3 w-3 mr-1" />;
+      case "recruiter":
+        return <Briefcase className="h-3 w-3 mr-1" />;
+      default:
+        return <User className="h-3 w-3 mr-1" />;
+    }
+  };
+
+  const filteredMembers = members.filter(
+    (member) =>
+      member.name.toLowerCase().includes(membersSearchQuery.toLowerCase()) ||
+      member.email.toLowerCase().includes(membersSearchQuery.toLowerCase()) ||
+      member.role.toLowerCase().includes(membersSearchQuery.toLowerCase())
+  );
 
   const handleLogout = async () => {
     await logout();
@@ -213,7 +296,7 @@ export default function DashboardPage() {
                             Team Members
                           </p>
                           <p className="text-3xl font-bold dark:text-white">
-                            {mockTenantData.teamCount}
+                            {members.length}
                           </p>
                         </div>
                         <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
@@ -351,9 +434,97 @@ export default function DashboardPage() {
 
             {activeTab === "team" && (
               <div className="space-y-6">
+                {/* Stats Overview */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card className="border-none shadow-lg dark:bg-gray-800">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                          <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold dark:text-white">
+                            {members.length}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Total Members
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-none shadow-lg dark:bg-gray-800">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+                          <Crown className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold dark:text-white">
+                            {
+                              members.filter(
+                                (m) => m.role.toLowerCase() === "manager"
+                              ).length
+                            }
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Managers
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-none shadow-lg dark:bg-gray-800">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
+                          <Briefcase className="h-6 w-6 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold dark:text-white">
+                            {
+                              members.filter(
+                                (m) => m.role.toLowerCase() === "recruiter"
+                              ).length
+                            }
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Recruiters
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-none shadow-lg dark:bg-gray-800">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
+                          <User className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold dark:text-white">
+                            {
+                              members.filter(
+                                (m) => m.role.toLowerCase() === "employee"
+                              ).length
+                            }
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Employees
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Members List */}
                 <Card className="border-none shadow-xl dark:bg-gray-800">
                   <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
                         <CardTitle className="text-xl dark:text-white">
                           Team Members
@@ -362,32 +533,106 @@ export default function DashboardPage() {
                           Manage your workspace members
                         </CardDescription>
                       </div>
-                      <Button
-                        onClick={handleInviteEmployee}
-                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-                      >
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Invite Member
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={loadMembers}
+                          disabled={isLoadingMembers}
+                          className="dark:border-gray-600"
+                        >
+                          <RefreshCw
+                            className={`h-4 w-4 ${
+                              isLoadingMembers ? "animate-spin" : ""
+                            }`}
+                          />
+                        </Button>
+                        <Button
+                          onClick={handleInviteEmployee}
+                          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                        >
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Invite Member
+                        </Button>
+                      </div>
                     </div>
+                    {members.length > 0 && (
+                      <div className="relative mt-4">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          placeholder="Search by name, email, or role..."
+                          value={membersSearchQuery}
+                          onChange={(e) =>
+                            setMembersSearchQuery(e.target.value)
+                          }
+                          className="pl-10 dark:bg-gray-700 dark:border-gray-600"
+                        />
+                      </div>
+                    )}
                   </CardHeader>
                   <CardContent>
-                    <div className="text-center py-16 text-gray-500 dark:text-gray-400">
-                      <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p className="text-lg font-medium mb-2">
-                        No team members yet
-                      </p>
-                      <p className="text-sm mb-6">
-                        Invite your first team member to get started
-                      </p>
-                      <Button
-                        onClick={handleInviteEmployee}
-                        className="bg-gradient-to-r from-indigo-600 to-purple-600"
-                      >
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Send Invitation
-                      </Button>
-                    </div>
+                    {isLoadingMembers ? (
+                      <div className="flex items-center justify-center py-16">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : members.length === 0 ? (
+                      <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+                        <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                        <p className="text-lg font-medium mb-2">
+                          No team members yet
+                        </p>
+                        <p className="text-sm mb-6">
+                          Invite your first team member to get started
+                        </p>
+                        <Button
+                          onClick={handleInviteEmployee}
+                          className="bg-gradient-to-r from-indigo-600 to-purple-600"
+                        >
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Send Invitation
+                        </Button>
+                      </div>
+                    ) : filteredMembers.length === 0 ? (
+                      <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+                        <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p className="text-lg font-medium mb-2">
+                          No members found
+                        </p>
+                        <p className="text-sm">Try a different search term</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {filteredMembers.map((member, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:shadow-md transition-shadow"
+                          >
+                            <Avatar className="h-12 w-12">
+                              <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+                                {getInitials(member.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold dark:text-white truncate">
+                                {member.name}
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                {member.email}
+                              </p>
+                              <Badge
+                                className={`mt-1 ${getRoleBadgeColor(
+                                  member.role
+                                )}`}
+                              >
+                                {getRoleIcon(member.role)}
+                                {member.role.charAt(0).toUpperCase() +
+                                  member.role.slice(1)}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>

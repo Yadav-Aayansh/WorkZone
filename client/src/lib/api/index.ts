@@ -33,6 +33,7 @@ export type {
   LeaveTypesResponse,
   PolicyDocument,
   PolicyListResponse,
+  ClientMember,
 } from './platform';
 
 // Tenant API exports
@@ -48,6 +49,7 @@ export {
   tenantManagerAPI,
   tenantEmployeeAPI,
   tenantLeaveAPI,
+  tenantLearningAPI,
   TenantAPIError,
   getTenantSubdomain,
   getTenantTokens,
@@ -83,10 +85,17 @@ export type {
   EmployeeInfo,
   HelpdeskQueryRequest,
   HelpdeskResponse,
+  UpdateEmployeeProfileResponse,
+  TeamMemberInfo,
+  TeamResponse,
   ApplyLeaveRequest,
   RejectLeaveRequest,
   LeaveRequestResponse,
   LeaveBalanceResponse,
+  GenerateLearningPathRequest,
+  LearningResource,
+  SkillArea,
+  LearningPlanResponse,
 } from './tenant';
 
 // Backwards compatibility - import for creating combined API
