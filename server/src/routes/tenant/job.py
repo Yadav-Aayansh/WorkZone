@@ -108,4 +108,4 @@ async def delete_job(
 
 @job_router.post(path="/ai/enhance-description")
 async def job_description_enhancer(prompt: JDBuilderPrompt):
-    return generate_jd(prompt)
+    return await generate_jd(prompt)
