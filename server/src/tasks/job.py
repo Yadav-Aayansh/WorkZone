@@ -7,7 +7,7 @@ from src.models.platform import Client
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from typing import Optional
-from .email import send_rejection_email
+from .email import send_rejection_email, send_shortlist_email
 
 @worker.task(bind=True, max_retries=3)
 def resume_ranking(self, tenant_id: str, job_id: str, top_x: Optional[int]):
@@ -34,7 +34,7 @@ def resume_ranking(self, tenant_id: str, job_id: str, top_x: Optional[int]):
                 application = db.execute(select(Application).where(Application.id == shortlisted.application_id)).scalar_one_or_none()
                 application.resume_score = shortlisted.final_score
                 application.status = ApplicationStatus.SHORTLISTED
-                # send_shortlisted_email(application.user.email, rejected.feedback, brand)
+                send_shortlist_email(application.user.email, brand, application.user.name, application.job.title)
 
             for rejected in ranking_results.rejected_candidates:
                 application = db.execute(select(Application).where(Application.id == rejected.application_id)).scalar_one_or_none()
