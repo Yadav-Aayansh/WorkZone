@@ -14,7 +14,7 @@ class TenantBase(DeclarativeBase):
 
 from src.models.tenant import *
 
-async_engine = create_async_engine(url=Config.ASYNC_DATABASE_URL, echo=True)
+async_engine = create_async_engine(url=Config.ASYNC_DATABASE_URL, echo=True, connect_args={"prepared_statement_cache_size": 0})
 AsyncSessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=async_engine)
 
 async def init_db() -> None:
