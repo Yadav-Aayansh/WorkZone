@@ -1,6 +1,7 @@
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from typing import Sequence
 
 from src.models.tenant import Query, QueryStatus
 
@@ -28,3 +29,13 @@ class QueryRepository:
             await self.db.commit()
             await self.db.refresh(query)
         return query
+    
+    async def get_queries_by_employee_id(self, employee_id: UUID) -> Sequence[Query]:
+        query = select(Query).where(Query.employee_id == employee_id).order_by(Query.created_at.desc())
+        result = await self.db.execute(query)
+        return result.scalars().all()
+
+    async def get_queries_by_recruiter_id(self, recruiter_id: UUID) -> Sequence[Query]:
+        query = select(Query).where(Query.recruiter_id == recruiter_id).order_by(Query.created_at.desc())
+        result = await self.db.execute(query)
+        return result.scalars().all()
