@@ -42,6 +42,9 @@ class UnauthorizedAccessError(AuthorizationError):
 class ApplicationNotFoundError(NotFoundError):
     pass
 
+class ApplicationAlreadyExistsError(ConflictError):
+    pass
+
 class InsufficientLeaveBalanceError(ValidationError):
     pass
 
