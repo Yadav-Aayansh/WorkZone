@@ -8,6 +8,8 @@ import { TenantAuthProvider } from "@/providers/tenant-auth-provider";
 import { ToastProvider } from "@/providers/toast-provider";
 import { AuthTokenManager } from "@/components/auth/AuthTokenManager";
 import { Toaster } from "@/components/ui/sonner";
+import { Suspense } from "react";
+import { PageLoader } from "@/components/common/PageLoader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -98,6 +100,9 @@ export default function RootLayout({
           // enableSystem
           // disableTransitionOnChange
         >
+          <Suspense fallback={null}>
+            <PageLoader />
+          </Suspense>
           <ToastProvider>
             {/* Platform Auth Provider - for company/client authentication */}
             <AuthProvider>

@@ -79,7 +79,7 @@ const LeaveTypeCard = ({
       >
         {/* Gradient Background */}
         <div
-          className={`absolute inset-0 opacity-5 ${color}`}
+          className={`absolute inset-0 opacity-5 pointer-events-none ${color}`}
           style={{
             background: isEnabled
               ? `linear-gradient(135deg, ${color.replace("bg-", "var(--")})`
@@ -432,17 +432,23 @@ export function LeaveTypesConfig() {
   };
 
   const updateLeaveType = (id: string, config: LeaveTypeConfig) => {
-    setLeaveTypes((prev) => ({
-      ...prev,
-      [id]: { ...prev[id], config },
-    }));
+    setLeaveTypes((prev) => {
+      const existing = prev[id] || { enabled: false, config: defaultConfig };
+      return {
+        ...prev,
+        [id]: { ...existing, config },
+      };
+    });
   };
 
   const toggleLeaveType = (id: string, enabled: boolean) => {
-    setLeaveTypes((prev) => ({
-      ...prev,
-      [id]: { ...prev[id], enabled },
-    }));
+    setLeaveTypes((prev) => {
+      const existing = prev[id] || { enabled: false, config: defaultConfig };
+      return {
+        ...prev,
+        [id]: { ...existing, enabled },
+      };
+    });
   };
 
   const enabledCount = Object.values(leaveTypes).filter(
@@ -514,22 +520,28 @@ export function LeaveTypesConfig() {
 
       {/* Leave Type Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {leaveTypeInfo.map((info, index) => (
-          <motion.div
-            key={info.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <LeaveTypeCard
-              {...info}
-              config={leaveTypes[info.id].config}
-              isEnabled={leaveTypes[info.id].enabled}
-              onChange={(config) => updateLeaveType(info.id, config)}
-              onToggle={(enabled) => toggleLeaveType(info.id, enabled)}
-            />
-          </motion.div>
-        ))}
+        {leaveTypeInfo.map((info, index) => {
+          const leaveType = leaveTypes[info.id] || {
+            enabled: false,
+            config: defaultConfig,
+          };
+          return (
+            <motion.div
+              key={info.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <LeaveTypeCard
+                {...info}
+                config={leaveType.config}
+                isEnabled={leaveType.enabled}
+                onChange={(config) => updateLeaveType(info.id, config)}
+                onToggle={(enabled) => toggleLeaveType(info.id, enabled)}
+              />
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Action Buttons */}

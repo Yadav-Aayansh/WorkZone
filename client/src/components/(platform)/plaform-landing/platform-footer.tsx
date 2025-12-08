@@ -224,7 +224,7 @@ export const PlatformFooter = () => {
             <span className="text-red-500 animate-pulse">❤️</span>
             <span>by</span>
             <span className="font-medium bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
-              Team SEP-10
+              Team 10
             </span>
           </div>
         </div>

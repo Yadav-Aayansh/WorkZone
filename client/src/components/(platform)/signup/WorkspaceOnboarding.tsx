@@ -163,15 +163,41 @@ export default function WorkspaceOnboarding({
     checkTenantAvailability(value);
   };
 
+  // Valid image formats for logo upload
+  const VALID_IMAGE_TYPES = [
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/gif",
+    "image/webp",
+    "image/svg+xml",
+  ];
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+
   const handleFileChange = (file: File) => {
-    if (file && file.type.startsWith("image/")) {
-      setLogo(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Check file type
+    if (!VALID_IMAGE_TYPES.includes(file.type)) {
+      setError(
+        "Invalid file format. Please upload a PNG, JPG, GIF, WebP, or SVG image."
+      );
+      return;
     }
+
+    // Check file size (5MB limit)
+    if (file.size > MAX_FILE_SIZE) {
+      setError("File size exceeds 5MB limit. Please upload a smaller image.");
+      return;
+    }
+
+    setError(""); // Clear any previous errors
+    setLogo(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLogoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -487,7 +513,7 @@ export default function WorkspaceOnboarding({
                 id="companyName"
                 {...register("companyName")}
                 onChange={handleCompanyNameChange}
-                placeholder="Acme Corporation"
+                placeholder="WORKZONE"
                 className="h-11 px-4 rounded-xl border-border/50 bg-muted/30 focus:bg-background transition-colors"
               />
               {errors.companyName && (
@@ -571,7 +597,7 @@ export default function WorkspaceOnboarding({
                           <span className="text-primary">browse</span>
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          PNG, JPG up to 5MB
+                          PNG, JPG, GIF, WebP, SVG up to 5MB
                         </p>
                       </div>
                     </motion.div>
@@ -581,7 +607,7 @@ export default function WorkspaceOnboarding({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/jpg,image/gif,image/webp,image/svg+xml"
                 onChange={(e) =>
                   e.target.files?.[0] && handleFileChange(e.target.files[0])
                 }
@@ -599,7 +625,7 @@ export default function WorkspaceOnboarding({
                   id="tenantId"
                   value={tenantId}
                   onChange={handleTenantIdChange}
-                  placeholder="acme-corp"
+                  placeholder="workzone"
                   className="h-11 px-4 pr-12 rounded-xl border-border/50 bg-muted/30 focus:bg-background transition-colors"
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -654,7 +680,7 @@ export default function WorkspaceOnboarding({
                 isLoading ||
                 !logo
               }
-              className="w-full h-11 rounded-xl text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <motion.div

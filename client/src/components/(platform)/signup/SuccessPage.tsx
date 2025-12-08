@@ -311,7 +311,7 @@ export default function SuccessPage({ signupData }: SuccessPageProps) {
               <Button
                 asChild
                 size="lg"
-                className="h-14 px-10 text-base font-semibold bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-xl shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 hover:scale-105"
+                className="h-14 px-10 text-base font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-xl shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 hover:scale-105"
               >
                 <Link href="/dashboard">
                   Launch Dashboard

@@ -340,7 +340,7 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 {...register("email")}
-                placeholder="john@company.com"
+                placeholder="name@company.com"
                 className="h-11 px-4 rounded-xl border-border/50 bg-muted/30 focus:bg-background transition-colors"
               />
               {errors.email && (
@@ -394,7 +394,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-11 rounded-xl text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40"
+              className="w-full h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40"
             >
               {isLoading ? (
                 <motion.div

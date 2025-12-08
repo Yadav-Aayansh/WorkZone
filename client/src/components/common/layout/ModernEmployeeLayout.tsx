@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Calendar,
-  Megaphone,
   User,
-  Bell,
   Search,
   MessageSquare,
   GraduationCap,
@@ -54,11 +52,6 @@ const navItems = [
     icon: GraduationCap,
   },
   {
-    title: "Announcements",
-    href: "/tenant/employee-portal/announcements",
-    icon: Megaphone,
-  },
-  {
     title: "AI Helpdesk",
     href: "/tenant/employee-portal/helpdesk",
     icon: MessageSquare,
@@ -91,6 +84,7 @@ export function ModernEmployeeLayout({ children }: { children: ReactNode }) {
           id: userId || "---",
         }}
         brandName={tenant?.brandName || "WorkZone"}
+        brandLogo={tenant?.logo}
         onLogout={handleLogout}
       />
 
@@ -119,44 +113,6 @@ export function ModernEmployeeLayout({ children }: { children: ReactNode }) {
               <Calendar className="mr-2 h-4 w-4" />
               Apply Leave
             </Button>
-
-            {/* Notifications */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                    3
-                  </Badge>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm font-medium">
-                      Leave request approved
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Your casual leave request was approved • 1 hour ago
-                    </p>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm font-medium">New announcement</p>
-                    <p className="text-xs text-muted-foreground">
-                      Company holiday on Dec 25th • 2 hours ago
-                    </p>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-center text-sm text-primary">
-                  View all notifications
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
 
             {/* Theme Toggle */}
             <ThemeToggle />

@@ -44,6 +44,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import ReactMarkdown from "react-markdown";
 
 function CreateJobContent() {
   const router = useRouter();
@@ -452,9 +453,9 @@ function CreateJobContent() {
                         <FileText className="h-4 w-4" />
                         Description
                       </Label>
-                      <p className="whitespace-pre-wrap text-sm">
-                        {formData.description}
-                      </p>
+                      <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:mt-2 prose-headings:mb-1">
+                        <ReactMarkdown>{formData.description}</ReactMarkdown>
+                      </div>
                     </div>
                   </div>
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { LogOut, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -43,6 +44,7 @@ export interface CollapsibleSidebarProps {
     id: string;
   };
   brandName?: string;
+  brandLogo?: string;
   onLogout?: () => void;
 }
 
@@ -50,6 +52,7 @@ function SidebarContentWrapper({
   navItems,
   user,
   brandName = "WorkZone",
+  brandLogo,
   onLogout,
 }: CollapsibleSidebarProps) {
   const pathname = usePathname();
@@ -86,10 +89,20 @@ function SidebarContentWrapper({
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary shadow-sm">
-                <span className="text-xl font-bold text-primary-foreground">
-                  {brandName[0]}
-                </span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary shadow-sm overflow-hidden">
+                {brandLogo ? (
+                  <Image
+                    src={brandLogo}
+                    alt={brandName}
+                    width={40}
+                    height={40}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <span className="text-xl font-bold text-primary-foreground">
+                    {brandName[0]}
+                  </span>
+                )}
               </div>
               <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
                 <span className="text-sm font-semibold truncate">

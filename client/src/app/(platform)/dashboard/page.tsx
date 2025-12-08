@@ -53,9 +53,9 @@ type Tab = "overview" | "team" | "settings";
 
 // Mock tenant data - will be replaced with real API data
 const mockTenantData = {
-  brandName: "Acme Corporation",
-  logo: null, // Will be actual logo URL from backend
-  tenantId: "acme-corp",
+  brandName: "WORKZONE",
+  logo: "/assets/images/WZlogo.png",
+  tenantId: "workzone",
   teamCount: 0, // Real count from backend
 };
 
@@ -255,18 +255,6 @@ export default function DashboardPage() {
                     : "Customize your workspace settings"}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                </Button>
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                  <Logo className="w-6" />
-                  <span className="text-sm font-medium dark:text-white">
-                    WorkZone
-                  </span>
-                </div>
-              </div>
             </div>
           </header>
 
@@ -299,32 +287,18 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                            Active Projects
+                            Managers
                           </p>
                           <p className="text-3xl font-bold dark:text-white">
-                            0
-                          </p>
-                        </div>
-                        <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                          <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-none shadow-lg hover:shadow-xl transition-shadow dark:bg-gray-800">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                            This Month
-                          </p>
-                          <p className="text-3xl font-bold dark:text-white">
-                            0
+                            {
+                              members.filter(
+                                (m) => m.role.toLowerCase() === "manager"
+                              ).length
+                            }
                           </p>
                         </div>
                         <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                          <BarChart3 className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                          <Crown className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                         </div>
                       </div>
                     </CardContent>
@@ -335,14 +309,40 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                            Documents
+                            Recruiters
                           </p>
                           <p className="text-3xl font-bold dark:text-white">
-                            0
+                            {
+                              members.filter(
+                                (m) => m.role.toLowerCase() === "recruiter"
+                              ).length
+                            }
+                          </p>
+                        </div>
+                        <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
+                          <Briefcase className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-none shadow-lg hover:shadow-xl transition-shadow dark:bg-gray-800">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                            Employees
+                          </p>
+                          <p className="text-3xl font-bold dark:text-white">
+                            {
+                              members.filter(
+                                (m) => m.role.toLowerCase() === "employee"
+                              ).length
+                            }
                           </p>
                         </div>
                         <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
-                          <FileText className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                          <User className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                         </div>
                       </div>
                     </CardContent>

@@ -42,6 +42,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
+import ReactMarkdown from "react-markdown";
 import {
   ArrowLeft,
   FileText,
@@ -416,9 +417,11 @@ function ApplicationDetailContent() {
 
                   <div>
                     <h4 className="font-semibold mb-2">Job Description</h4>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {application.job.description}
-                    </p>
+                    <div className="text-sm text-muted-foreground [&>h1]:text-xl [&>h1]:font-bold [&>h1]:mt-4 [&>h1]:mb-2 [&>h2]:text-lg [&>h2]:font-semibold [&>h2]:mt-3 [&>h2]:mb-1.5 [&>h3]:text-base [&>h3]:font-medium [&>h3]:mt-2 [&>h3]:mb-1 [&>p]:my-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:my-2 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:my-2 [&>li]:my-0.5 [&>*]:text-muted-foreground">
+                      <ReactMarkdown>
+                        {application.job.description}
+                      </ReactMarkdown>
+                    </div>
                   </div>
 
                   <div>

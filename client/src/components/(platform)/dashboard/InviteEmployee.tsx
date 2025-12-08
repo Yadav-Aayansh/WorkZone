@@ -173,7 +173,7 @@ export default function InviteEmployee() {
               <Input
                 id="name"
                 type="text"
-                placeholder="John Doe"
+                placeholder="Full Name"
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
                 disabled={isSubmitting || success}
