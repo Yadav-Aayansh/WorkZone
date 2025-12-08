@@ -1,6 +1,9 @@
 from src.repository.tenant import JobRepository, ApplicationRepository
 from fastapi import UploadFile
-from src.exceptions.tenant import JobNotFoundError, UnauthorizedAccessError, ApplicationNotFoundError
+from src.exceptions.tenant import (
+    JobNotFoundError, UnauthorizedAccessError, ApplicationNotFoundError,
+    ApplicationAlreadyExistsError
+)
 from src.core.storage import storage_client
 from src.core.context import tenant_context
 from src.core.logger import logger
@@ -15,11 +18,16 @@ class ApplicationService:
     async def apply(self, job_id: str, user_id: str, resume: UploadFile):
         is_job = await self.job_repo.get_job_by_id(job_id)
         if not is_job:
-            raise JobNotFoundError(f"Job not found")
+            raise JobNotFoundError(f"Job not found!")
         
+        application = await self.application_repo.get_application_by_user_job_id(user_id, job_id)
+        if application:
+            raise ApplicationAlreadyExistsError("Application already exists!")
+
         storage_client.validate_file(resume, [".pdf"], 10)
         tenant_id = tenant_context.get()
         blob_name, url = storage_client.upload(resume, f"tenant/{tenant_id}/resume")
+
 
         return await self.application_repo.apply_job(job_id, user_id, blob_name)
 
