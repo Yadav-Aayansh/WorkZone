@@ -10,9 +10,12 @@ class RespondQueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     id: UUID
+    query_text: str
+    response_text: Optional[str] = None
     category: Optional[str] = None
     urgency: str
     status: str
+    sentiment: Optional[str] = None
     ai_summary: Optional[str] = None
 
 class QueryResolutionResponse(BaseModel):
