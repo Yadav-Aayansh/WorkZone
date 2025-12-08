@@ -186,6 +186,7 @@ async def process_multiple_documents(
     try:
         # Check if ChromaDB exists in temp, if not download from GCS
         local_path = get_tenant_chroma_local_path(request.chroma_db_path)
+        logger.info(f"update system - {local_path}")
         if not os.path.exists(local_path) or not os.listdir(local_path):
             logger.info(f"ChromaDB not found in temp, downloading from GCS: {request.chroma_db_path}")
             download_chroma_from_gcs(request.chroma_db_path)

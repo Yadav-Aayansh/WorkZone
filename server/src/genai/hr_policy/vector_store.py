@@ -16,7 +16,7 @@ CHROMA_GCS_BASE = "platform/chroma_db/"
 POLICIES_GCS_BASE = "policies/"
 
 # Local temp directory for all tenant ChromaDBs
-CHROMA_LOCAL_BASE = tempfile.mkdtemp()
+CHROMA_LOCAL_BASE = "/tmp/workzone"
 
 COLLECTION_NAME = "hr_policies"
 
@@ -48,6 +48,7 @@ def download_all_tenant_chromadbs():
             tenant_folders.add(tenant_folder)
             
             local_path = os.path.join(CHROMA_LOCAL_BASE, relative_path)
+            logger.info(f"init system - {local_path}")
             os.makedirs(os.path.dirname(local_path), exist_ok=True)
             
             blob.download_to_filename(local_path)
