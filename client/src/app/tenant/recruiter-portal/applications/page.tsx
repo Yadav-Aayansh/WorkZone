@@ -31,14 +31,10 @@ import {
   MoreVertical,
   Copy,
   Eye,
-  CheckCircle,
-  XCircle,
-  Calendar,
   Loader2,
   Users,
   FileCheck,
   Gift,
-  Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -187,10 +183,8 @@ function ApplicationsContent() {
   };
 
   const formatStatusLabel = (status: ApplicationStatus): string => {
-    return status
-      .split("_")
-      .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-      .join(" ");
+    // Display status in uppercase with spaces
+    return status.split("_").join(" ");
   };
 
   const handleSelectAll = (checked: boolean) => {
@@ -442,34 +436,17 @@ function ApplicationsContent() {
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toast.success("Interview scheduled");
-                          }}
-                        >
-                          <Calendar className="mr-2 h-4 w-4" />
-                          Schedule Interview
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toast.success("Candidate shortlisted");
-                          }}
-                        >
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Shortlist
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toast.success("Application rejected");
-                          }}
-                          className="text-destructive"
-                        >
-                          <XCircle className="mr-2 h-4 w-4" />
-                          Reject
-                        </DropdownMenuItem>
+                        {app.resume && (
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(app.resume, "_blank");
+                            }}
+                          >
+                            <FileCheck className="mr-2 h-4 w-4" />
+                            Download Resume
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>

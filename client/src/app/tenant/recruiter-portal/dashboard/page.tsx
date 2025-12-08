@@ -4,7 +4,6 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { ModernRecruiterLayout } from "@/components/common/layout/ModernRecruiterLayout";
 import {
@@ -14,83 +13,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Briefcase,
-  Users,
-  Eye,
-  Clock,
-  Loader2,
-  UserCheck,
-  Calendar,
-} from "lucide-react";
+import { Briefcase, Users, Loader2, UserCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  tenantJobAPI,
-  tenantApplicationAPI,
-  ApplicationResponse,
-  ApplicationStatus,
-  JobResponse,
-} from "@/lib/api";
-import { toast } from "sonner";
+import { ApplicationStatus } from "@/lib/api";
 import { startOfWeek, addDays, isSameDay } from "date-fns";
 import { KPICard } from "@/components/dashboard/shared/KPICard";
 import { ScheduleCard } from "@/components/dashboard/shared/ScheduleCard";
 import { RecentApplicants } from "@/components/dashboard/recruiter/RecentApplicants";
-
-interface ApplicationWithJob extends ApplicationResponse {
-  job?: JobResponse;
-}
+import { useJobs, useAllApplications } from "@/hooks/use-queries";
 
 function DashboardContent() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [jobs, setJobs] = useState<JobResponse[]>([]);
-  const [applications, setApplications] = useState<ApplicationWithJob[]>([]);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
+  // Use React Query hooks for caching
+  const { data: jobs = [], isLoading: isLoadingJobs } = useJobs();
+  const { data: applications = [], isLoading: isLoadingApps } =
+    useAllApplications();
 
-  const loadDashboardData = async () => {
-    setIsLoading(true);
-    try {
-      // Load all jobs
-      const jobsData = await tenantJobAPI.listJobs();
-      setJobs(jobsData);
-
-      // Load applications for all jobs
-      const allApplications: ApplicationWithJob[] = [];
-      for (const job of jobsData) {
-        try {
-          const jobApps = await tenantApplicationAPI.listJobApplications(
-            job.id
-          );
-          const appsWithJob = jobApps.map((app) => ({ ...app, job }));
-          allApplications.push(...appsWithJob);
-        } catch (err) {
-          console.error(`Failed to load applications for job ${job.id}:`, err);
-        }
-      }
-
-      // Sort by date (newest first)
-      allApplications.sort(
-        (a, b) =>
-          new Date(b.applied_on).getTime() - new Date(a.applied_on).getTime()
-      );
-
-      setApplications(allApplications);
-    } catch (err) {
-      console.error("Failed to load dashboard data:", err);
-      toast.error(
-        err instanceof Error ? err.message : "Failed to load dashboard data"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const isLoading = isLoadingJobs || isLoadingApps;
 
   // Calculate KPIs from real data
   const activeJobs = jobs.filter((job) => job.is_open).length;
@@ -139,10 +79,8 @@ function DashboardContent() {
   };
 
   const formatStatusLabel = (status: ApplicationStatus) => {
-    return status
-      .replace(/_/g, " ")
-      .toLowerCase()
-      .replace(/\b\w/g, (l) => l.toUpperCase());
+    // Display status in uppercase with spaces
+    return status.replace(/_/g, " ");
   };
 
   const formatDate = (dateString: string) => {

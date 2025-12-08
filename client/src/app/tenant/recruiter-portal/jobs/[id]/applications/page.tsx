@@ -1,4 +1,3 @@
-
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 /* eslint-disable */
@@ -86,47 +85,47 @@ const getStatusBadge = (status: ApplicationStatus) => {
     [ApplicationStatus.PENDING]: {
       variant: "outline" as const,
       icon: Clock,
-      label: "Pending",
+      label: "PENDING",
     },
     [ApplicationStatus.SHORTLISTED]: {
       variant: "default" as const,
       icon: CheckCircle2,
-      label: "Shortlisted",
+      label: "SHORTLISTED",
     },
     [ApplicationStatus.AI_INTERVIEW_COMPLETED]: {
       variant: "secondary" as const,
       icon: CheckCircle2,
-      label: "AI Interview Done",
+      label: "AI INTERVIEW COMPLETED",
     },
     [ApplicationStatus.HUMAN_INTERVIEW_SCHEDULED]: {
       variant: "default" as const,
       icon: Calendar,
-      label: "Interview Scheduled",
+      label: "INTERVIEW SCHEDULED",
     },
     [ApplicationStatus.HUMAN_INTERVIEW_COMPLETED]: {
       variant: "default" as const,
       icon: CheckCircle2,
-      label: "Interview Completed",
+      label: "INTERVIEW COMPLETED",
     },
     [ApplicationStatus.OFFERED]: {
       variant: "default" as const,
       icon: TrendingUp,
-      label: "Offered",
+      label: "OFFERED",
     },
     [ApplicationStatus.REJECTED]: {
       variant: "destructive" as const,
       icon: XCircle,
-      label: "Rejected",
+      label: "REJECTED",
     },
     [ApplicationStatus.HIRED]: {
       variant: "default" as const,
       icon: CheckCircle2,
-      label: "Hired",
+      label: "HIRED",
     },
     [ApplicationStatus.WITHDRAWN]: {
       variant: "outline" as const,
       icon: AlertCircle,
-      label: "Withdrawn",
+      label: "WITHDRAWN",
     },
   };
 
@@ -231,10 +230,6 @@ function JobApplicationsContent() {
     router.push(`/tenant/recruiter-portal/applications/${applicationId}`);
   };
 
-  const handleExportApplications = () => {
-    toast.success("Export feature coming soon!");
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[600px]">
@@ -268,10 +263,6 @@ function JobApplicationsContent() {
             </p>
           </div>
         </div>
-        <Button onClick={handleExportApplications} variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Export
-        </Button>
       </div>
 
       {/* Job Summary Card */}

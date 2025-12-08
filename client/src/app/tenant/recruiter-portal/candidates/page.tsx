@@ -26,20 +26,16 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Search,
   Filter,
   Download,
-  CheckCircle,
-  XCircle,
   MoreVertical,
   Loader2,
   Users,
   Eye,
-  Calendar,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -162,24 +158,6 @@ function CandidatesContent() {
     });
   };
 
-  const handleShortlist = (candidateId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    toast.info("Shortlist feature coming soon! (Status update API pending)");
-  };
-
-  const handleReject = (candidateId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    toast.info("Reject feature coming soon! (Status update API pending)");
-  };
-
-  const handleScheduleInterview = (
-    candidateId: string,
-    e: React.MouseEvent
-  ) => {
-    e.stopPropagation();
-    router.push(`/tenant/recruiter-portal/interviews?candidate=${candidateId}`);
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[600px]">
@@ -190,10 +168,6 @@ function CandidatesContent() {
       </div>
     );
   }
-
-  const handleExport = () => {
-    toast.success("Candidates exported successfully!");
-  };
 
   const stats = {
     total: applications.length,
@@ -211,17 +185,11 @@ function CandidatesContent() {
     <ModernRecruiterLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Candidates</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage and review all job applicants
-            </p>
-          </div>
-          <Button onClick={handleExport}>
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Candidates</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage and review all job applicants
+          </p>
         </div>
 
         {/* Stats Cards */}
@@ -432,33 +400,20 @@ function CandidatesContent() {
                                   );
                                 }}
                               >
+                                <Eye className="mr-2 h-4 w-4" />
                                 View Details
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={(e) =>
-                                  handleShortlist(candidate.id, e)
-                                }
-                              >
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Shortlist
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) =>
-                                  handleScheduleInterview(candidate.id, e)
-                                }
-                              >
-                                <Calendar className="mr-2 h-4 w-4" />
-                                Schedule Interview
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={(e) => handleReject(candidate.id, e)}
-                                className="text-destructive"
-                              >
-                                <XCircle className="mr-2 h-4 w-4" />
-                                Reject
-                              </DropdownMenuItem>
+                              {candidate.resume && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open(candidate.resume, "_blank");
+                                  }}
+                                >
+                                  <Download className="mr-2 h-4 w-4" />
+                                  Download Resume
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>

@@ -11,6 +11,7 @@ import {
   Plus,
   Search,
   User,
+  MessageSquare,
 } from "lucide-react";
 import { CollapsibleSidebar } from "@/components/common/layout/CollapsibleSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -28,7 +29,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 
 const navItems = [
   {
@@ -50,6 +50,11 @@ const navItems = [
     title: "Candidates",
     href: "/tenant/recruiter-portal/candidates",
     icon: Users,
+  },
+  {
+    title: "Employee Queries",
+    href: "/tenant/recruiter-portal/queries",
+    icon: MessageSquare,
   },
   {
     title: "Resume Scoring",
