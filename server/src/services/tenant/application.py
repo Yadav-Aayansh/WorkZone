@@ -39,7 +39,10 @@ class ApplicationService:
         
         if str(job.posted_by) != user_id:
             raise UnauthorizedAccessError("Access denied!")
-        return await self.application_repo.get_applications_by_job_id(job_id)
+        applications = await self.application_repo.get_applications_by_job_id(job_id)
+        for app in applications:
+            app.resume = storage_client.get_url(app.resume)
+        return applications
     
     async def get_application(self, id: str, user_id: str, is_recruiter: bool = False):
         application = await self.application_repo.get_application_by_id(id, options=[selectinload(Application.job)])
