@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft,
   Briefcase,
@@ -24,7 +23,6 @@ import {
   XCircle,
   Clock,
   Download,
-  ExternalLink,
   Loader2,
   User,
 } from "lucide-react";
@@ -41,7 +39,6 @@ function CandidateProfileContent() {
   const params = useParams();
   const router = useRouter();
   const applicationId = params.id as string;
-  const [notes, setNotes] = useState("");
   const [application, setApplication] = useState<ApplicationResponse | null>(
     null
   );
@@ -89,31 +86,31 @@ function CandidateProfileContent() {
       case ApplicationStatus.SHORTLISTED:
         return (
           <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-            Shortlisted
+            SHORTLISTED
           </Badge>
         );
       case ApplicationStatus.PENDING:
         return (
           <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-            Pending
+            PENDING
           </Badge>
         );
       case ApplicationStatus.REJECTED:
         return (
           <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-            Rejected
+            REJECTED
           </Badge>
         );
       case ApplicationStatus.HIRED:
         return (
           <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
-            Hired
+            HIRED
           </Badge>
         );
       case ApplicationStatus.AI_INTERVIEW_COMPLETED:
         return (
           <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-            AI Interview Completed
+            AI INTERVIEW COMPLETED
           </Badge>
         );
       default:
@@ -129,33 +126,10 @@ function CandidateProfileContent() {
     });
   };
 
-  const handleShortlist = () => {
-    toast.info(
-      "Status changes are managed through the job close process with AI ranking"
-    );
-  };
-
-  const handleReject = () => {
-    toast.info(
-      "Status changes are managed through the job close process with AI ranking"
-    );
-  };
-
-  const handleScheduleInterview = () => {
-    router.push(
-      `/tenant/recruiter-portal/interviews?application=${applicationId}`
-    );
-  };
-
   const handleDownloadResume = () => {
     if (application?.resume) {
-      // The resume is stored as a blob path, would need a signed URL from backend
-      toast.info("Resume download requires backend support for signed URLs");
+      window.open(application.resume, "_blank");
     }
-  };
-
-  const handleSaveNotes = () => {
-    toast.success("Notes saved successfully!");
   };
 
   if (isLoading) {
@@ -224,14 +198,12 @@ function CandidateProfileContent() {
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleDownloadResume}>
-              <Download className="mr-2 h-4 w-4" />
-              Resume
-            </Button>
-            <Button onClick={handleScheduleInterview}>
-              <Calendar className="mr-2 h-4 w-4" />
-              Schedule Interview
-            </Button>
+            {application.resume && (
+              <Button variant="outline" onClick={handleDownloadResume}>
+                <Download className="mr-2 h-4 w-4" />
+                View Resume
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -356,57 +328,22 @@ function CandidateProfileContent() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Notes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recruiter Notes</CardTitle>
-              <CardDescription>
-                Add private notes about this application
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                placeholder="Enter your notes here..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={5}
-              />
-              <Button onClick={handleSaveNotes}>Save Notes</Button>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Right Column - Actions */}
+        {/* Right Column - Info */}
         <div className="space-y-6">
-          {/* Quick Actions */}
+          {/* Application Status */}
           <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle>Application Status</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700"
-                onClick={handleShortlist}
-              >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Shortlist Candidate
-              </Button>
-              <Button
-                className="w-full"
-                variant="outline"
-                onClick={handleScheduleInterview}
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                Schedule Interview
-              </Button>
-              <Button
-                className="w-full bg-destructive hover:bg-destructive/90"
-                onClick={handleReject}
-              >
-                <XCircle className="mr-2 h-4 w-4" />
-                Reject Candidate
-              </Button>
+            <CardContent>
+              <div className="space-y-4">
+                {getStatusBadge(application.status)}
+                <p className="text-sm text-muted-foreground">
+                  Applied on {formatDate(application.applied_on)}
+                </p>
+              </div>
             </CardContent>
           </Card>
 
@@ -415,40 +352,17 @@ function CandidateProfileContent() {
             <CardHeader>
               <CardTitle>Resume</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="aspect-[3/4] bg-accent rounded-lg flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <FileText className="h-12 w-12 mx-auto mb-2" />
-                  <div className="text-sm">Resume Preview</div>
-                  <div className="text-xs mt-1">
-                    {application.resume ? "File attached" : "No file"}
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  className="flex-1"
-                  variant="outline"
-                  onClick={handleDownloadResume}
-                >
+            <CardContent>
+              {application.resume ? (
+                <Button className="w-full" onClick={handleDownloadResume}>
                   <Download className="mr-2 h-4 w-4" />
-                  Download
+                  View Resume
                 </Button>
-                <Button
-                  className="flex-1"
-                  variant="outline"
-                  onClick={() =>
-                    toast.info("Resume viewing requires backend support")
-                  }
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Open
-                </Button>
-              </div>
-              {application.resume && (
-                <p className="text-xs text-muted-foreground break-all">
-                  Path: {application.resume}
-                </p>
+              ) : (
+                <div className="text-center py-4 text-muted-foreground">
+                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No resume submitted</p>
+                </div>
               )}
             </CardContent>
           </Card>

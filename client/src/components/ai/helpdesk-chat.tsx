@@ -21,12 +21,32 @@ import {
   ExternalLink,
   ChevronRight,
   BookOpen,
+  TicketPlus,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
-import { tenantEmployeeAPI, HelpdeskResponse } from "@/lib/api";
+import {
+  tenantEmployeeAPI,
+  tenantQueryAPI,
+  HelpdeskResponse,
+  QueryResponse,
+} from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useTenant } from "@/providers/tenant-provider";
 import ReactMarkdown from "react-markdown";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 // GCS bucket for policy documents
 const GCS_BUCKET_NAME =
@@ -122,6 +142,31 @@ export function HelpdeskChat() {
   const [chatId, setChatId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Query/Ticket state
+  const [isRaiseQueryDialogOpen, setIsRaiseQueryDialogOpen] = useState(false);
+  const [queryText, setQueryText] = useState("");
+  const [isSubmittingQuery, setIsSubmittingQuery] = useState(false);
+  const [raisedQueries, setRaisedQueries] = useState<QueryResponse[]>([]);
+  const [showMyQueries, setShowMyQueries] = useState(false);
+  const [isLoadingQueries, setIsLoadingQueries] = useState(false);
+
+  // Load queries on mount
+  useEffect(() => {
+    loadMyQueries();
+  }, []);
+
+  const loadMyQueries = async () => {
+    setIsLoadingQueries(true);
+    try {
+      const queries = await tenantQueryAPI.getMyQueries();
+      setRaisedQueries(queries);
+    } catch (error) {
+      console.error("Failed to load queries:", error);
+    } finally {
+      setIsLoadingQueries(false);
+    }
+  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -229,6 +274,64 @@ export function HelpdeskChat() {
     textareaRef.current?.focus();
   };
 
+  // Raise Query to HR/Recruiter
+  const handleRaiseQuery = async () => {
+    if (!queryText.trim()) {
+      toast.error("Please describe your query");
+      return;
+    }
+
+    setIsSubmittingQuery(true);
+    try {
+      const response = await tenantQueryAPI.createQuery({
+        query_text: queryText.trim(),
+      });
+
+      setRaisedQueries((prev) => [response, ...prev]);
+      setQueryText("");
+      setIsRaiseQueryDialogOpen(false);
+
+      toast.success("Query submitted successfully! HR will respond soon.", {
+        description: `Query ID: ${response.id.slice(0, 8)}... | Priority: ${
+          response.urgency
+        }`,
+      });
+    } catch (error) {
+      console.error("Failed to raise query:", error);
+      toast.error("Failed to submit query. Please try again.");
+    } finally {
+      setIsSubmittingQuery(false);
+    }
+  };
+
+  // Get urgency badge color
+  const getUrgencyColor = (urgency: string) => {
+    switch (urgency?.toLowerCase()) {
+      case "critical":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+      case "high":
+        return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
+      case "medium":
+        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+      case "low":
+        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+      default:
+        return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
+    }
+  };
+
+  // Get status badge color
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "closed":
+        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+      case "open":
+        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+      default:
+        return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
+    }
+  };
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
@@ -267,25 +370,251 @@ export function HelpdeskChat() {
               </div>
             </div>
 
-            {messages.length > 0 && (
+            <div className="flex items-center gap-2">
+              {/* My Queries Button - always show */}
               <motion.button
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                onClick={clearChat}
-                className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                onClick={() => {
+                  setShowMyQueries(!showMyQueries);
+                  if (!showMyQueries) loadMyQueries(); // Refresh when opening
+                }}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  showMyQueries
+                    ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                )}
               >
-                <Trash2 className="w-5 h-5" />
+                <Clock className="w-4 h-4" />
+                My Queries{" "}
+                {raisedQueries.length > 0 && `(${raisedQueries.length})`}
               </motion.button>
-            )}
+
+              {/* Raise Query Button */}
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                onClick={() => setIsRaiseQueryDialogOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all shadow-md hover:shadow-lg"
+              >
+                <TicketPlus className="w-4 h-4" />
+                Raise Query
+              </motion.button>
+
+              {messages.length > 0 && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  onClick={clearChat}
+                  className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </motion.button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Raise Query Dialog */}
+      <Dialog
+        open={isRaiseQueryDialogOpen}
+        onOpenChange={setIsRaiseQueryDialogOpen}
+      >
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TicketPlus className="w-5 h-5 text-orange-500" />
+              Raise a Query to HR
+            </DialogTitle>
+            <DialogDescription>
+              Can&apos;t find what you need? Submit a query and our HR team will
+              respond to you directly.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Describe your query
+              </label>
+              <Textarea
+                value={queryText}
+                onChange={(e) => setQueryText(e.target.value)}
+                placeholder="Please describe your question or concern in detail. Our HR team will review and respond to you..."
+                className="min-h-[150px] resize-none"
+              />
+              <p className="text-xs text-gray-500">
+                Your query will be automatically categorized and prioritized
+                using AI.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsRaiseQueryDialogOpen(false)}
+              disabled={isSubmittingQuery}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRaiseQuery}
+              disabled={!queryText.trim() || isSubmittingQuery}
+              className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
+            >
+              {isSubmittingQuery ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <TicketPlus className="w-4 h-4 mr-2" />
+                  Submit Query
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto min-h-0">
         <div className="max-w-4xl mx-auto px-4 py-6">
+          {/* My Queries Panel */}
+          {showMyQueries && raisedQueries.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-indigo-500" />
+                  My Raised Queries
+                </h3>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={loadMyQueries}
+                    disabled={isLoadingQueries}
+                    className="text-gray-500"
+                  >
+                    <RefreshCw
+                      className={cn(
+                        "w-4 h-4",
+                        isLoadingQueries && "animate-spin"
+                      )}
+                    />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowMyQueries(false)}
+                    className="text-gray-500"
+                  >
+                    Hide
+                  </Button>
+                </div>
+              </div>
+              {isLoadingQueries ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+                </div>
+              ) : raisedQueries.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>No queries raised yet</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {raisedQueries.map((query) => (
+                    <div
+                      key={query.id}
+                      className="p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm"
+                    >
+                      <div className="space-y-3">
+                        {/* Header with badges */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge
+                            className={cn(
+                              "text-xs",
+                              getStatusColor(query.status)
+                            )}
+                          >
+                            {query.status === "open" ? (
+                              <>
+                                <AlertCircle className="w-3 h-3 mr-1" /> Open
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="w-3 h-3 mr-1" /> Closed
+                              </>
+                            )}
+                          </Badge>
+                          <Badge
+                            className={cn(
+                              "text-xs",
+                              getUrgencyColor(query.urgency)
+                            )}
+                          >
+                            {query.urgency}
+                          </Badge>
+                          {query.category && (
+                            <Badge variant="outline" className="text-xs">
+                              {query.category.replace(/_/g, " ")}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Query text */}
+                        <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">
+                            Your Query
+                          </p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
+                            {query.query_text}
+                          </p>
+                        </div>
+
+                        {/* AI Summary */}
+                        {query.ai_summary && (
+                          <div className="flex items-start gap-2 text-xs text-amber-600 dark:text-amber-400">
+                            <Sparkles className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                            <span>{query.ai_summary}</span>
+                          </div>
+                        )}
+
+                        {/* Response from HR */}
+                        {query.response_text && (
+                          <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                            <p className="text-xs text-green-600 dark:text-green-400 mb-1 font-medium flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              HR Response
+                            </p>
+                            <p className="text-sm text-green-800 dark:text-green-300">
+                              {query.response_text}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Footer */}
+                        <p className="text-xs text-gray-400">
+                          ID: {query.id.slice(0, 8)}...
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
           {/* Welcome State */}
-          {messages.length === 0 && (
+          {messages.length === 0 && !showMyQueries && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

@@ -6,6 +6,7 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { TenantProvider } from "@/providers/tenant-provider";
 import { TenantAuthProvider } from "@/providers/tenant-auth-provider";
 import { ToastProvider } from "@/providers/toast-provider";
+import { QueryProvider } from "@/providers/query-provider";
 import { AuthTokenManager } from "@/components/auth/AuthTokenManager";
 import { Toaster } from "@/components/ui/sonner";
 import { Suspense } from "react";
@@ -104,15 +105,17 @@ export default function RootLayout({
             <PageLoader />
           </Suspense>
           <ToastProvider>
-            {/* Platform Auth Provider - for company/client authentication */}
-            <AuthProvider>
-              <AuthTokenManager />
+            <QueryProvider>
+              {/* Platform Auth Provider - for company/client authentication */}
+              <AuthProvider>
+                <AuthTokenManager />
 
-              {/* Tenant Providers - for subdomain-based tenant features */}
-              <TenantProvider>
-                <TenantAuthProvider>{children}</TenantAuthProvider>
-              </TenantProvider>
-            </AuthProvider>
+                {/* Tenant Providers - for subdomain-based tenant features */}
+                <TenantProvider>
+                  <TenantAuthProvider>{children}</TenantAuthProvider>
+                </TenantProvider>
+              </AuthProvider>
+            </QueryProvider>
           </ToastProvider>
           <Toaster richColors position="top-right" />
         </ThemeProvider>

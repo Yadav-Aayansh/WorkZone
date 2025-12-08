@@ -1265,6 +1265,112 @@ export const tenantLearningAPI = {
   },
 };
 
+// ============================================
+// Query/Ticket Types
+// ============================================
+
+export enum QueryUrgency {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical',
+}
+
+export enum QueryStatus {
+  OPEN = 'open',
+  IN_PROGRESS = 'in_progress',
+  RESOLVED = 'resolved',
+  CLOSED = 'closed',
+}
+
+export interface CreateQueryRequest {
+  query_text: string;
+}
+
+export interface RespondQueryRequest {
+  response_text: string;
+}
+
+export interface QueryResponse {
+  id: string;
+  query_text: string;
+  response_text: string | null;
+  category: string | null;
+  urgency: string;
+  status: string;
+  sentiment: string | null;
+  ai_summary: string | null;
+}
+
+export interface QueryResolutionResponse {
+  message: string;
+  query_id: string;
+  status: string;
+}
+
+// ============================================
+// Tenant Query API (Employee & Recruiter)
+// ============================================
+
+export const tenantQueryAPI = {
+  /**
+   * Create a new query/ticket (requires EMPLOYEE role)
+   * Query is AI-classified for category, urgency and assigned to a recruiter
+   */
+  async createQuery(data: CreateQueryRequest): Promise<QueryResponse> {
+    return tenantApiRequest<QueryResponse>(
+      `${getTenantBackendUrl()}/api/tenant/queries`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get queries created by the current employee (requires EMPLOYEE role)
+   */
+  async getMyQueries(): Promise<QueryResponse[]> {
+    return tenantApiRequest<QueryResponse[]>(
+      `${getTenantBackendUrl()}/api/tenant/queries/my-queries`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Get queries assigned to the current recruiter (requires RECRUITER role)
+   */
+  async getAssignedQueries(): Promise<QueryResponse[]> {
+    return tenantApiRequest<QueryResponse[]>(
+      `${getTenantBackendUrl()}/api/tenant/queries/assigned-queries`,
+      { method: 'GET' },
+      2,
+      true
+    );
+  },
+
+  /**
+   * Respond to a query/ticket (requires RECRUITER role)
+   * @param queryId - UUID of the query to respond to
+   * @param data - Response text
+   */
+  async respondToQuery(queryId: string, data: RespondQueryRequest): Promise<QueryResolutionResponse> {
+    return tenantApiRequest<QueryResolutionResponse>(
+      `${getTenantBackendUrl()}/api/tenant/queries/${queryId}/response`,
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+      2,
+      true
+    );
+  },
+};
+
 // Export utility functions for use in other files
 export { getTenantSubdomain, getTenantBackendUrl, getTenantTokens, setTenantTokens, clearTenantTokens, isCustomDomain, getCustomDomainHeader };
 
