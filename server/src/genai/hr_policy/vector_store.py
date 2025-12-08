@@ -125,6 +125,28 @@ def upload_chroma_to_gcs(chroma_db_path: str):
         raise
 
 
+def upload_chroma_to_temp(chroma_db_path: str):
+    try:
+        logger.info(f"Ensuring ChromaDB is in temp: {chroma_db_path}")
+        
+        local_base = get_tenant_chroma_local_path(chroma_db_path)
+        
+        if not os.path.exists(local_base):
+            logger.warning(f"ChromaDB not found in temp at {local_base}")
+            return
+        
+        # Count files to verify
+        file_count = 0
+        for root, dirs, files in os.walk(local_base):
+            file_count += len(files)
+        
+        logger.info(f"✓ ChromaDB available in temp at {local_base} ({file_count} files)")
+        
+    except Exception as e:
+        logger.error(f"Failed to verify ChromaDB in temp for {chroma_db_path}: {e}")
+        raise
+
+
 def get_chroma_client(chroma_db_path: str):
     local_path = get_tenant_chroma_local_path(chroma_db_path)
     os.makedirs(local_path, exist_ok=True)
@@ -197,8 +219,6 @@ async def add_documents_to_chroma(
             f"(document_id: {document_id})"
         )
         
-        # NOTE: Upload to GCS is called separately by the caller
-        # to avoid uploading after every single document
         
         return document_id
         
@@ -268,6 +288,10 @@ async def delete_document_from_chroma(
             
             # Upload updated ChromaDB to GCS
             upload_chroma_to_gcs(chroma_db_path)
+            
+            # Ensure updated ChromaDB is in temp
+            upload_chroma_to_temp(chroma_db_path)
+            
             return True
         else:
             logger.warning(f"Document {blob_name} not found in {chroma_db_path}")
