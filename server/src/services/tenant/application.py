@@ -54,10 +54,14 @@ class ApplicationService:
                 raise UnauthorizedAccessError("Access denied!")
         elif str(application.user_id) != user_id:
                 raise UnauthorizedAccessError("Access denied!")
+        application.resume = storage_client.get_url(application.resume)
         return application
     
     async def my_applications(self, user_id: str):
-        return await self.application_repo.get_applications_by_user_id(user_id)
+        applications = await self.application_repo.get_applications_by_user_id(user_id)
+        for app in applications:
+            app.resume = storage_client.get_url(app.resume)
+        return applications
     
     async def withdraw_application(self, id: str, user_id: str):
         application = await self.application_repo.get_application_by_id(id)
