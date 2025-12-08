@@ -29,7 +29,9 @@ from src.genai.hr_policy.vector_store import (
     download_all_tenant_chromadbs,
     download_chroma_from_gcs,
     upload_chroma_to_gcs,
-    create_tenant_chroma_path
+    upload_chroma_to_temp,
+    create_tenant_chroma_path,
+    get_tenant_chroma_local_path
 )
 from src.genai.hr_policy.context_manager import (
     create_chat_session,
@@ -182,8 +184,13 @@ async def process_multiple_documents(
     )
     
     try:
-        # Download existing ChromaDB
-        download_chroma_from_gcs(request.chroma_db_path)
+        # Check if ChromaDB exists in temp, if not download from GCS
+        local_path = get_tenant_chroma_local_path(request.chroma_db_path)
+        if not os.path.exists(local_path) or not os.listdir(local_path):
+            logger.info(f"ChromaDB not found in temp, downloading from GCS: {request.chroma_db_path}")
+            download_chroma_from_gcs(request.chroma_db_path)
+        else:
+            logger.info(f"Using existing ChromaDB from temp for {request.chroma_db_path}")
         
         results = []
         successful = 0
@@ -204,14 +211,14 @@ async def process_multiple_documents(
                 
                 if result.status == "success":
                     successful += 1
-                    logger.info(f"✓ [{i}/{len(request.document_blob_names)}] Success: {blob_name}")
+                    logger.info(f" [{i}/{len(request.document_blob_names)}] Success: {blob_name}")
                 else:
                     failed += 1
-                    logger.error(f"✗ [{i}/{len(request.document_blob_names)}] Failed: {blob_name}")
+                    logger.error(f" [{i}/{len(request.document_blob_names)}] Failed: {blob_name}")
                 
             except Exception as e:
                 failed += 1
-                logger.error(f"✗ [{i}/{len(request.document_blob_names)}] Error: {e}")
+                logger.error(f" [{i}/{len(request.document_blob_names)}] Error: {e}")
                 results.append({
                     "blob_name": blob_name,
                     "status": "error",
@@ -221,6 +228,10 @@ async def process_multiple_documents(
         # Upload ChromaDB to GCS ONCE after all documents
         logger.info("Uploading updated ChromaDB to GCS...")
         upload_chroma_to_gcs(request.chroma_db_path)
+        
+        # Ensure updated ChromaDB is in temp
+        logger.info("Ensuring updated ChromaDB is in temp...")
+        upload_chroma_to_temp(request.chroma_db_path)
         
         processing_time = time.time() - start_time
         logger.info(
@@ -339,6 +350,10 @@ async def process_all_documents_from_gcs(
         # Upload ChromaDB to GCS ONCE after all documents
         logger.info(f"Step 3: Uploading ChromaDB to {chroma_db_path}")
         upload_chroma_to_gcs(chroma_db_path)
+        
+        # Upload ChromaDB to temp
+        logger.info(f"Step 4: Ensuring ChromaDB is in temp for {chroma_db_path}")
+        upload_chroma_to_temp(chroma_db_path)
         
         processing_time = time.time() - start_time
         logger.info(
