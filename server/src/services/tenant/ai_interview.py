@@ -30,6 +30,7 @@ class AiInterviewService:
             raise AiInterviewAlreadyExistsError("An AI interview has already been created for this application.") 
         
         return await self.ai_interview_repo.create_ai_interview(application_id)
+    
 
     async def handle_interview_session(self, websocket: WebSocket, id: UUID):
         await websocket.send_json({
@@ -99,6 +100,7 @@ class AiInterviewService:
                     "report": report.markdown_report
                 })
                 await self.ai_interview_repo.update_ai_interview(id, report=report.markdown_report, completed_at=get_indian_time())
+                await self.application_repo.update_application_status(ai_interview.application_id, ApplicationStatus.AI_INTERVIEW_COMPLETED)
                 await websocket.close(code=1000, reason="Interview completed")
                 break
             else:

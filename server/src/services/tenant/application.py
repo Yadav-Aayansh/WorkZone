@@ -7,7 +7,7 @@ from src.exceptions.tenant import (
 from src.core.storage import storage_client
 from src.core.context import tenant_context
 from src.core.logger import logger
-from src.models.tenant import Application
+from src.models.tenant import Application, ApplicationStatus
 from sqlalchemy.orm import selectinload
 
 class ApplicationService:
@@ -67,4 +67,4 @@ class ApplicationService:
         if str(application.user_id) != user_id:  
             raise UnauthorizedAccessError("Access denied!")
         
-        return await self.application_repo.withdraw_application(id)
+        return await self.application_repo.update_application_status(id, ApplicationStatus.WITHDRAWN)
