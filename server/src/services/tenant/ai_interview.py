@@ -1,12 +1,15 @@
 from uuid import UUID
 from src.repository.tenant import AiInterviewRepository, ApplicationRepository
-from src.exceptions.tenant import AiInterviewAlreadyExistsError, AiInterviewNotFoundError, ApplicationNotFoundError
+from src.exceptions.tenant import (
+    AiInterviewAlreadyExistsError, AiInterviewNotFoundError, ApplicationNotFoundError,
+    ApplicationNotShortlistedError
+)
 from fastapi import WebSocket
 from src.genai.schemas import StartInterviewRequest, ProcessTextAnswerRequest, GenerateReportRequest
 from src.genai.hr_interview.main import start_interview, process_text_answer, process_voice_answer, generate_final_report
 from src.core.logger import logger
 from src.utils.datetime import get_indian_time
-from src.models.tenant import Application
+from src.models.tenant import Application, ApplicationStatus
 from sqlalchemy.orm import selectinload
 
 class AiInterviewService:
@@ -18,6 +21,9 @@ class AiInterviewService:
         application = await self.application_repo.get_application_by_id(application_id)
         if not application:
             raise ApplicationNotFoundError("Application does not exist!")
+        
+        if application.status != ApplicationStatus.SHORTLISTED:
+            raise ApplicationNotShortlistedError("You are not shortlisted!")
 
         ai_interview = await self.ai_interview_repo.is_application_id_exist(application_id)
         if ai_interview:
