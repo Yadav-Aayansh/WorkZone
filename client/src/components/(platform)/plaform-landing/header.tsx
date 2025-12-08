@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { Menu, X, Building2, ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { Menu, X, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import React from "react";
 import { cn } from "@/lib/utils";
@@ -47,8 +48,14 @@ export const HeroHeader = () => {
               >
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg blur-lg opacity-40 group-hover:opacity-60 transition-opacity duration-300" />
-                  <div className="relative bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-lg">
-                    <Building2 className="h-5 w-5 text-white" />
+                  <div className="relative bg-gradient-to-br from-indigo-500 to-purple-600 p-1.5 rounded-lg overflow-hidden">
+                    <Image
+                      src="/assets/images/WZlogo.png"
+                      alt="WorkZone"
+                      width={24}
+                      height={24}
+                      className="object-contain"
+                    />
                   </div>
                 </div>
                 <span className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">

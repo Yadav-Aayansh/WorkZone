@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { tenantEmployeeAPI, HelpdeskResponse } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useTenant } from "@/providers/tenant-provider";
+import ReactMarkdown from "react-markdown";
 
 // GCS bucket for policy documents
 const GCS_BUCKET_NAME =
@@ -405,9 +406,9 @@ export function HelpdeskChat() {
                             </div>
                           )}
 
-                          <p className="text-gray-800 dark:text-gray-200 text-sm leading-relaxed whitespace-pre-wrap">
-                            {message.content}
-                          </p>
+                          <div className="text-gray-800 dark:text-gray-200 text-sm leading-relaxed [&>h1]:text-lg [&>h1]:font-bold [&>h1]:mt-3 [&>h1]:mb-1.5 [&>h2]:text-base [&>h2]:font-semibold [&>h2]:mt-2.5 [&>h2]:mb-1 [&>h3]:text-sm [&>h3]:font-medium [&>h3]:mt-2 [&>h3]:mb-1 [&>p]:my-1.5 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:my-1.5 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:my-1.5 [&>li]:my-0.5">
+                            <ReactMarkdown>{message.content}</ReactMarkdown>
+                          </div>
                         </div>
 
                         {/* Sources Section */}

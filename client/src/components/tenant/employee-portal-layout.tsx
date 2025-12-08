@@ -9,7 +9,6 @@ import {
   Calendar,
   FileText,
   User,
-  Megaphone,
   ScrollText,
   Palmtree,
   HeadphonesIcon,
@@ -51,11 +50,6 @@ const navigation = [
     icon: FileText,
   },
   { name: "Profile", href: "/tenant/employee-portal/profile", icon: User },
-  {
-    name: "Announcements",
-    href: "/tenant/employee-portal/announcements",
-    icon: Megaphone,
-  },
   {
     name: "Policies",
     href: "/tenant/employee-portal/policies",

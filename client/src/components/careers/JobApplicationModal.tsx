@@ -17,7 +17,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { tenantApplicationAPI, JobResponse } from "@/lib/api";
 import {
@@ -45,7 +44,6 @@ export function JobApplicationModal({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resume, setResume] = useState<File | null>(null);
-  const [coverLetter, setCoverLetter] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -116,7 +114,6 @@ export function JobApplicationModal({
   const handleClose = () => {
     if (!isSubmitting && !success) {
       setResume(null);
-      setCoverLetter("");
       setError(null);
       setSuccess(false);
       onClose();
@@ -199,26 +196,6 @@ export function JobApplicationModal({
                   Remove file
                 </Button>
               )}
-            </div>
-
-            {/* Cover Letter (Optional) */}
-            <div className="space-y-2">
-              <Label htmlFor="coverLetter" className="text-base font-semibold">
-                Cover Letter (Optional)
-              </Label>
-              <Textarea
-                id="coverLetter"
-                placeholder="Tell us why you're a great fit for this role..."
-                value={coverLetter}
-                onChange={(e) => setCoverLetter(e.target.value)}
-                rows={6}
-                disabled={isSubmitting}
-                className="resize-none"
-              />
-              <p className="text-xs text-muted-foreground">
-                Note: Cover letter will be reviewed but not stored in this
-                version
-              </p>
             </div>
 
             {/* Error Alert */}

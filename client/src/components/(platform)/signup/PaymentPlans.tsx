@@ -495,7 +495,7 @@ export default function PaymentPlans({
           <Button
             onClick={handlePayment}
             disabled={!selectedPlan || isProcessing || !razorpayLoaded}
-            className="w-full h-12 rounded-xl text-sm font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25 transition-all hover:shadow-indigo-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? (
               <motion.div
