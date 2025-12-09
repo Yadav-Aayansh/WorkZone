@@ -51,14 +51,6 @@ import { toast } from "sonner";
 
 type Tab = "overview" | "team" | "settings";
 
-// Mock tenant data - will be replaced with real API data
-const mockTenantData = {
-  brandName: "WORKZONE",
-  logo: "/assets/images/WZlogo.png",
-  tenantId: "workzone",
-  teamCount: 0, // Real count from backend
-};
-
 export default function DashboardPage() {
   const { logout } = useAuth();
   const router = useRouter();
@@ -165,25 +157,7 @@ export default function DashboardPage() {
           {/* Logo & Brand */}
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3">
-              {mockTenantData.logo ? (
-                <img
-                  src={mockTenantData.logo}
-                  alt={mockTenantData.brandName}
-                  className="w-10 h-10 rounded-lg object-cover"
-                />
-              ) : (
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-white" />
-                </div>
-              )}
-              <div>
-                <h2 className="font-semibold text-gray-900 dark:text-white">
-                  {mockTenantData.brandName}
-                </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {mockTenantData.tenantId}
-                </p>
-              </div>
+              <Logo className="h-10 w-auto" />
             </div>
           </div>
 
@@ -365,10 +339,10 @@ export default function DashboardPage() {
                         onClick={handleInviteEmployee}
                         className="h-24 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg"
                       >
-                        <div className="flex flex-col items-center gap-2">
+                        <div className="flex flex-col items-center gap-2 text-white">
                           <UserPlus className="w-6 h-6" />
-                          <span className="font-semibold">
-                            Invite Team Member
+                          <span className="font-semibold tex">
+                            Invite Member
                           </span>
                         </div>
                       </Button>

@@ -3,9 +3,16 @@ import {
   tenantJobAPI,
   tenantApplicationAPI,
   tenantQueryAPI,
+  tenantLeaveAPI,
+  tenantLearningAPI,
+  tenantEmployeeAPI,
   JobResponse,
   ApplicationResponse,
   ApplicationStatus,
+  LeaveRequestResponse,
+  LeaveBalanceResponse,
+  ApplyLeaveRequest,
+  LearningPlanResponse,
 } from "@/lib/api";
 
 // ============================================
@@ -26,6 +33,17 @@ export const queryKeys = {
   // Queries (Employee queries/tickets)
   myQueries: ["queries", "my"] as const,
   assignedQueries: ["queries", "assigned"] as const,
+
+  // Leaves (Employee)
+  leaveBalance: ["leaves", "balance"] as const,
+  myLeaveRequests: ["leaves", "my"] as const,
+  pendingApprovals: ["leaves", "pending"] as const,
+
+  // Learning
+  learningPlans: ["learning", "plans"] as const,
+
+  // Team
+  team: ["team"] as const,
 };
 
 // ============================================
@@ -237,5 +255,98 @@ export function useRespondToQuery() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.assignedQueries });
     },
+  });
+}
+
+// ============================================
+// Employee Leave Hooks
+// ============================================
+
+export function useLeaveBalance() {
+  return useQuery({
+    queryKey: queryKeys.leaveBalance,
+    queryFn: () => tenantLeaveAPI.getLeaveBalance(),
+  });
+}
+
+export function useMyLeaveRequests() {
+  return useQuery({
+    queryKey: queryKeys.myLeaveRequests,
+    queryFn: () => tenantLeaveAPI.getMyLeaveRequests(),
+  });
+}
+
+export function usePendingApprovals() {
+  return useQuery({
+    queryKey: queryKeys.pendingApprovals,
+    queryFn: () => tenantLeaveAPI.getPendingApprovals(),
+  });
+}
+
+export function useApplyLeave() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ApplyLeaveRequest) => tenantLeaveAPI.applyLeave(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.myLeaveRequests });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leaveBalance });
+    },
+  });
+}
+
+export function useApproveLeave() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (leaveRequestId: string) => tenantLeaveAPI.approveLeave(leaveRequestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pendingApprovals });
+    },
+  });
+}
+
+export function useRejectLeave() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ leaveRequestId, reason }: { leaveRequestId: string; reason: string }) =>
+      tenantLeaveAPI.rejectLeave(leaveRequestId, { rejection_reason: reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.pendingApprovals });
+    },
+  });
+}
+
+// ============================================
+// Learning Hooks
+// ============================================
+
+export function useLearningPlans() {
+  return useQuery({
+    queryKey: queryKeys.learningPlans,
+    queryFn: () => tenantLearningAPI.getMyPaths(),
+  });
+}
+
+export function useGenerateLearningPlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (careerGoal: string) => tenantLearningAPI.generatePath({ career_goal: careerGoal }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.learningPlans });
+    },
+  });
+}
+
+// ============================================
+// Team Hooks
+// ============================================
+
+export function useTeam() {
+  return useQuery({
+    queryKey: queryKeys.team,
+    queryFn: () => tenantEmployeeAPI.getTeam(),
   });
 }

@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { ModernEmployeeLayout } from "@/components/common/layout/ModernEmployeeLayout";
-import { tenantEmployeeAPI, TeamResponse } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,30 +22,10 @@ import {
   RefreshCw,
   UserCircle,
 } from "lucide-react";
-import { toast } from "sonner";
+import { useTeam } from "@/hooks/use-queries";
 
 function EmployeeTeamContent() {
-  const [team, setTeam] = useState<TeamResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    loadTeam();
-  }, []);
-
-  const loadTeam = async () => {
-    setIsLoading(true);
-    try {
-      const data = await tenantEmployeeAPI.getTeam();
-      setTeam(data);
-    } catch (err: unknown) {
-      console.error("Failed to load team:", err);
-      const message =
-        err instanceof Error ? err.message : "Failed to load team";
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: team, isLoading, refetch } = useTeam();
 
   const getInitials = (name: string) => {
     return name
@@ -77,7 +55,7 @@ function EmployeeTeamContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={loadTeam}>
+            <Button onClick={() => refetch()}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Retry
             </Button>
@@ -101,7 +79,11 @@ function EmployeeTeamContent() {
             View your manager and team colleagues
           </p>
         </div>
-        <Button variant="outline" onClick={loadTeam} disabled={isLoading}>
+        <Button
+          variant="outline"
+          onClick={() => refetch()}
+          disabled={isLoading}
+        >
           <RefreshCw
             className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
           />

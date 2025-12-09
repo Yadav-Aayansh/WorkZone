@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import React from "react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useTheme } from "next-themes";
 
 const menuItems = [
   { name: "Home", href: "/" },
@@ -17,6 +18,12 @@ const menuItems = [
 export const HeroHeader = () => {
   const [menuState, setMenuState] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+  const { resolvedTheme } = useTheme();
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +32,12 @@ export const HeroHeader = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const logoSrc = mounted
+    ? resolvedTheme === "dark"
+      ? "/assets/images/WorkZone_Light.png"
+      : "/assets/images/WorkZone_Dark.png"
+    : "/assets/images/WorkZone_Dark.png";
 
   return (
     <header>
@@ -46,21 +59,15 @@ export const HeroHeader = () => {
                 aria-label="home"
                 className="flex items-center space-x-2 group"
               >
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg blur-lg opacity-40 group-hover:opacity-60 transition-opacity duration-300" />
-                  <div className="relative bg-gradient-to-br from-indigo-500 to-purple-600 p-1.5 rounded-lg overflow-hidden">
-                    <Image
-                      src="/assets/images/WZlogo.png"
-                      alt="WorkZone"
-                      width={24}
-                      height={24}
-                      className="object-contain"
-                    />
-                  </div>
-                </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
-                  WorkZone
-                </span>
+                <Image
+                  src={logoSrc}
+                  alt="WorkZone"
+                  width={36}
+                  height={36}
+                  className="object-contain"
+                  priority
+                />
+                <span className="text-xl font-bold">WorkZone</span>
               </Link>
 
               <button

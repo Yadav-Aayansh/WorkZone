@@ -6,6 +6,7 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   CheckCircle2,
   Building2,
@@ -188,9 +189,14 @@ export default function SuccessPage({ signupData }: SuccessPageProps) {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-3 mb-6"
         >
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-            <Sparkles className="w-6 h-6 text-white" />
-          </div>
+          <Image
+            src="/assets/images/WorkZone_Light.png"
+            alt="WorkZone"
+            width={40}
+            height={40}
+            className="object-contain"
+            priority
+          />
           <span className="text-2xl font-bold text-white">WorkZone</span>
         </motion.div>
 
