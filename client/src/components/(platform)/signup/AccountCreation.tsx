@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   Eye,
@@ -24,6 +25,7 @@ import { SignupData } from "@/app/(platform)/(auth)/signup/page";
 import { authAPI, APIError } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
+import { useTheme } from "next-themes";
 
 const accountSchema = z
   .object({
@@ -106,8 +108,10 @@ export default function AccountCreation({
   const [error, setError] = useState<string>("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const { login } = useAuth();
   const { showToast } = useToast();
+  const { resolvedTheme } = useTheme();
 
   const {
     register,
@@ -127,6 +131,11 @@ export default function AccountCreation({
   const password = watch("password", "");
   const passwordStrength = checkPasswordStrength(password);
 
+  // Mount effect for theme-aware logo
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Auto-rotate features
   useEffect(() => {
     const interval = setInterval(() => {
@@ -134,6 +143,13 @@ export default function AccountCreation({
     }, 4000);
     return () => clearInterval(interval);
   }, []);
+
+  // Theme-aware logo source
+  const logoSrc = mounted
+    ? resolvedTheme === "dark"
+      ? "/assets/images/WorkZone_Light.png"
+      : "/assets/images/WorkZone_Dark.png"
+    : "/assets/images/WorkZone_Dark.png";
 
   const features = [
     {
@@ -256,9 +272,14 @@ export default function AccountCreation({
             transition={{ duration: 0.6 }}
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/25">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
+              <Image
+                src="/assets/images/WorkZone_Light.png"
+                alt="WorkZone"
+                width={40}
+                height={40}
+                className="object-contain"
+                priority
+              />
               <span className="text-2xl font-bold text-white">WorkZone</span>
             </div>
             <p className="text-violet-200/70 text-lg max-w-md">
@@ -357,9 +378,14 @@ export default function AccountCreation({
           {/* Mobile Logo */}
           <div className="lg:hidden mb-5 flex justify-center">
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
+              <Image
+                src={logoSrc}
+                alt="WorkZone"
+                width={32}
+                height={32}
+                className="object-contain"
+                priority
+              />
               <span className="text-xl font-bold">WorkZone</span>
             </div>
           </div>

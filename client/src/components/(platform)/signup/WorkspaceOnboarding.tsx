@@ -303,9 +303,14 @@ export default function WorkspaceOnboarding({
             className="text-center mb-12"
           >
             <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
+              <Image
+                src="/assets/images/WorkZone_Light.png"
+                alt="WorkZone"
+                width={40}
+                height={40}
+                className="object-contain"
+                priority
+              />
               <span className="text-2xl font-bold text-white">WorkZone</span>
             </div>
             <p className="text-indigo-200/70 text-sm">

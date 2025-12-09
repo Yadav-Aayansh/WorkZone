@@ -56,6 +56,7 @@ import {
   LeaveRequestStatus,
   LeaveRequestType,
   ApplyLeaveRequest,
+  LeaveRequestResponse,
 } from "@/lib/api";
 import { toast } from "sonner";
 import {

@@ -7,6 +7,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   ArrowLeft,
   Check,
@@ -27,6 +28,7 @@ import { SignupData } from "@/app/(platform)/(auth)/signup/page";
 import { loadRazorpayScript } from "@/lib/razorpay";
 import { subscriptionAPI, CreateOrderRequest } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
+import { useTheme } from "next-themes";
 
 interface PaymentPlansProps {
   onNext: (data: Partial<SignupData>) => void;
@@ -133,11 +135,24 @@ export default function PaymentPlans({
   >(initialData.plan || "6_months");
   const [isProcessing, setIsProcessing] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { updateStatus } = useAuth();
+  const { resolvedTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     loadRazorpayScript().then((loaded) => setRazorpayLoaded(loaded));
   }, []);
+
+  // Theme-aware logo source
+  const logoSrc = mounted
+    ? resolvedTheme === "dark"
+      ? "/assets/images/WorkZone_Light.png"
+      : "/assets/images/WorkZone_Dark.png"
+    : "/assets/images/WorkZone_Dark.png";
 
   const handlePayment = async () => {
     if (!selectedPlan) return;
@@ -412,9 +427,13 @@ export default function PaymentPlans({
         >
           {/* Logo */}
           <div className="flex items-center gap-2 mb-5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            <Image
+              src={logoSrc}
+              alt="WorkZone"
+              width={36}
+              height={36}
+              className="object-contain"
+            />
             <span className="text-xl font-bold">WorkZone</span>
           </div>
 

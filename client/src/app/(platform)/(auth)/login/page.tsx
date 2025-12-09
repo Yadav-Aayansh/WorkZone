@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   Eye,
@@ -22,6 +23,7 @@ import { useState, useEffect } from "react";
 import { authAPI, APIError } from "@/lib/api";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
+import { useTheme } from "next-themes";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -89,8 +91,10 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [activeFeature, setActiveFeature] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const { login, redirectAfterAuth } = useAuth();
   const { showToast } = useToast();
+  const { resolvedTheme } = useTheme();
 
   const {
     register,
@@ -100,6 +104,11 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  // Mount effect for theme-aware logo
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Auto-rotate features
   useEffect(() => {
     const interval = setInterval(() => {
@@ -107,6 +116,13 @@ export default function LoginPage() {
     }, 4000);
     return () => clearInterval(interval);
   }, []);
+
+  // Theme-aware logo source
+  const logoSrc = mounted
+    ? resolvedTheme === "dark"
+      ? "/assets/images/WorkZone_Light.png"
+      : "/assets/images/WorkZone_Dark.png"
+    : "/assets/images/WorkZone_Dark.png";
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -188,9 +204,14 @@ export default function LoginPage() {
             className="mb-12"
           >
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
+              <Image
+                src="/assets/images/WorkZone_Light.png"
+                alt="WorkZone"
+                width={40}
+                height={40}
+                className="object-contain"
+                priority
+              />
               <span className="text-2xl font-bold text-white">WorkZone</span>
             </div>
           </motion.div>
@@ -294,9 +315,14 @@ export default function LoginPage() {
           {/* Mobile Logo */}
           <div className="lg:hidden mb-6 flex justify-center">
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
+              <Image
+                src={logoSrc}
+                alt="WorkZone"
+                width={32}
+                height={32}
+                className="object-contain"
+                priority
+              />
               <span className="text-xl font-bold">WorkZone</span>
             </div>
           </div>
