@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { ModernEmployeeLayout } from "@/components/common/layout/ModernEmployeeLayout";
 import {
@@ -26,47 +25,18 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {
-  tenantLeaveAPI,
-  LeaveRequestResponse,
-  LeaveBalanceResponse,
-  LeaveRequestStatus,
-  LeaveRequestType,
-} from "@/lib/api";
-import { toast } from "sonner";
+import { LeaveRequestStatus, LeaveRequestType } from "@/lib/api";
+import { useLeaveBalance, useMyLeaveRequests } from "@/hooks/use-queries";
 
 function DashboardContent() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [leaveBalance, setLeaveBalance] = useState<LeaveBalanceResponse | null>(
-    null
-  );
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequestResponse[]>(
-    []
-  );
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
+  // Use React Query hooks for caching
+  const { data: leaveBalance, isLoading: isLoadingBalance } = useLeaveBalance();
+  const { data: leaveRequests = [], isLoading: isLoadingRequests } =
+    useMyLeaveRequests();
 
-  const loadDashboardData = async () => {
-    setIsLoading(true);
-    try {
-      const [balanceData, requestsData] = await Promise.all([
-        tenantLeaveAPI.getLeaveBalance(),
-        tenantLeaveAPI.getMyLeaveRequests(),
-      ]);
-      setLeaveBalance(balanceData);
-      setLeaveRequests(requestsData);
-    } catch (err) {
-      console.error("Failed to load dashboard data:", err);
-      toast.error(
-        err instanceof Error ? err.message : "Failed to load dashboard data"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const isLoading = isLoadingBalance || isLoadingRequests;
 
   const getStatusBadge = (status: LeaveRequestStatus) => {
     switch (status) {

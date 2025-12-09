@@ -159,7 +159,7 @@ export default function InviteEmployeePage() {
             <div className="inline-flex w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl items-center justify-center mx-auto mb-4 shadow-lg transform hover:scale-105 transition-transform">
               <UserPlus className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-2">
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-2 ">
               Invite Team Member
             </h2>
             <p className="text-gray-600 dark:text-gray-400">

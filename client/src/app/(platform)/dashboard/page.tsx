@@ -365,10 +365,10 @@ export default function DashboardPage() {
                         onClick={handleInviteEmployee}
                         className="h-24 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg"
                       >
-                        <div className="flex flex-col items-center gap-2">
+                        <div className="flex flex-col items-center gap-2 text-white">
                           <UserPlus className="w-6 h-6" />
-                          <span className="font-semibold">
-                            Invite Team Member
+                          <span className="font-semibold tex">
+                            Invite Member
                           </span>
                         </div>
                       </Button>

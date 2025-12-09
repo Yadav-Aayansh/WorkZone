@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { ModernEmployeeLayout } from "@/components/common/layout/ModernEmployeeLayout";
 import {
@@ -53,24 +53,32 @@ import {
   RefreshCw,
 } from "lucide-react";
 import {
-  tenantLeaveAPI,
-  LeaveRequestResponse,
-  LeaveBalanceResponse,
   LeaveRequestStatus,
   LeaveRequestType,
   ApplyLeaveRequest,
 } from "@/lib/api";
 import { toast } from "sonner";
+import {
+  useLeaveBalance,
+  useMyLeaveRequests,
+  useApplyLeave,
+} from "@/hooks/use-queries";
 
 function LeaveManagementContent() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [leaveBalance, setLeaveBalance] = useState<LeaveBalanceResponse | null>(
-    null
-  );
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequestResponse[]>(
-    []
-  );
+  // Use React Query hooks for caching
+  const {
+    data: leaveBalance,
+    isLoading: isLoadingBalance,
+    refetch: refetchBalance,
+  } = useLeaveBalance();
+  const {
+    data: leaveRequests = [],
+    isLoading: isLoadingRequests,
+    refetch: refetchRequests,
+  } = useMyLeaveRequests();
+  const applyLeaveMutation = useApplyLeave();
+
+  const isLoading = isLoadingBalance || isLoadingRequests;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Form state
@@ -80,27 +88,6 @@ function LeaveManagementContent() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const [balanceData, requestsData] = await Promise.all([
-        tenantLeaveAPI.getLeaveBalance(),
-        tenantLeaveAPI.getMyLeaveRequests(),
-      ]);
-      setLeaveBalance(balanceData);
-      setLeaveRequests(requestsData);
-    } catch (err) {
-      console.error("Failed to load data:", err);
-      toast.error(err instanceof Error ? err.message : "Failed to load data");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleApplyLeave = async () => {
     if (!startDate || !endDate || !reason) {
@@ -113,7 +100,6 @@ function LeaveManagementContent() {
       return;
     }
 
-    setIsSubmitting(true);
     try {
       const request: ApplyLeaveRequest = {
         leave_type: leaveType,
@@ -122,7 +108,7 @@ function LeaveManagementContent() {
         reason: reason,
       };
 
-      await tenantLeaveAPI.applyLeave(request);
+      await applyLeaveMutation.mutateAsync(request);
       toast.success("Leave request submitted successfully!");
       setIsDialogOpen(false);
 
@@ -131,16 +117,11 @@ function LeaveManagementContent() {
       setStartDate("");
       setEndDate("");
       setReason("");
-
-      // Reload data
-      loadData();
     } catch (err) {
       console.error("Failed to apply leave:", err);
       toast.error(
         err instanceof Error ? err.message : "Failed to submit leave request"
       );
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -238,6 +219,11 @@ function LeaveManagementContent() {
     );
   }
 
+  const handleRefresh = () => {
+    refetchBalance();
+    refetchRequests();
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -249,7 +235,7 @@ function LeaveManagementContent() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={loadData}>
+          <Button variant="outline" onClick={handleRefresh}>
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
@@ -342,12 +328,15 @@ function LeaveManagementContent() {
                 <Button
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
-                  disabled={isSubmitting}
+                  disabled={applyLeaveMutation.isPending}
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleApplyLeave} disabled={isSubmitting}>
-                  {isSubmitting ? (
+                <Button
+                  onClick={handleApplyLeave}
+                  disabled={applyLeaveMutation.isPending}
+                >
+                  {applyLeaveMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Submitting...

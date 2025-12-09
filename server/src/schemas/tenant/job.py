@@ -14,6 +14,7 @@ class UpdateJobRequest(BaseModel):
     description: Optional[str] = None
     department: Optional[str] = Field(None, max_length=50)
     location: Optional[str] = Field(None, max_length=25)
+    is_open: Optional[bool] = None
 
 class JobResponse(BaseModel):
     id: UUID
