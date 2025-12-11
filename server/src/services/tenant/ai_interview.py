@@ -128,7 +128,7 @@ class AiInterviewService:
                     "type": "report",
                     "report": report.markdown_report
                 })
-                await self.ai_interview_repo.update_ai_interview(id, report=report.markdown_report, completed_at=get_indian_time())
+                await self.ai_interview_repo.update_ai_interview(id, {"report": report.markdown_report, "completed_at":get_indian_time()})
                 await self.application_repo.update_application_status(ai_interview.application_id, ApplicationStatus.AI_INTERVIEW_COMPLETED)
                 await websocket.close(code=1000, reason="Interview completed")
                 break
