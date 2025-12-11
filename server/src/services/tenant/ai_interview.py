@@ -109,12 +109,16 @@ class AiInterviewService:
                     ]
                     for msg in messages:
                         try:
+                            logger.info(f"[PROGRESS] Sending: {msg}")  # ADD THIS
                             await websocket.send_json({"type": "status", "message": msg})
-                        except:
+                            logger.info(f"[PROGRESS] Sent successfully")  # ADD THIS
+                        except Exception as e:
+                            logger.error(f"[PROGRESS] Failed: {e}")  # ADD THIS
                             break
-                        await asyncio.sleep(15)  # Sleep AFTER sending
+                        await asyncio.sleep(15)
                 
                 progress_task = asyncio.create_task(send_progress())
+                await asyncio.sleep(0.1) 
                 try:
                     report = await generate_with_progress()
                 finally:
