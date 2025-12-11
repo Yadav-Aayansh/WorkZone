@@ -24,23 +24,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "WorkZone.tech - AI-Powered HR Management Platform",
+    default: "WorkZone",
     template: "%s | WorkZone.tech",
   },
   description:
     "Next-generation HR Management Platform powered by GenAI. Automate recruitment, performance management, leave tracking, and compliance for startups and mid-sized enterprises.",
-  keywords: [
-    "HR Management",
-    "HRMS",
-    "HRM Software",
-    "AI Recruitment",
-    "Employee Management",
-    "Performance Management",
-    "Leave Management",
-    "Payroll",
-    "HR Analytics",
-    "WorkZone",
-  ],
+  icons: {
+    icon: "/assets/images/WorkZone_Light.png",
+  },
   authors: [{ name: "WorkZone.tech Team" }],
   creator: "WorkZone.tech",
   publisher: "WorkZone.tech",
