@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     # Background Tasks
     REDIS_URL: str
 
+    # ChromaDB
+    CHROMA_HOST: str = "localhost"
+    CHROMA_PORT: int = 8001
+
     # SMTP
     SMTP_HOST: str
     SMTP_PORT: int

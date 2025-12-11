@@ -6,6 +6,7 @@ worker = Celery(
     backend=Config.REDIS_URL,
     include=[
         "src.tasks.email",
-        "src.tasks.tenant"
+        "src.tasks.tenant",
+        "src.tasks.policy"
     ]
 )

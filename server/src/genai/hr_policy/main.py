@@ -26,12 +26,8 @@ from src.genai.hr_policy.vector_store import (
     add_documents_to_chroma,
     delete_document_from_chroma,
     list_all_documents,
-    download_all_tenant_chromadbs,
-    download_chroma_from_gcs,
-    upload_chroma_to_gcs,
-    upload_chroma_to_temp,
     create_tenant_chroma_path,
-    get_tenant_chroma_local_path
+    get_chroma_client
 )
 from src.genai.hr_policy.context_manager import (
     create_chat_session,
@@ -52,25 +48,31 @@ from src.genai.hr_policy.suggestions_generator import (
 
 
 async def initialize_system():
+    """Initialize HR Policy Assistant by connecting to ChromaDB server."""
     logger.info("Initializing HR Policy Assistant system (multi-tenant)...")
-    
+
     try:
-        # Download all tenant ChromaDBs from GCS
-        tenant_folders = download_all_tenant_chromadbs()
-        
+        # Test connection to ChromaDB server
+        client = get_chroma_client()
+        heartbeat = client.heartbeat()
+
+        # List existing collections (tenants)
+        collections = client.list_collections()
+        tenant_count = len(collections)
+
         logger.info(
-            f" System initialized - "
-            f"{len(tenant_folders)} tenant ChromaDBs downloaded"
+            f"System initialized - Connected to ChromaDB server "
+            f"(heartbeat: {heartbeat}, {tenant_count} tenant collections)"
         )
-        
+
         return {
             "status": "success",
-            "message": f"System initialized with {len(tenant_folders)} tenants",
-            "tenants": tenant_folders
+            "message": f"Connected to ChromaDB server with {tenant_count} tenant collections",
+            "tenant_count": tenant_count
         }
-        
+
     except Exception as e:
-        logger.error(f" System initialization failed: {e}")
+        logger.error(f"System initialization failed: {e}")
         return {
             "status": "error",
             "message": str(e)
@@ -169,77 +171,60 @@ async def process_uploaded_document(
 async def process_multiple_documents(
     request: ProcessDocumentRequest
 ) -> Dict:
-
+    """Process multiple documents and add them to ChromaDB server."""
     start_time = time.time()
-    
+
     if not request.document_blob_names:
         return {
             "status": "error",
             "message": "document_blob_names is required"
         }
-    
+
     logger.info(
         f"Processing {len(request.document_blob_names)} documents "
         f"for {request.chroma_db_path}"
     )
-    
+
     try:
-        # Check if ChromaDB exists in temp, if not download from GCS
-        local_path = get_tenant_chroma_local_path(request.chroma_db_path)
-        logger.info(f"update system - {local_path}")
-        if not os.path.exists(local_path) or not os.listdir(local_path):
-            logger.info(f"ChromaDB not found in temp, downloading from GCS: {request.chroma_db_path}")
-            download_chroma_from_gcs(request.chroma_db_path)
-        else:
-            logger.info(f"Using existing ChromaDB from temp for {request.chroma_db_path}")
-        
         results = []
         successful = 0
         failed = 0
-        
+
         for i, blob_name in enumerate(request.document_blob_names, 1):
             logger.info(f"Processing [{i}/{len(request.document_blob_names)}]: {blob_name}")
-            
+
             try:
                 result = await process_uploaded_document(request, blob_name)
-                
+
                 results.append({
                     "blob_name": blob_name,
                     "status": result.status,
                     "document_id": result.document_id,
                     "chunks_added": result.chunks_added
                 })
-                
+
                 if result.status == "success":
                     successful += 1
-                    logger.info(f" [{i}/{len(request.document_blob_names)}] Success: {blob_name}")
+                    logger.info(f"[{i}/{len(request.document_blob_names)}] Success: {blob_name}")
                 else:
                     failed += 1
-                    logger.error(f" [{i}/{len(request.document_blob_names)}] Failed: {blob_name}")
-                
+                    logger.error(f"[{i}/{len(request.document_blob_names)}] Failed: {blob_name}")
+
             except Exception as e:
                 failed += 1
-                logger.error(f" [{i}/{len(request.document_blob_names)}] Error: {e}")
+                logger.error(f"[{i}/{len(request.document_blob_names)}] Error: {e}")
                 results.append({
                     "blob_name": blob_name,
                     "status": "error",
                     "error": str(e)
                 })
-        
-        # Upload ChromaDB to GCS ONCE after all documents
-        logger.info("Uploading updated ChromaDB to GCS...")
-        upload_chroma_to_gcs(request.chroma_db_path)
-        
-        # Ensure updated ChromaDB is in temp
-        logger.info("Ensuring updated ChromaDB is in temp...")
-        upload_chroma_to_temp(request.chroma_db_path)
-        
+
         processing_time = time.time() - start_time
         logger.info(
-            f"✓ Processed {len(request.document_blob_names)} documents: "
+            f"Processed {len(request.document_blob_names)} documents: "
             f"{successful} successful, {failed} failed in {processing_time:.2f}s"
         )
-        
+
         return {
             "status": "success",
             "message": f"Processed {len(request.document_blob_names)} documents",
@@ -249,11 +234,11 @@ async def process_multiple_documents(
             "results": results,
             "processing_time": processing_time
         }
-        
+
     except Exception as e:
         processing_time = time.time() - start_time
         logger.error(f"Batch processing failed: {e}")
-        
+
         return {
             "status": "error",
             "message": str(e),
@@ -265,31 +250,31 @@ async def process_all_documents_from_gcs(
     tenant_folder_path: str,
     category_mapping: Optional[Dict[str, str]] = None
 ) -> Dict:
-   
+    """Process all PDF documents from a tenant's GCS folder."""
     start_time = time.time()
-    
+
     try:
         # Extract tenant name from path
         tenant_name = tenant_folder_path.rstrip('/').split('/')[-1]
         logger.info(f"Processing all documents for tenant: {tenant_name}")
-        
+
         # Create ChromaDB path for this tenant
         chroma_db_path = create_tenant_chroma_path(tenant_name)
-        logger.info(f"Created ChromaDB path: {chroma_db_path}")
-        
+        logger.info(f"Using ChromaDB path: {chroma_db_path}")
+
         # List all PDFs in tenant folder
         logger.info(f"Step 1: Listing all PDFs in {tenant_folder_path}")
         bucket = storage_client.bucket
         blobs = bucket.list_blobs(prefix=tenant_folder_path)
-        
+
         pdf_blobs = [
-            blob for blob in blobs 
+            blob for blob in blobs
             if blob.name.lower().endswith('.pdf')
         ]
         total_files = len(pdf_blobs)
-        
+
         logger.info(f"Found {total_files} PDF files in {tenant_folder_path}")
-        
+
         if total_files == 0:
             return {
                 "status": "success",
@@ -300,13 +285,13 @@ async def process_all_documents_from_gcs(
                 "failed": 0,
                 "results": []
             }
-        
+
         # Process each PDF
         logger.info("Step 2: Processing all PDFs...")
         results = []
         successful = 0
         failed = 0
-        
+
         # Create request object for this tenant
         request = ProcessDocumentRequest(
             chroma_db_path=chroma_db_path,
@@ -317,52 +302,44 @@ async def process_all_documents_from_gcs(
                 "processed_at": get_indian_time().isoformat()
             }
         )
-        
+
         for i, blob in enumerate(pdf_blobs, 1):
             blob_name = blob.name
             logger.info(f"Processing [{i}/{total_files}]: {blob_name}")
-            
+
             try:
                 result = await process_uploaded_document(request, blob_name)
-                
+
                 results.append({
                     "blob_name": blob_name,
                     "status": result.status,
                     "document_id": result.document_id,
                     "chunks_added": result.chunks_added
                 })
-                
+
                 if result.status == "success":
                     successful += 1
-                    logger.info(f" [{i}/{total_files}] Success: {blob_name}")
+                    logger.info(f"[{i}/{total_files}] Success: {blob_name}")
                 else:
                     failed += 1
-                    logger.error(f" [{i}/{total_files}] Failed: {blob_name}")
-                
+                    logger.error(f"[{i}/{total_files}] Failed: {blob_name}")
+
             except Exception as e:
                 failed += 1
-                logger.error(f" [{i}/{total_files}] Error: {e}")
+                logger.error(f"[{i}/{total_files}] Error: {e}")
                 results.append({
                     "blob_name": blob_name,
                     "status": "error",
                     "error": str(e)
                 })
-        
-        # Upload ChromaDB to GCS ONCE after all documents
-        logger.info(f"Step 3: Uploading ChromaDB to {chroma_db_path}")
-        upload_chroma_to_gcs(chroma_db_path)
-        
-        # Upload ChromaDB to temp
-        logger.info(f"Step 4: Ensuring ChromaDB is in temp for {chroma_db_path}")
-        upload_chroma_to_temp(chroma_db_path)
-        
+
         processing_time = time.time() - start_time
         logger.info(
-            f" Bulk processing complete: "
+            f"Bulk processing complete: "
             f"{successful}/{total_files} successful "
             f"in {processing_time:.2f}s"
         )
-        
+
         return {
             "status": "success",
             "message": f"Processed {total_files} files for tenant {tenant_name}",
@@ -374,9 +351,9 @@ async def process_all_documents_from_gcs(
             "processing_time": processing_time,
             "results": results
         }
-        
+
     except Exception as e:
-        logger.error(f" Bulk processing failed: {e}")
+        logger.error(f"Bulk processing failed: {e}")
         return {
             "status": "error",
             "message": str(e),

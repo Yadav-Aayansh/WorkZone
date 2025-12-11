@@ -4,174 +4,56 @@ from typing import List, Dict, Optional
 from src.core.logger import logger
 from src.genai.schemas.hr_policy import DocumentChunk
 from src.genai.llm_client import llm_client
-from src.core.storage import storage_client
-import uuid
-import tempfile
-import os
-import shutil
+from src.core.config import Config
 
 
-# GCS paths
-CHROMA_GCS_BASE = "platform/chroma_db/"
-POLICIES_GCS_BASE = "policies/"
-
-# Local temp directory for all tenant ChromaDBs
-CHROMA_LOCAL_BASE = "/tmp/workzone"
-
-COLLECTION_NAME = "hr_policies"
+# Single ChromaDB client instance (connected to server)
+_chroma_client: Optional[chromadb.HttpClient] = None
 
 
-def get_tenant_chroma_local_path(chroma_db_path: str) -> str:
-    tenant_folder = chroma_db_path.replace(CHROMA_GCS_BASE, "")
-    return os.path.join(CHROMA_LOCAL_BASE, tenant_folder)
+def get_chroma_client() -> chromadb.HttpClient:
+    """Get or create ChromaDB HttpClient connection."""
+    global _chroma_client
 
-
-def download_all_tenant_chromadbs():
-    try:
-        logger.info("Downloading all tenant ChromaDBs from GCS...")
-        
-        blobs = storage_client.bucket.list_blobs(prefix=CHROMA_GCS_BASE)
-        
-        tenant_folders = set()
-        downloaded = 0
-        
-        for blob in blobs:
-            if not blob.name.startswith(CHROMA_GCS_BASE):
-                continue
-            
-            relative_path = blob.name.replace(CHROMA_GCS_BASE, "")
-            if not relative_path or relative_path.endswith('/'):
-                continue
-            
-            # Extract tenant folder (e.g., amazon_uuid123)
-            tenant_folder = relative_path.split('/')[0]
-            tenant_folders.add(tenant_folder)
-            
-            local_path = os.path.join(CHROMA_LOCAL_BASE, relative_path)
-            logger.info(f"init system - {local_path}")
-            os.makedirs(os.path.dirname(local_path), exist_ok=True)
-            
-            blob.download_to_filename(local_path)
-            downloaded += 1
-        
-        logger.info(
-            f" Downloaded {len(tenant_folders)} tenant ChromaDBs "
-            f"({downloaded} files) from GCS"
+    if _chroma_client is None:
+        _chroma_client = chromadb.HttpClient(
+            host=Config.CHROMA_HOST,
+            port=Config.CHROMA_PORT,
+            settings=Settings(anonymized_telemetry=False)
         )
-        
-        return list(tenant_folders)
-        
-    except Exception as e:
-        logger.warning(f"Could not download tenant ChromaDBs from GCS: {e}")
-        logger.info("Starting with empty ChromaDB base")
-        return []
+        logger.info(f"Connected to ChromaDB server at {Config.CHROMA_HOST}:{Config.CHROMA_PORT}")
+
+    return _chroma_client
 
 
-def download_chroma_from_gcs(chroma_db_path: str):
-    try:
-        logger.info(f"Downloading ChromaDB from GCS: {chroma_db_path}")
-        
-        blobs = storage_client.bucket.list_blobs(prefix=chroma_db_path)
-        
-        local_base = get_tenant_chroma_local_path(chroma_db_path)
-        os.makedirs(local_base, exist_ok=True)
-        
-        downloaded = 0
-        for blob in blobs:
-            relative_path = blob.name.replace(chroma_db_path + "/", "")
-            if not relative_path:
-                continue
-            
-            local_path = os.path.join(local_base, relative_path)
-            os.makedirs(os.path.dirname(local_path), exist_ok=True)
-            
-            blob.download_to_filename(local_path)
-            downloaded += 1
-        
-        if downloaded > 0:
-            logger.info(f"✓ Downloaded ChromaDB from {chroma_db_path} ({downloaded} files)")
-        else:
-            logger.info(f"No existing ChromaDB found at {chroma_db_path} (first time setup)")
-            
-    except Exception as e:
-        logger.warning(f"Could not download ChromaDB from {chroma_db_path}: {e}")
-        logger.info(f"Starting with fresh ChromaDB for {chroma_db_path}")
-
-
-def upload_chroma_to_gcs(chroma_db_path: str):
-    try:
-        logger.info(f"Uploading ChromaDB to GCS: {chroma_db_path}")
-        
-        local_base = get_tenant_chroma_local_path(chroma_db_path)
-        
-        if not os.path.exists(local_base):
-            logger.warning(f"Local ChromaDB not found at {local_base}")
-            return
-        
-        uploaded = 0
-        for root, dirs, files in os.walk(local_base):
-            for file in files:
-                local_path = os.path.join(root, file)
-                relative_path = os.path.relpath(local_path, local_base)
-                gcs_path = f"{chroma_db_path}/{relative_path}"
-                
-                blob = storage_client.bucket.blob(gcs_path)
-                blob.upload_from_filename(local_path)
-                uploaded += 1
-        
-        logger.info(f" Uploaded ChromaDB to {chroma_db_path} ({uploaded} files)")
-        
-    except Exception as e:
-        logger.error(f"Failed to upload ChromaDB to {chroma_db_path}: {e}")
-        raise
-
-
-def upload_chroma_to_temp(chroma_db_path: str):
-    try:
-        logger.info(f"Ensuring ChromaDB is in temp: {chroma_db_path}")
-        
-        local_base = get_tenant_chroma_local_path(chroma_db_path)
-        
-        if not os.path.exists(local_base):
-            logger.warning(f"ChromaDB not found in temp at {local_base}")
-            return
-        
-        # Count files to verify
-        file_count = 0
-        for root, dirs, files in os.walk(local_base):
-            file_count += len(files)
-        
-        logger.info(f"✓ ChromaDB available in temp at {local_base} ({file_count} files)")
-        
-    except Exception as e:
-        logger.error(f"Failed to verify ChromaDB in temp for {chroma_db_path}: {e}")
-        raise
-
-
-def get_chroma_client(chroma_db_path: str):
-    local_path = get_tenant_chroma_local_path(chroma_db_path)
-    os.makedirs(local_path, exist_ok=True)
-    
-    return chromadb.PersistentClient(
-        path=local_path,
-        settings=Settings(anonymized_telemetry=False)
-    )
+def get_tenant_collection_name(chroma_db_path: str) -> str:
+    """
+    Convert chroma_db_path to collection name.
+    Example: 'platform/chroma_db/tenant_uuid123' -> 'hr_policies_tenant_uuid123'
+    """
+    # Extract tenant identifier from path
+    # Path format: platform/chroma_db/{tenant_id}
+    tenant_id = chroma_db_path.rstrip('/').split('/')[-1]
+    return f"hr_policies_{tenant_id}"
 
 
 def get_collection(chroma_db_path: str):
+    """Get or create collection for a tenant."""
     try:
-        client = get_chroma_client(chroma_db_path)
-        collection = client.get_collection(name=COLLECTION_NAME)
-        logger.info(f" Retrieved existing collection from {chroma_db_path}")
-    except:
-        client = get_chroma_client(chroma_db_path)
-        collection = client.create_collection(
-            name=COLLECTION_NAME,
-            metadata={"description": "HR policy documents"}
+        client = get_chroma_client()
+        collection_name = get_tenant_collection_name(chroma_db_path)
+
+        # get_or_create_collection handles both cases
+        collection = client.get_or_create_collection(
+            name=collection_name,
+            metadata={"description": "HR policy documents", "tenant_path": chroma_db_path}
         )
-        logger.info(f" Created new collection in {chroma_db_path}")
-    
-    return collection
+        logger.info(f"Using collection: {collection_name}")
+        return collection
+
+    except Exception as e:
+        logger.error(f"Failed to get collection for {chroma_db_path}: {e}")
+        raise
 
 
 async def add_documents_to_chroma(
@@ -182,47 +64,46 @@ async def add_documents_to_chroma(
 
     try:
         collection = get_collection(chroma_db_path)
-        
+
         # Use blob_name as document_id
         document_id = blob_name
-        
+
         ids = []
         documents = []
         metadatas = []
         embeddings = []
-        
+
         for i, chunk in enumerate(chunks):
             chunk_id = f"{document_id}_chunk_{i}"
             ids.append(chunk_id)
             documents.append(chunk.text)
-            
+
             chunk_metadata = chunk.metadata.copy()
             chunk_metadata["document_id"] = document_id
             chunk_metadata["blob_name"] = blob_name
             metadatas.append(chunk_metadata)
-            
+
             embedding = llm_client.generate_embedding(chunk.text)
             if embedding:
                 embeddings.append(embedding)
             else:
                 logger.warning(f"Failed to generate embedding for chunk {i}")
                 embeddings.append([0.0] * 768)
-        
+
         collection.add(
             ids=ids,
             documents=documents,
             metadatas=metadatas,
             embeddings=embeddings
         )
-        
+
         logger.info(
-            f" Added {len(chunks)} chunks to {chroma_db_path} "
+            f"Added {len(chunks)} chunks to collection "
             f"(document_id: {document_id})"
         )
-        
-        
+
         return document_id
-        
+
     except Exception as e:
         logger.error(f"Failed to add documents to ChromaDB: {e}")
         raise
@@ -234,25 +115,25 @@ async def search_similar_documents(
     k: int = 3,
     category_filter: Optional[str] = None
 ) -> List[Dict]:
-   
+
     try:
         collection = get_collection(chroma_db_path)
-        
+
         query_embedding = llm_client.generate_embedding(query)
         if not query_embedding:
             logger.error("Failed to generate query embedding")
             return []
-        
+
         where_filter = None
         if category_filter:
             where_filter = {"category": category_filter}
-        
+
         results = collection.query(
             query_embeddings=[query_embedding],
             n_results=k,
             where=where_filter
         )
-        
+
         documents = []
         for i in range(len(results['ids'][0])):
             documents.append({
@@ -260,10 +141,10 @@ async def search_similar_documents(
                 "metadata": results['metadatas'][0][i],
                 "score": 1 - results['distances'][0][i] if 'distances' in results else 0.0
             })
-        
+
         logger.info(f"Found {len(documents)} relevant documents")
         return documents
-        
+
     except Exception as e:
         logger.error(f"Search failed: {e}")
         return []
@@ -273,31 +154,24 @@ async def delete_document_from_chroma(
     chroma_db_path: str,
     blob_name: str
 ) -> bool:
-    
+
     try:
         collection = get_collection(chroma_db_path)
-        
+
         # Search by blob_name (which is the document_id)
         results = collection.get(where={"blob_name": blob_name})
-        
+
         if results['ids']:
             collection.delete(ids=results['ids'])
             logger.info(
-                f" Deleted document {blob_name} from {chroma_db_path} "
+                f"Deleted document {blob_name} "
                 f"({len(results['ids'])} chunks)"
             )
-            
-            # Upload updated ChromaDB to GCS
-            upload_chroma_to_gcs(chroma_db_path)
-            
-            # Ensure updated ChromaDB is in temp
-            upload_chroma_to_temp(chroma_db_path)
-            
             return True
         else:
-            logger.warning(f"Document {blob_name} not found in {chroma_db_path}")
+            logger.warning(f"Document {blob_name} not found")
             return False
-            
+
     except Exception as e:
         logger.error(f"Failed to delete document: {e}")
         return False
@@ -306,9 +180,9 @@ async def delete_document_from_chroma(
 async def list_all_documents(chroma_db_path: str) -> List[Dict]:
     try:
         collection = get_collection(chroma_db_path)
-        
+
         all_results = collection.get()
-        
+
         documents = {}
         for metadata in all_results['metadatas']:
             blob_name = metadata.get('blob_name')
@@ -320,16 +194,30 @@ async def list_all_documents(chroma_db_path: str) -> List[Dict]:
                     "category": metadata.get('category'),
                     "chunk_count": 0
                 }
-            
+
             if blob_name:
                 documents[blob_name]["chunk_count"] += 1
-        
+
         return list(documents.values())
-        
+
     except Exception as e:
         logger.error(f"Failed to list documents: {e}")
         return []
 
 
-def create_tenant_chroma_path(tenant_name: str) -> str: 
-    return f"{CHROMA_GCS_BASE}{tenant_name}"
+def create_tenant_chroma_path(tenant_name: str) -> str:
+    """Create chroma_db_path for a tenant (kept for compatibility)."""
+    return f"platform/chroma_db/{tenant_name}"
+
+
+def delete_tenant_collection(chroma_db_path: str) -> bool:
+    """Delete entire collection for a tenant (useful for cleanup)."""
+    try:
+        client = get_chroma_client()
+        collection_name = get_tenant_collection_name(chroma_db_path)
+        client.delete_collection(name=collection_name)
+        logger.info(f"Deleted collection: {collection_name}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to delete collection: {e}")
+        return False
