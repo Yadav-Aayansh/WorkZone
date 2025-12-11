@@ -9,9 +9,8 @@
   body{margin:0;background:var(--page-bg);font-family:Arial,Helvetica,sans-serif;color:var(--text);}
   .wrap{max-width:680px;margin:28px auto;padding:16px;}
   .card{background:var(--card-bg);border-radius:12px;padding:24px;box-shadow:0 6px 22px rgba(15,23,42,0.06);}
-  .header{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
-  .logo{width:44px;height:44px;object-fit:contain;border-radius:6px;}
-  .brand{font-weight:700;color:var(--text);font-size:18px;}
+  .hero{background:linear-gradient(180deg,#efe6fb, #f7eefc);padding:14px;border-radius:8px;margin-bottom:12px;text-align:center;}
+  .hero h2{margin:0;color:var(--text);}
   h1{font-size:20px;margin-bottom:10px;}
   p{color:var(--text);line-height:1.6;}
   .btn{display:inline-block;background:var(--accent);color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:12px;}
@@ -23,10 +22,7 @@
 <div class="wrap">
   <div class="card">
 
-    <div class="header">
-      <img src="{{company_logo_url}}" alt="{{company}} logo" class="logo"/>
-      <div class="brand">{{company}}</div>
-    </div>
+    <div class="hero"><h2>{{company}}</h2></div>
 
     <h1>You Have Been Shortlisted</h1>
 
