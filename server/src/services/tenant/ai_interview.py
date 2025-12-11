@@ -1,4 +1,4 @@
-import asyncio
+import asyncio, json
 from uuid import UUID
 from src.repository.tenant import AiInterviewRepository, ApplicationRepository
 from src.exceptions.tenant import (
@@ -76,6 +76,12 @@ class AiInterviewService:
         while True:
             message = await websocket.receive()
             if "text" in message:
+                try:
+                    data = json.loads(message["text"])
+                    if data.get("type") == "ping":
+                        continue
+                except:
+                    pass
                 text_request = ProcessTextAnswerRequest(session_id=str(id), answer_text=message["text"])
                 next_response = await process_text_answer(request=text_request)
             
