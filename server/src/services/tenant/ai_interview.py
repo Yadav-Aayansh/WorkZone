@@ -1,3 +1,4 @@
+import asyncio
 from uuid import UUID
 from src.repository.tenant import AiInterviewRepository, ApplicationRepository
 from src.exceptions.tenant import (
@@ -94,7 +95,35 @@ class AiInterviewService:
                     "type": "status",
                     "message": "Generating your interview report..."
                 })
-                report = await generate_final_report(GenerateReportRequest(session_id=str(id)))
+
+                async def generate_with_progress():
+                    return await generate_final_report(GenerateReportRequest(session_id=str(id)))
+                
+                async def send_progress():
+                    messages = [
+                        "Analyzing your responses...",
+                        "Evaluating technical skills...",
+                        "Assessing communication quality...",
+                        "Preparing detailed feedback...",
+                        "Finalizing your report..."
+                    ]
+                    for msg in messages:
+                        try:
+                            await websocket.send_json({"type": "status", "message": msg})
+                        except:
+                            break
+                        await asyncio.sleep(15)  # Sleep AFTER sending
+                
+                progress_task = asyncio.create_task(send_progress())
+                try:
+                    report = await generate_with_progress()
+                finally:
+                    progress_task.cancel()
+                    try:
+                        await progress_task
+                    except asyncio.CancelledError:
+                        pass
+
                 await websocket.send_json({
                     "type": "report",
                     "report": report.markdown_report
