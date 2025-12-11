@@ -35,8 +35,8 @@ class Settings(BaseSettings):
     REDIS_URL: str
 
     # ChromaDB
-    CHROMA_HOST: str = "localhost"
-    CHROMA_PORT: int = 8001
+    CHROMA_HOST: str
+    CHROMA_PORT: int
 
     # SMTP
     SMTP_HOST: str
