@@ -18,7 +18,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
   Briefcase,
@@ -59,6 +58,13 @@ export default function JobDetailsPage() {
 
     try {
       const response = await tenantJobAPI.getJob(jobId);
+      
+      // If job is closed, redirect to careers page
+      if (!response.is_open) {
+        router.push("/careers");
+        return;
+      }
+      
       setJob(response);
     } catch (err: any) {
       console.error("Failed to load job:", err);
@@ -147,15 +153,15 @@ export default function JobDetailsPage() {
         </Button>
 
         {/* Job Header Card */}
-        <Card className="mb-8 shadow-xl">
+        <Card className={`mb-8 shadow-xl ${!job.is_open ? "border-muted" : ""}`}>
           <CardHeader className="pb-4">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
                   <CardTitle className="text-3xl">{job.title}</CardTitle>
                   <Badge
-                    variant={job.is_open ? "default" : "secondary"}
-                    className="text-sm"
+                    variant={job.is_open ? "default" : "outline"}
+                    className={`text-sm ${!job.is_open ? "border-muted-foreground/50 text-muted-foreground" : ""}`}
                   >
                     {job.is_open ? (
                       <>
@@ -189,12 +195,19 @@ export default function JobDetailsPage() {
                 </div>
               </div>
 
-              {job.is_open && (
-                <Button size="lg" onClick={handleApply} className="ml-4">
-                  <Briefcase className="w-4 h-4 mr-2" />
-                  Apply Now
-                </Button>
-              )}
+              <div className="ml-4">
+                {job.is_open ? (
+                  <Button size="lg" onClick={handleApply}>
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    Apply Now
+                  </Button>
+                ) : (
+                  <Button size="lg" variant="outline" disabled className="cursor-not-allowed">
+                    <Clock className="w-4 h-4 mr-2" />
+                    Position Closed
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
         </Card>
