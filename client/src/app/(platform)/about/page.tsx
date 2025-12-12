@@ -49,14 +49,14 @@ function TeamSection({ teamName, members, index }: { teamName: string; members: 
       variants={fadeInUp}
       transition={{ duration: 0.5, delay: index * 0.1 }}
       whileHover={{ scale: 1.01 }}
-      className="relative group bg-card/60 backdrop-blur-md border border-primary/20 rounded-3xl p-10 shadow-xl overflow-hidden transition-colors duration-300 hover:border-primary/40"
+      className="relative group bg-card/80 dark:bg-card/60 backdrop-blur-md border border-border dark:border-primary/20 rounded-3xl p-10 shadow-lg dark:shadow-xl overflow-hidden transition-colors duration-300 hover:border-primary/40"
     >
       {/* Gradient border on hover */}
       <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-primary/20 via-purple-500/20 to-pink-500/20" />
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 dark:from-primary/20 dark:via-purple-500/20 dark:to-pink-500/20" />
       </div>
 
-      <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-primary via-purple-400 to-primary bg-clip-text text-transparent">
+      <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent">
         {teamName}
       </h2>
 
@@ -82,60 +82,63 @@ function MemberCard({ member, index }: { member: any; index: number }) {
       transition={{ duration: 0.4, delay: index * 0.05 }}
       whileHover={{ 
         scale: 1.02,
-        boxShadow: "0 0 30px rgba(168,85,247,0.25)"
+        boxShadow: "0 0 30px rgba(168,85,247,0.15)"
       }}
-      className="relative flex flex-row w-full md:w-[48%] items-center gap-6 bg-gradient-to-br from-primary/5 to-purple-500/5 border border-primary/20 rounded-2xl p-6 transition-colors duration-300 hover:border-primary/40 hover:from-primary/10 hover:to-purple-500/8"
+      className="relative flex flex-col w-full md:w-[48%] bg-gradient-to-br from-primary/5 to-purple-500/5 dark:from-primary/5 dark:to-purple-500/5 border border-border dark:border-primary/20 rounded-2xl p-6 transition-colors duration-300 hover:border-primary/40 hover:from-primary/10 hover:to-purple-500/8"
     >
-      {/* AVATAR */}
-      <div className="relative flex flex-col items-center w-32 z-10">
-        <motion.div
-          whileHover={{ scale: 1.08 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary/40 shadow-[0_0_12px_2px_rgba(168,85,247,0.3)] hover:border-primary hover:shadow-[0_0_20px_4px_rgba(168,85,247,0.4)]"
-        >
-          <img
-            src={`https://api.dicebear.com/7.x/bottts/svg?seed=${member.name}`}
-            alt="avatar"
-            className="w-full h-full"
-          />
-        </motion.div>
+      {/* Top section with avatar and description */}
+      <div className="flex flex-row items-center gap-6">
+        {/* AVATAR */}
+        <div className="relative flex flex-col items-center w-32 z-10">
+          <motion.div
+            whileHover={{ scale: 1.08 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary/40 shadow-[0_0_12px_2px_rgba(168,85,247,0.2)] dark:shadow-[0_0_12px_2px_rgba(168,85,247,0.3)] hover:border-primary hover:shadow-[0_0_20px_4px_rgba(168,85,247,0.3)] dark:hover:shadow-[0_0_20px_4px_rgba(168,85,247,0.4)]"
+          >
+            <img
+              src={`https://api.dicebear.com/7.x/bottts/svg?seed=${member.name}`}
+              alt="avatar"
+              className="w-full h-full"
+            />
+          </motion.div>
 
-        <h3 className="mt-3 text-lg font-semibold text-white group-hover:text-primary transition-colors duration-200">
-          {member.name}
-        </h3>
-        <p className="text-xs text-primary/70">
-          {member.role}
-        </p>
+          <p className="mt-2 text-xs text-primary/80 dark:text-primary/70">
+            {member.role}
+          </p>
+        </div>
+
+        {/* DESCRIPTION */}
+        <div className="relative flex-1 space-y-2 z-10">
+          <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-200">
+            {member.name}
+          </h3>
+          <p className="text-muted-foreground dark:text-white/80">
+            {member.description}
+          </p>
+        </div>
       </div>
 
-      {/* DESCRIPTION */}
-      <div className="relative flex-1 space-y-2 z-10">
-        <p className="text-white/80">
-          {member.description}
-        </p>
+      {/* ICON BUTTONS - Centered at bottom */}
+      <div className="flex gap-3 pt-4 justify-center w-full">
+        <motion.a
+          href="#"
+          whileHover={{ scale: 1.15 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          className="p-2 rounded-full bg-muted dark:bg-white/10 border border-border dark:border-white/20 hover:bg-primary/20 dark:hover:bg-primary/30 hover:border-primary/50 hover:shadow-[0_0_12px_rgba(168,85,247,0.3)] dark:hover:shadow-[0_0_12px_rgba(168,85,247,0.4)] transition-colors duration-200"
+        >
+          <Github size={18} className="text-foreground" />
+        </motion.a>
 
-        {/* ICON BUTTONS */}
-        <div className="flex gap-3 pt-2">
-          <motion.a
-            href="#"
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className="p-2 rounded-full bg-white/10 border border-white/20 hover:bg-primary/30 hover:border-primary/50 hover:shadow-[0_0_12px_rgba(168,85,247,0.4)] transition-colors duration-200"
-          >
-            <Github size={18} className="text-white" />
-          </motion.a>
-
-          <motion.a
-            href="#"
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className="p-2 rounded-full bg-white/10 border border-white/20 hover:bg-blue-500/30 hover:border-blue-400/50 hover:shadow-[0_0_12px_rgba(59,130,246,0.4)] transition-colors duration-200"
-          >
-            <Linkedin size={18} className="text-white" />
-          </motion.a>
-        </div>
+        <motion.a
+          href="#"
+          whileHover={{ scale: 1.15 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          className="p-2 rounded-full bg-muted dark:bg-white/10 border border-border dark:border-white/20 hover:bg-blue-500/20 dark:hover:bg-blue-500/30 hover:border-blue-400/50 hover:shadow-[0_0_12px_rgba(59,130,246,0.3)] dark:hover:shadow-[0_0_12px_rgba(59,130,246,0.4)] transition-colors duration-200"
+        >
+          <Linkedin size={18} className="text-foreground" />
+        </motion.a>
       </div>
     </motion.div>
   );
@@ -219,12 +222,12 @@ export default function AboutPage() {
       <main className="relative overflow-hidden">
         {/* Background layers */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
-        <div className="absolute left-1/2 top-20 -translate-x-1/2 w-[800px] h-[800px] bg-primary/15 rounded-full blur-[120px] opacity-30" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080801a_1px,transparent_1px),linear-gradient(to_bottom,#8080801a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
+        <div className="absolute left-1/2 top-20 -translate-x-1/2 w-[800px] h-[800px] bg-primary/10 dark:bg-primary/15 rounded-full blur-[120px] opacity-50 dark:opacity-30" />
         
         {/* Subtle ambient orbs */}
-        <div className="absolute right-0 top-1/3 w-[400px] h-[400px] bg-purple-500/8 rounded-full blur-[100px]" />
-        <div className="absolute left-0 bottom-1/4 w-[350px] h-[350px] bg-pink-500/8 rounded-full blur-[80px]" />
+        <div className="absolute right-0 top-1/3 w-[400px] h-[400px] bg-purple-500/10 dark:bg-purple-500/8 rounded-full blur-[100px]" />
+        <div className="absolute left-0 bottom-1/4 w-[350px] h-[350px] bg-pink-500/10 dark:bg-pink-500/8 rounded-full blur-[80px]" />
 
         <div className="relative py-20 md:py-28">
           <div className="mx-auto max-w-7xl px-6">
@@ -241,7 +244,7 @@ export default function AboutPage() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={headerInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/20 bg-primary/5 mb-6 hover:bg-primary/10 hover:border-primary/40 transition-all duration-200 cursor-default"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 dark:border-primary/20 bg-primary/10 dark:bg-primary/5 mb-6 hover:bg-primary/15 dark:hover:bg-primary/10 hover:border-primary/40 transition-all duration-200 cursor-default"
               >
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
@@ -256,7 +259,7 @@ export default function AboutPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={headerInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+                className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-foreground"
               >
                 Meet the People Behind{" "}
                 <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
