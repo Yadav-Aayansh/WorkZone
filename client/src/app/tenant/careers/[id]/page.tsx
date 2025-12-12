@@ -18,7 +18,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
   Briefcase,
@@ -32,6 +31,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { JobApplicationModal } from "@/components/careers/JobApplicationModal";
+import ReactMarkdown from "react-markdown";
 
 export default function JobDetailsPage() {
   const params = useParams();
@@ -58,6 +58,13 @@ export default function JobDetailsPage() {
 
     try {
       const response = await tenantJobAPI.getJob(jobId);
+      
+      // If job is closed, redirect to careers page
+      if (!response.is_open) {
+        router.push("/careers");
+        return;
+      }
+      
       setJob(response);
     } catch (err: any) {
       console.error("Failed to load job:", err);
@@ -146,15 +153,15 @@ export default function JobDetailsPage() {
         </Button>
 
         {/* Job Header Card */}
-        <Card className="mb-8 shadow-xl">
+        <Card className={`mb-8 shadow-xl ${!job.is_open ? "border-muted" : ""}`}>
           <CardHeader className="pb-4">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
                   <CardTitle className="text-3xl">{job.title}</CardTitle>
                   <Badge
-                    variant={job.is_open ? "default" : "secondary"}
-                    className="text-sm"
+                    variant={job.is_open ? "default" : "outline"}
+                    className={`text-sm ${!job.is_open ? "border-muted-foreground/50 text-muted-foreground" : ""}`}
                   >
                     {job.is_open ? (
                       <>
@@ -188,12 +195,19 @@ export default function JobDetailsPage() {
                 </div>
               </div>
 
-              {job.is_open && (
-                <Button size="lg" onClick={handleApply} className="ml-4">
-                  <Briefcase className="w-4 h-4 mr-2" />
-                  Apply Now
-                </Button>
-              )}
+              <div className="ml-4">
+                {job.is_open ? (
+                  <Button size="lg" onClick={handleApply}>
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    Apply Now
+                  </Button>
+                ) : (
+                  <Button size="lg" variant="outline" disabled className="cursor-not-allowed">
+                    <Clock className="w-4 h-4 mr-2" />
+                    Position Closed
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
         </Card>
@@ -204,10 +218,8 @@ export default function JobDetailsPage() {
             <CardTitle>About This Role</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="prose dark:prose-invert max-w-none">
-              <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                {job.description}
-              </p>
+            <div className="text-gray-700 dark:text-gray-300 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mt-4 [&>h1]:mb-2 [&>h1]:text-foreground [&>h2]:text-xl [&>h2]:font-semibold [&>h2]:mt-4 [&>h2]:mb-2 [&>h2]:text-foreground [&>h3]:text-lg [&>h3]:font-medium [&>h3]:mt-3 [&>h3]:mb-1.5 [&>h3]:text-foreground [&>p]:my-2 [&>ul]:list-disc [&>ul]:pl-6 [&>ul]:my-2 [&>ol]:list-decimal [&>ol]:pl-6 [&>ol]:my-2 [&>li]:my-1">
+              <ReactMarkdown>{job.description}</ReactMarkdown>
             </div>
           </CardContent>
         </Card>

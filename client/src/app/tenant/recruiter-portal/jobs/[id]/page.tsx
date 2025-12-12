@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import ReactMarkdown from "react-markdown";
 import {
   ArrowLeft,
   Edit,
@@ -349,13 +350,18 @@ function JobDetailsContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {applications.filter((a) => a.status === "SHORTLISTED").length}
+              {
+                applications.filter(
+                  (a) => a.status === ApplicationStatus.SHORTLISTED
+                ).length
+              }
             </div>
             <p className="text-xs text-muted-foreground">
               {applications.length > 0
                 ? (
-                    (applications.filter((a) => a.status === "SHORTLISTED")
-                      .length /
+                    (applications.filter(
+                      (a) => a.status === ApplicationStatus.SHORTLISTED
+                    ).length /
                       applications.length) *
                     100
                   ).toFixed(1)
@@ -376,8 +382,8 @@ function JobDetailsContent() {
               {
                 applications.filter(
                   (a) =>
-                    a.status === "HUMAN_INTERVIEW_SCHEDULED" ||
-                    a.status === "HUMAN_INTERVIEW_COMPLETED"
+                    a.status === ApplicationStatus.HUMAN_INTERVIEW_SCHEDULED ||
+                    a.status === ApplicationStatus.HUMAN_INTERVIEW_COMPLETED
                 ).length
               }
             </div>
@@ -385,8 +391,8 @@ function JobDetailsContent() {
               {
                 applications.filter(
                   (a) =>
-                    a.status === "HUMAN_INTERVIEW_SCHEDULED" ||
-                    a.status === "HUMAN_INTERVIEW_COMPLETED"
+                    a.status === ApplicationStatus.HUMAN_INTERVIEW_SCHEDULED ||
+                    a.status === ApplicationStatus.HUMAN_INTERVIEW_COMPLETED
                 ).length
               }{" "}
               candidates
@@ -400,13 +406,18 @@ function JobDetailsContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {applications.filter((a) => a.status === "REJECTED").length}
+              {
+                applications.filter(
+                  (a) => a.status === ApplicationStatus.REJECTED
+                ).length
+              }
             </div>
             <p className="text-xs text-muted-foreground">
               {applications.length > 0
                 ? (
-                    (applications.filter((a) => a.status === "REJECTED")
-                      .length /
+                    (applications.filter(
+                      (a) => a.status === ApplicationStatus.REJECTED
+                    ).length /
                       applications.length) *
                     100
                   ).toFixed(1)
@@ -502,9 +513,9 @@ function JobDetailsContent() {
                 {/* Description */}
                 <div>
                   <h4 className="font-semibold mb-2">Description</h4>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">
-                    {job.description}
-                  </p>
+                  <div className="text-sm text-muted-foreground [&>h1]:text-xl [&>h1]:font-bold [&>h1]:mt-4 [&>h1]:mb-2 [&>h2]:text-lg [&>h2]:font-semibold [&>h2]:mt-3 [&>h2]:mb-1.5 [&>h3]:text-base [&>h3]:font-medium [&>h3]:mt-2 [&>h3]:mb-1 [&>p]:my-2 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:my-2 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:my-2 [&>li]:my-0.5 [&>*]:text-muted-foreground">
+                    <ReactMarkdown>{job.description}</ReactMarkdown>
+                  </div>
                 </div>
 
                 {job.required_skills && job.required_skills.length > 0 && (

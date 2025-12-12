@@ -158,7 +158,7 @@ export default function TenantSignupPage() {
                 id="name"
                 name="name"
                 type="text"
-                placeholder="John Doe"
+                placeholder="Full Name"
                 value={formData.name}
                 onChange={handleChange}
                 required

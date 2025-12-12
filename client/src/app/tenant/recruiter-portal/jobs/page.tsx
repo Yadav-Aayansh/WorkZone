@@ -4,10 +4,10 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
-import { tenantJobAPI, JobResponse, tenantApplicationAPI } from "@/lib/api";
+import { tenantJobAPI } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -48,18 +48,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-
-interface JobWithStats extends JobResponse {
-  applicationsCount?: number;
-  interviewsCount?: number;
-  hiredCount?: number;
-}
+import {
+  useJobsWithStats,
+  useCloseJob,
+  queryKeys,
+  JobWithStats,
+} from "@/hooks/use-queries";
+import { useQueryClient } from "@tanstack/react-query";
 
 function JobsManagementContent() {
   const router = useRouter();
-  const [jobs, setJobs] = useState<JobWithStats[]>([]);
-  const [filteredJobs, setFilteredJobs] = useState<JobWithStats[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  // Use React Query for caching
+  const { data: jobs = [], isLoading } = useJobsWithStats();
+  const closeJobMutation = useCloseJob();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [locationFilter, setLocationFilter] = useState<string>("all");
@@ -69,62 +73,8 @@ function JobsManagementContent() {
   const [topXCandidates, setTopXCandidates] = useState<string>("");
   const [isClosing, setIsClosing] = useState(false);
 
-  useEffect(() => {
-    loadJobs();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [jobs, searchQuery, statusFilter, locationFilter]);
-
-  const loadJobs = async () => {
-    setIsLoading(true);
-    try {
-      const jobsData = await tenantJobAPI.listJobs();
-
-      // Load application counts for each job
-      const jobsWithStats = await Promise.all(
-        jobsData.map(async (job) => {
-          try {
-            const applications = await tenantApplicationAPI.listJobApplications(
-              job.id
-            );
-            return {
-              ...job,
-              applicationsCount: applications.length,
-              interviewsCount: applications.filter(
-                (app) =>
-                  app.status === "HUMAN_INTERVIEW_SCHEDULED" ||
-                  app.status === "AI_INTERVIEW_COMPLETED"
-              ).length,
-              hiredCount: applications.filter((app) => app.status === "HIRED")
-                .length,
-            };
-          } catch (err) {
-            console.error(
-              `Failed to load applications for job ${job.id}:`,
-              err
-            );
-            return {
-              ...job,
-              applicationsCount: 0,
-              interviewsCount: 0,
-              hiredCount: 0,
-            };
-          }
-        })
-      );
-
-      setJobs(jobsWithStats);
-    } catch (err: any) {
-      console.error("Failed to load jobs:", err);
-      toast.error(err.message || "Failed to load jobs");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const applyFilters = () => {
+  // Apply filters using useMemo for performance
+  const filteredJobs = useMemo(() => {
     let filtered = [...jobs];
 
     // Search filter
@@ -154,8 +104,8 @@ function JobsManagementContent() {
       filtered = filtered.filter((job) => job.location === locationFilter);
     }
 
-    setFilteredJobs(filtered);
-  };
+    return filtered;
+  }, [jobs, searchQuery, statusFilter, locationFilter]);
 
   const handleDeleteJob = async () => {
     if (!deleteJobId) return;
@@ -163,7 +113,9 @@ function JobsManagementContent() {
     setIsDeleting(true);
     try {
       await tenantJobAPI.deleteJob(deleteJobId);
-      setJobs((prev) => prev.filter((j) => j.id !== deleteJobId));
+      // Invalidate cache to refetch jobs
+      queryClient.invalidateQueries({ queryKey: queryKeys.jobsWithStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.jobs });
       toast.success("Job deleted successfully");
       setDeleteJobId(null);
     } catch (err: any) {
@@ -187,9 +139,9 @@ function JobsManagementContent() {
         closeJobId,
         topX ? { top_x: topX } : undefined
       );
-      setJobs((prev) =>
-        prev.map((j) => (j.id === closeJobId ? { ...j, is_open: false } : j))
-      );
+      // Invalidate cache to refetch jobs
+      queryClient.invalidateQueries({ queryKey: queryKeys.jobsWithStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.jobs });
       toast.success(
         `Job closed successfully!${
           topX ? ` Top ${topX} candidates will be shortlisted.` : ""
@@ -208,9 +160,9 @@ function JobsManagementContent() {
   const handleReopenJob = async (jobId: string) => {
     try {
       await tenantJobAPI.reopenJob(jobId);
-      setJobs((prev) =>
-        prev.map((j) => (j.id === jobId ? { ...j, is_open: true } : j))
-      );
+      // Invalidate cache to refetch jobs
+      queryClient.invalidateQueries({ queryKey: queryKeys.jobsWithStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.jobs });
       toast.success("Job reopened successfully");
     } catch (err: any) {
       console.error("Failed to reopen job:", err);

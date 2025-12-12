@@ -1,31 +1,21 @@
 {
-   email eroticaayansh@gmail.com
-   admin localhost:2019
-   on_demand_tls {
-       ask http://127.0.0.1:8000/api/caddy-ask/
-   }
+    email YOUR_EMAIL@example.com
+    admin localhost:2019
+    on_demand_tls {
+        ask http://127.0.0.1:8000/api/platform/caddy-ask/
+    }
 }
-# Your own domain (Cloudflare DNS only here)
-*.workzone.tech, workzone.tech, www.workzone.tech {
-   tls {
-       dns cloudflare Y3mHryOzWJs0qDGVBbuIw3BSkUaulFhtciFGb9rc
-   }
-   handle /api* {
-       reverse_proxy 127.0.0.1:8000
-   }
-   handle {
-       reverse_proxy localhost:3000
-   }
-}
-# Catch-all for client domains (on-demand TLS only)
-https:// {
-   tls {
-       on_demand
-   }
-   handle /api* {
-       reverse_proxy 127.0.0.1:8000
-   }
-   handle {
-       reverse_proxy localhost:3000
-   }
+
+*.YOUR_DOMAIN.com, YOUR_DOMAIN.com {
+    tls {
+        dns cloudflare YOUR_CLOUDFLARE_API_TOKEN
+    }
+    
+    handle /api* {
+        reverse_proxy 127.0.0.1:8000
+    }
+    
+    handle {
+        reverse_proxy localhost:3000
+    }
 }

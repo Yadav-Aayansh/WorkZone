@@ -144,11 +144,8 @@ function ApplicantApplicationsContent() {
   };
 
   const canStartInterview = (status: ApplicationStatus) => {
-    // Allow starting interview for PENDING or SHORTLISTED applications
-    return (
-      status === ApplicationStatus.PENDING ||
-      status === ApplicationStatus.SHORTLISTED
-    );
+    // Allow starting interview only for SHORTLISTED applications (not PENDING)
+    return status === ApplicationStatus.SHORTLISTED;
   };
 
   const getStatusColor = (status: ApplicationStatus) => {
@@ -175,10 +172,8 @@ function ApplicantApplicationsContent() {
   };
 
   const formatStatus = (status: ApplicationStatus) => {
-    return status
-      .split("_")
-      .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-      .join(" ");
+    // Display status in uppercase with spaces
+    return status.split("_").join(" ");
   };
 
   return (

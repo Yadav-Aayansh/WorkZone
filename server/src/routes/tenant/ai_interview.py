@@ -6,7 +6,7 @@ from src.genai.hr_interview.main import start_interview, process_text_answer, pr
 from src.core.logger import logger
 from uuid import UUID
 from src.services.tenant import AiInterviewService
-from src.exceptions.tenant import AiInterviewAlreadyExistsError, ApplicationNotFoundError, AiInterviewNotFoundError
+from src.exceptions.tenant import AiInterviewAlreadyExistsError, ApplicationNotFoundError, AiInterviewNotFoundError, ApplicationNotShortlistedError
 
 ai_interview_router = APIRouter(prefix="/ai-interview", tags=["Tenant AI Interview"])
 
@@ -22,6 +22,8 @@ async def create_session(
         raise HTTPException(status_code=404, detail=str(e))
     except AiInterviewAlreadyExistsError as e:
         raise HTTPException(status_code=409, detail=str(e))
+    except ApplicationNotShortlistedError as e:
+        raise HTTPException(status_code=403, detail=str(e))
 
 
 @ai_interview_router.websocket("/ws/{ai_interview_id}")

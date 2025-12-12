@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TenantProtectedRoute } from "@/components/tenant/TenantProtectedRoute";
 import { ModernEmployeeLayout } from "@/components/common/layout/ModernEmployeeLayout";
 import {
@@ -22,7 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
 import {
   BookOpen,
   GraduationCap,
@@ -44,14 +43,10 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  tenantLearningAPI,
-  LearningPlanResponse,
-  SkillArea,
-  LearningResource,
-} from "@/lib/api";
+import { LearningPlanResponse, SkillArea, LearningResource } from "@/lib/api";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { useLearningPlans, useGenerateLearningPlan } from "@/hooks/use-queries";
 
 // Resource type icon mapping
 const getResourceIcon = (type: string) => {
@@ -93,10 +88,7 @@ function SkillCard({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const completedResources = 0; // In future, track completion
   const totalResources = skill.resources.length;
-  const progress =
-    totalResources > 0 ? (completedResources / totalResources) * 100 : 0;
 
   return (
     <motion.div
@@ -134,15 +126,6 @@ function SkillCard({
             <Badge variant="secondary" className="shrink-0">
               {totalResources} resources
             </Badge>
-          </div>
-
-          {/* Progress bar */}
-          <div className="mt-4 space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Progress</span>
-              <span className="font-medium">{Math.round(progress)}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
           </div>
         </CardHeader>
 
@@ -582,43 +565,18 @@ function LearningPlanDetail({
 }
 
 function LearningContent() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [learningPaths, setLearningPaths] = useState<LearningPlanResponse[]>(
-    []
-  );
+  // Use React Query hooks for caching
+  const { data: learningPaths = [], isLoading } = useLearningPlans();
+  const generateMutation = useGenerateLearningPlan();
+
   const [selectedPlan, setSelectedPlan] = useState<LearningPlanResponse | null>(
     null
   );
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
 
-  useEffect(() => {
-    loadLearningPaths();
-  }, []);
-
-  const loadLearningPaths = async () => {
-    setIsLoading(true);
-    try {
-      const paths = await tenantLearningAPI.getMyPaths();
-      setLearningPaths(paths);
-    } catch (err) {
-      console.error("Failed to load learning paths:", err);
-      toast.error(
-        err instanceof Error ? err.message : "Failed to load learning paths"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleGenerate = async (careerGoal: string) => {
-    setIsGenerating(true);
     try {
-      const newPath = await tenantLearningAPI.generatePath({
-        career_goal: careerGoal,
-      });
-      // Reload all paths from server to avoid duplicates
-      await loadLearningPaths();
+      const newPath = await generateMutation.mutateAsync(careerGoal);
       setSelectedPlan(newPath);
       setShowGenerateDialog(false);
       toast.success("Learning path generated successfully!");
@@ -627,8 +585,6 @@ function LearningContent() {
       toast.error(
         err instanceof Error ? err.message : "Failed to generate learning path"
       );
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -799,7 +755,7 @@ function LearningContent() {
         open={showGenerateDialog}
         onOpenChange={setShowGenerateDialog}
         onGenerate={handleGenerate}
-        isGenerating={isGenerating}
+        isGenerating={generateMutation.isPending}
       />
     </div>
   );

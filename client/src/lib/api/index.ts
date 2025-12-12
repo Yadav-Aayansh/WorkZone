@@ -50,6 +50,7 @@ export {
   tenantEmployeeAPI,
   tenantLeaveAPI,
   tenantLearningAPI,
+  tenantQueryAPI,
   TenantAPIError,
   getTenantSubdomain,
   getTenantTokens,
@@ -58,6 +59,8 @@ export {
   ApplicationStatus,
   LeaveRequestType,
   LeaveRequestStatus,
+  QueryUrgency,
+  QueryStatus,
 } from './tenant';
 
 export type {
@@ -96,6 +99,10 @@ export type {
   LearningResource,
   SkillArea,
   LearningPlanResponse,
+  CreateQueryRequest,
+  RespondQueryRequest,
+  QueryResponse,
+  QueryResolutionResponse,
 } from './tenant';
 
 // Backwards compatibility - import for creating combined API

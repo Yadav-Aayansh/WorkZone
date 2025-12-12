@@ -30,6 +30,9 @@ class AiInterviewNotFoundError(NotFoundError):
 class AiInterviewAlreadyExistsError(ConflictError):
     pass
 
+class ApplicationNotShortlistedError(ValidationError):
+    pass
+
 class InvalidUserCredentialsError(AuthenticationError):
     pass
 
@@ -40,6 +43,9 @@ class UnauthorizedAccessError(AuthorizationError):
     pass
 
 class ApplicationNotFoundError(NotFoundError):
+    pass
+
+class ApplicationAlreadyExistsError(ConflictError):
     pass
 
 class InsufficientLeaveBalanceError(ValidationError):

@@ -75,7 +75,15 @@ export default function TenantLoginPage() {
       redirectAfterAuth(userData.role);
     } catch (err: any) {
       console.error("Login error:", err);
-      setError(err.message || "Invalid email or password. Please try again.");
+      // Handle error message - ensure it's a string
+      let errorMessage = "Invalid email or password. Please try again.";
+      if (err.message) {
+        errorMessage =
+          typeof err.message === "string"
+            ? err.message
+            : JSON.stringify(err.message);
+      }
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

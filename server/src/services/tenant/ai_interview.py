@@ -1,12 +1,16 @@
+import asyncio, json
 from uuid import UUID
 from src.repository.tenant import AiInterviewRepository, ApplicationRepository
-from src.exceptions.tenant import AiInterviewAlreadyExistsError, AiInterviewNotFoundError, ApplicationNotFoundError
+from src.exceptions.tenant import (
+    AiInterviewAlreadyExistsError, AiInterviewNotFoundError, ApplicationNotFoundError,
+    ApplicationNotShortlistedError
+)
 from fastapi import WebSocket
 from src.genai.schemas import StartInterviewRequest, ProcessTextAnswerRequest, GenerateReportRequest
 from src.genai.hr_interview.main import start_interview, process_text_answer, process_voice_answer, generate_final_report
 from src.core.logger import logger
 from src.utils.datetime import get_indian_time
-from src.models.tenant import Application
+from src.models.tenant import Application, ApplicationStatus
 from sqlalchemy.orm import selectinload
 
 class AiInterviewService:
@@ -18,12 +22,16 @@ class AiInterviewService:
         application = await self.application_repo.get_application_by_id(application_id)
         if not application:
             raise ApplicationNotFoundError("Application does not exist!")
+        
+        if application.status != ApplicationStatus.SHORTLISTED:
+            raise ApplicationNotShortlistedError("You are not shortlisted!")
 
         ai_interview = await self.ai_interview_repo.is_application_id_exist(application_id)
         if ai_interview:
             raise AiInterviewAlreadyExistsError("An AI interview has already been created for this application.") 
         
         return await self.ai_interview_repo.create_ai_interview(application_id)
+    
 
     async def handle_interview_session(self, websocket: WebSocket, id: UUID):
         await websocket.send_json({
@@ -68,6 +76,12 @@ class AiInterviewService:
         while True:
             message = await websocket.receive()
             if "text" in message:
+                try:
+                    data = json.loads(message["text"])
+                    if data.get("type") == "ping":
+                        continue
+                except:
+                    pass
                 text_request = ProcessTextAnswerRequest(session_id=str(id), answer_text=message["text"])
                 next_response = await process_text_answer(request=text_request)
             
@@ -87,12 +101,45 @@ class AiInterviewService:
                     "type": "status",
                     "message": "Generating your interview report..."
                 })
-                report = await generate_final_report(GenerateReportRequest(session_id=str(id)))
+
+                async def generate_with_progress():
+                    return await generate_final_report(GenerateReportRequest(session_id=str(id)))
+                
+                async def send_progress():
+                    messages = [
+                        "Analyzing your responses...",
+                        "Evaluating technical skills...",
+                        "Assessing communication quality...",
+                        "Preparing detailed feedback...",
+                        "Finalizing your report..."
+                    ]
+                    for msg in messages:
+                        try:
+                            logger.info(f"[PROGRESS] Sending: {msg}")  # ADD THIS
+                            await websocket.send_json({"type": "status", "message": msg})
+                            logger.info(f"[PROGRESS] Sent successfully")  # ADD THIS
+                        except Exception as e:
+                            logger.error(f"[PROGRESS] Failed: {e}")  # ADD THIS
+                            break
+                        await asyncio.sleep(15)
+                
+                progress_task = asyncio.create_task(send_progress())
+                await asyncio.sleep(0.1) 
+                try:
+                    report = await generate_with_progress()
+                finally:
+                    progress_task.cancel()
+                    try:
+                        await progress_task
+                    except asyncio.CancelledError:
+                        pass
+
                 await websocket.send_json({
                     "type": "report",
                     "report": report.markdown_report
                 })
-                await self.ai_interview_repo.update_ai_interview(id, report=report.markdown_report, completed_at=get_indian_time())
+                await self.ai_interview_repo.update_ai_interview(id, {"report": report.markdown_report, "completed_at":get_indian_time()})
+                await self.application_repo.update_application_status(ai_interview.application_id, ApplicationStatus.AI_INTERVIEW_COMPLETED)
                 await websocket.close(code=1000, reason="Interview completed")
                 break
             else:

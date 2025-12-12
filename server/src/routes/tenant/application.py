@@ -4,7 +4,10 @@ from src.core.di import get_current_user, get_application_service
 from src.models.tenant import Role
 from src.schemas.tenant import ApplicationResponse
 from src.exceptions.base import FileTypeNotAllowedError, FileSizeExceededError
-from src.exceptions.tenant import JobNotFoundError, UnauthorizedAccessError, ApplicationNotFoundError
+from src.exceptions.tenant import (
+    JobNotFoundError, UnauthorizedAccessError, ApplicationNotFoundError, 
+    ApplicationAlreadyExistsError
+)
 from src.core.logger import logger
 
 
@@ -22,6 +25,8 @@ async def apply(
         return await service.apply(job_id, user_id, resume)
     except JobNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except ApplicationAlreadyExistsError as e:
+        raise HTTPException(status_code=409, detail=str(e))
     except FileTypeNotAllowedError as e:
         raise HTTPException(status_code=415, detail=str(e))
     except FileSizeExceededError as e:

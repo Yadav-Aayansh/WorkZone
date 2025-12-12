@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Building2,
   Twitter,
@@ -13,6 +14,7 @@ import {
 import { ThemeToggle } from "@/components/theme-toggle";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
 
 const footerLinks = {
   product: [
@@ -48,6 +50,19 @@ const socialLinks = [
 ];
 
 export const PlatformFooter = () => {
+  const [mounted, setMounted] = React.useState(false);
+  const { resolvedTheme } = useTheme();
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const logoSrc = mounted
+    ? resolvedTheme === "dark"
+      ? "/assets/images/WorkZone_Light.png"
+      : "/assets/images/WorkZone_Dark.png"
+    : "/assets/images/WorkZone_Dark.png";
+
   return (
     <footer className="relative border-t border-border/50 bg-gradient-to-b from-background to-muted/20">
       {/* Background Grid */}
@@ -96,16 +111,15 @@ export const PlatformFooter = () => {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-6 mb-12">
           {/* Brand Section */}
           <div className="col-span-2">
-            <Link href="/" className="flex items-center space-x-2 mb-4 group">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg blur-lg opacity-40 group-hover:opacity-60 transition-opacity" />
-                <div className="relative bg-gradient-to-br from-indigo-500 to-purple-600 p-2 rounded-lg">
-                  <Building2 className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
-                WorkZone
-              </span>
+            <Link href="/" className="flex items-center gap-2 mb-4 group">
+              <Image
+                src={logoSrc}
+                alt="WorkZone"
+                width={36}
+                height={36}
+                className="object-contain"
+              />
+              <span className="text-xl font-bold">WorkZone</span>
             </Link>
             <p className="text-sm text-muted-foreground mb-6 max-w-xs leading-relaxed">
               Transform your HR operations with AI-powered solutions. Built for
@@ -224,7 +238,7 @@ export const PlatformFooter = () => {
             <span className="text-red-500 animate-pulse">❤️</span>
             <span>by</span>
             <span className="font-medium bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
-              Team SEP-10
+              Team 10
             </span>
           </div>
         </div>

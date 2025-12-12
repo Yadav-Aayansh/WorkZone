@@ -20,6 +20,28 @@ export default function TenantLayout({
     }
   }, [isLoading, isTenantRoute]);
 
+  // Update favicon based on tenant logo
+  useEffect(() => {
+    if (tenant?.logo) {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement("link");
+        link.rel = "icon";
+        document.head.appendChild(link);
+      }
+      link.href = tenant.logo;
+    }
+  }, [tenant]);
+
+  // Update document title based on tenant brand name
+  useEffect(() => {
+    if (tenant?.brandName) {
+      document.title = tenant.brandName;
+    } else {
+      document.title = "WorkZone.tech"; // Fallback for tenant routes if brandName is missing
+    }
+  }, [tenant]);
+
   // Loading state
   if (isLoading) {
     return (

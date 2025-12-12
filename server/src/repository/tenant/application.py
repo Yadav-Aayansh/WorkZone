@@ -39,6 +39,14 @@ class ApplicationRepository:
             logger.exception(f"Error fetching applications: {e}")
             raise
 
+    async def get_application_by_user_job_id(self, user_id: str, job_id: str):
+        try:
+            result = await self.db.execute(select(Application).where(Application.job_id==job_id, Application.user_id==user_id))
+            return result.scalar_one_or_none()
+        except Exception as e:
+            logger.exception(f"Error fetching applications: {e}")
+            raise
+
     async def get_applications_by_user_id(self, user_id: str) -> list[Application]:
         try:
             result = await self.db.execute(select(Application).where(Application.user_id==user_id))
@@ -47,20 +55,14 @@ class ApplicationRepository:
             logger.exception(f"Error fetching applications: {e}")
             raise
 
-    async def withdraw_application(self, id: str) -> Application | None:
-        try:
-            result = await self.db.execute(select(Application).where(Application.id==id))
-            application = result.scalar_one_or_none()
-            
-            if not application:
-                return None
-            
-            application.status = ApplicationStatus.WITHDRAWN
-            await self.db.commit()
-            await self.db.refresh(application)
-            return application
-        except Exception as e:
-            await self.db.rollback()
-            logger.exception(f"Error withdrawing application: {e}")
-            raise
+    async def update_application_status(self, id: str, status: ApplicationStatus) -> Application | None:
+        result = await self.db.execute(select(Application).where(Application.id == id))
+        application = result.scalar_one_or_none()
+        if not application:
+            return None
+        
+        application.status = status
+        await self.db.commit()
+        await self.db.refresh(application)
+        return application
 

@@ -6,8 +6,11 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { TenantProvider } from "@/providers/tenant-provider";
 import { TenantAuthProvider } from "@/providers/tenant-auth-provider";
 import { ToastProvider } from "@/providers/toast-provider";
+import { QueryProvider } from "@/providers/query-provider";
 import { AuthTokenManager } from "@/components/auth/AuthTokenManager";
 import { Toaster } from "@/components/ui/sonner";
+import { Suspense } from "react";
+import { PageLoader } from "@/components/common/PageLoader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,23 +24,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "WorkZone.tech - AI-Powered HR Management Platform",
+    default: "WorkZone",
     template: "%s | WorkZone.tech",
   },
   description:
     "Next-generation HR Management Platform powered by GenAI. Automate recruitment, performance management, leave tracking, and compliance for startups and mid-sized enterprises.",
-  keywords: [
-    "HR Management",
-    "HRMS",
-    "HRM Software",
-    "AI Recruitment",
-    "Employee Management",
-    "Performance Management",
-    "Leave Management",
-    "Payroll",
-    "HR Analytics",
-    "WorkZone",
-  ],
+  icons: {
+    icon: "/assets/images/WorkZone_Light.png",
+  },
   authors: [{ name: "WorkZone.tech Team" }],
   creator: "WorkZone.tech",
   publisher: "WorkZone.tech",
@@ -98,16 +92,21 @@ export default function RootLayout({
           // enableSystem
           // disableTransitionOnChange
         >
+          <Suspense fallback={null}>
+            <PageLoader />
+          </Suspense>
           <ToastProvider>
-            {/* Platform Auth Provider - for company/client authentication */}
-            <AuthProvider>
-              <AuthTokenManager />
+            <QueryProvider>
+              {/* Platform Auth Provider - for company/client authentication */}
+              <AuthProvider>
+                <AuthTokenManager />
 
-              {/* Tenant Providers - for subdomain-based tenant features */}
-              <TenantProvider>
-                <TenantAuthProvider>{children}</TenantAuthProvider>
-              </TenantProvider>
-            </AuthProvider>
+                {/* Tenant Providers - for subdomain-based tenant features */}
+                <TenantProvider>
+                  <TenantAuthProvider>{children}</TenantAuthProvider>
+                </TenantProvider>
+              </AuthProvider>
+            </QueryProvider>
           </ToastProvider>
           <Toaster richColors position="top-right" />
         </ThemeProvider>

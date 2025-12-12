@@ -8,11 +8,10 @@ import {
   Users,
   FileText,
   Inbox,
-  Bell,
   Plus,
   Search,
-  Upload,
   User,
+  MessageSquare,
 } from "lucide-react";
 import { CollapsibleSidebar } from "@/components/common/layout/CollapsibleSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -30,7 +29,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 
 const navItems = [
   {
@@ -52,6 +50,11 @@ const navItems = [
     title: "Candidates",
     href: "/tenant/recruiter-portal/candidates",
     icon: Users,
+  },
+  {
+    title: "Employee Queries",
+    href: "/tenant/recruiter-portal/queries",
+    icon: MessageSquare,
   },
   {
     title: "Resume Scoring",
@@ -86,6 +89,7 @@ export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
           id: userId || "---",
         }}
         brandName={tenant?.brandName || "WorkZone"}
+        brandLogo={tenant?.logo}
         onLogout={handleLogout}
       />
 
@@ -106,12 +110,6 @@ export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
 
           {/* Quick Actions & Profile */}
           <div className="flex items-center gap-2 ml-auto">
-            {/* Import Button */}
-            <Button variant="outline" size="sm">
-              <Upload className="mr-2 h-4 w-4" />
-              Import
-            </Button>
-
             {/* Create Job Button */}
             <Button
               size="sm"
@@ -122,44 +120,6 @@ export function ModernRecruiterLayout({ children }: { children: ReactNode }) {
               <Plus className="mr-2 h-4 w-4" />
               Create Job
             </Button>
-
-            {/* Notifications */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                    5
-                  </Badge>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm font-medium">
-                      New application received
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Sr. Vue.js Developer • 2 min ago
-                    </p>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm font-medium">Interview scheduled</p>
-                    <p className="text-xs text-muted-foreground">
-                      John Doe • 1 hour ago
-                    </p>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-center text-sm text-primary">
-                  View all notifications
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
 
             {/* Theme Toggle */}
             <ThemeToggle />

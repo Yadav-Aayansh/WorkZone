@@ -88,6 +88,8 @@ export default function ActiveInterviewPage() {
     );
     wsRef.current = ws;
 
+    let pingInterval: NodeJS.Timeout;
+
     const playAudioHandler = (url: string) => {
       if (audioRef.current) {
         setAiState("speaking");
@@ -105,7 +107,15 @@ export default function ActiveInterviewPage() {
       console.log("Connected");
       setStatus("connected");
       setAiState("listening");
+
+      pingInterval = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "ping" }));
+        }
+      }, 30000);
     };
+
+    
 
     ws.onmessage = (event) => {
       try {

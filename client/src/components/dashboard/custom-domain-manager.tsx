@@ -40,10 +40,10 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// DNS Configuration from environment variables
-const DNS_A_RECORD_IP =
+// Fallback DNS Configuration from environment variables
+const FALLBACK_DNS_A_RECORD_IP =
   process.env.NEXT_PUBLIC_DNS_A_RECORD_IP || "35.237.10.52";
-const DNS_CNAME_TARGET =
+const FALLBACK_DNS_CNAME_TARGET =
   process.env.NEXT_PUBLIC_DNS_CNAME_TARGET || "tenant.workzone.tech";
 
 // Helper to determine if domain is a subdomain
@@ -52,6 +52,27 @@ const isSubdomain = (domain: string): boolean => {
   // A domain like "example.com" has 2 parts
   // A subdomain like "jobs.example.com" has 3+ parts
   return parts.length > 2;
+};
+
+// Helper to parse DNS instructions from backend error message
+const parseDnsInstructions = (
+  message: string
+): { serverIp?: string; cnameTarget?: string } => {
+  const result: { serverIp?: string; cnameTarget?: string } = {};
+
+  // Parse A record IP: "A record: domain → IP"
+  const aRecordMatch = message.match(/A record:.*→\s*([\d.]+)/);
+  if (aRecordMatch) {
+    result.serverIp = aRecordMatch[1];
+  }
+
+  // Parse CNAME target: "CNAME: domain → target"
+  const cnameMatch = message.match(/CNAME:.*→\s*([^\s\n]+)/);
+  if (cnameMatch) {
+    result.cnameTarget = cnameMatch[1];
+  }
+
+  return result;
 };
 
 interface CustomDomain {
@@ -71,6 +92,8 @@ export function CustomDomainManager() {
     domain: string;
     isSubdomain: boolean;
     message?: string;
+    serverIp?: string;
+    cnameTarget?: string;
   } | null>(null);
 
   // Load existing domain from auth state on mount
@@ -134,13 +157,16 @@ export function CustomDomainManager() {
 
       if (err.status === 400 && err.message) {
         // Backend returns DNS configuration instructions
-        // Show structured DNS instructions based on domain type
+        // Parse the message to extract IP and CNAME target
         const domain = newDomain.trim();
-        console.log("Setting DNS instructions for domain:", domain);
+        const parsedDns = parseDnsInstructions(err.message);
+        console.log("Setting DNS instructions for domain:", domain, parsedDns);
         setDnsInstructions({
           domain,
           isSubdomain: isSubdomain(domain),
           message: err.message,
+          serverIp: parsedDns.serverIp,
+          cnameTarget: parsedDns.cnameTarget,
         });
         toast.info("DNS Configuration Required", {
           description: "Please configure your DNS settings first.",
@@ -345,7 +371,8 @@ export function CustomDomainManager() {
                                 </span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-gray-900 dark:text-white font-medium">
-                                    {DNS_A_RECORD_IP}
+                                    {dnsInstructions.serverIp ||
+                                      FALLBACK_DNS_A_RECORD_IP}
                                   </span>
                                   <Button
                                     variant="ghost"
@@ -353,7 +380,8 @@ export function CustomDomainManager() {
                                     className="h-6 w-6 p-0"
                                     onClick={() =>
                                       copyToClipboard(
-                                        DNS_A_RECORD_IP,
+                                        dnsInstructions.serverIp ||
+                                          FALLBACK_DNS_A_RECORD_IP,
                                         "IP address"
                                       )
                                     }
@@ -366,56 +394,59 @@ export function CustomDomainManager() {
                           </div>
 
                           {/* CNAME Record Instructions - Only for subdomains */}
-                          {dnsInstructions.isSubdomain && (
-                            <div className="p-3 bg-white dark:bg-gray-800 rounded-lg font-mono text-sm mb-3">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                  Option 2: CNAME Record (Alternative)
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-3 gap-2 text-sm">
-                                <div>
-                                  <span className="text-gray-500 dark:text-gray-400 text-xs">
-                                    Type
+                          {dnsInstructions.isSubdomain &&
+                            dnsInstructions.cnameTarget && (
+                              <div className="p-3 bg-white dark:bg-gray-800 rounded-lg font-mono text-sm mb-3">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Option 2: CNAME Record (Alternative)
                                   </span>
-                                  <div className="text-gray-900 dark:text-white font-medium">
-                                    CNAME
-                                  </div>
                                 </div>
-                                <div>
-                                  <span className="text-gray-500 dark:text-gray-400 text-xs">
-                                    Host/Name
-                                  </span>
-                                  <div className="text-gray-900 dark:text-white font-medium">
-                                    {dnsInstructions.domain.split(".")[0]}
-                                  </div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 dark:text-gray-400 text-xs">
-                                    Value/Points to
-                                  </span>
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-gray-900 dark:text-white font-medium break-all">
-                                      {DNS_CNAME_TARGET}
+                                <div className="grid grid-cols-3 gap-2 text-sm">
+                                  <div>
+                                    <span className="text-gray-500 dark:text-gray-400 text-xs">
+                                      Type
                                     </span>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-6 w-6 p-0 flex-shrink-0"
-                                      onClick={() =>
-                                        copyToClipboard(
-                                          DNS_CNAME_TARGET,
-                                          "CNAME target"
-                                        )
-                                      }
-                                    >
-                                      <Copy className="w-3 h-3" />
-                                    </Button>
+                                    <div className="text-gray-900 dark:text-white font-medium">
+                                      CNAME
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-500 dark:text-gray-400 text-xs">
+                                      Host/Name
+                                    </span>
+                                    <div className="text-gray-900 dark:text-white font-medium">
+                                      {dnsInstructions.domain.split(".")[0]}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-500 dark:text-gray-400 text-xs">
+                                      Value/Points to
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-gray-900 dark:text-white font-medium break-all">
+                                        {dnsInstructions.cnameTarget ||
+                                          FALLBACK_DNS_CNAME_TARGET}
+                                      </span>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0 flex-shrink-0"
+                                        onClick={() =>
+                                          copyToClipboard(
+                                            dnsInstructions.cnameTarget ||
+                                              FALLBACK_DNS_CNAME_TARGET,
+                                            "CNAME target"
+                                          )
+                                        }
+                                      >
+                                        <Copy className="w-3 h-3" />
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
                           {/* Domain vs Subdomain explanation */}
                           <div className="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg mb-3">

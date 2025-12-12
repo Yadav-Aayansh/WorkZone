@@ -51,14 +51,6 @@ import { toast } from "sonner";
 
 type Tab = "overview" | "team" | "settings";
 
-// Mock tenant data - will be replaced with real API data
-const mockTenantData = {
-  brandName: "Acme Corporation",
-  logo: null, // Will be actual logo URL from backend
-  tenantId: "acme-corp",
-  teamCount: 0, // Real count from backend
-};
-
 export default function DashboardPage() {
   const { logout } = useAuth();
   const router = useRouter();
@@ -165,25 +157,7 @@ export default function DashboardPage() {
           {/* Logo & Brand */}
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3">
-              {mockTenantData.logo ? (
-                <img
-                  src={mockTenantData.logo}
-                  alt={mockTenantData.brandName}
-                  className="w-10 h-10 rounded-lg object-cover"
-                />
-              ) : (
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-white" />
-                </div>
-              )}
-              <div>
-                <h2 className="font-semibold text-gray-900 dark:text-white">
-                  {mockTenantData.brandName}
-                </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {mockTenantData.tenantId}
-                </p>
-              </div>
+              <Logo className="h-10 w-auto" />
             </div>
           </div>
 
@@ -255,18 +229,6 @@ export default function DashboardPage() {
                     : "Customize your workspace settings"}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                </Button>
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                  <Logo className="w-6" />
-                  <span className="text-sm font-medium dark:text-white">
-                    WorkZone
-                  </span>
-                </div>
-              </div>
             </div>
           </header>
 
@@ -299,32 +261,18 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                            Active Projects
+                            Managers
                           </p>
                           <p className="text-3xl font-bold dark:text-white">
-                            0
-                          </p>
-                        </div>
-                        <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                          <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-none shadow-lg hover:shadow-xl transition-shadow dark:bg-gray-800">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                            This Month
-                          </p>
-                          <p className="text-3xl font-bold dark:text-white">
-                            0
+                            {
+                              members.filter(
+                                (m) => m.role.toLowerCase() === "manager"
+                              ).length
+                            }
                           </p>
                         </div>
                         <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                          <BarChart3 className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                          <Crown className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                         </div>
                       </div>
                     </CardContent>
@@ -335,14 +283,40 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                            Documents
+                            Recruiters
                           </p>
                           <p className="text-3xl font-bold dark:text-white">
-                            0
+                            {
+                              members.filter(
+                                (m) => m.role.toLowerCase() === "recruiter"
+                              ).length
+                            }
+                          </p>
+                        </div>
+                        <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
+                          <Briefcase className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-none shadow-lg hover:shadow-xl transition-shadow dark:bg-gray-800">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                            Employees
+                          </p>
+                          <p className="text-3xl font-bold dark:text-white">
+                            {
+                              members.filter(
+                                (m) => m.role.toLowerCase() === "employee"
+                              ).length
+                            }
                           </p>
                         </div>
                         <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
-                          <FileText className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                          <User className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                         </div>
                       </div>
                     </CardContent>
@@ -365,10 +339,10 @@ export default function DashboardPage() {
                         onClick={handleInviteEmployee}
                         className="h-24 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg"
                       >
-                        <div className="flex flex-col items-center gap-2">
+                        <div className="flex flex-col items-center gap-2 text-white">
                           <UserPlus className="w-6 h-6" />
-                          <span className="font-semibold">
-                            Invite Team Member
+                          <span className="font-semibold tex">
+                            Invite Member
                           </span>
                         </div>
                       </Button>
