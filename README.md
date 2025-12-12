@@ -8,9 +8,428 @@ WorkZone.tech is a multi-tenant, sub-domain driven, AI-powered HR Management Pla
 
 <embed demo video here>
 
-## 1. Project Setup
+## Workzone Setup & Deployment
+
+### Prerequisites
+- Python 3.11+ with `uv`
+- Node.js 18+
+- Docker (for ChromaDB)
+- Cloud PostgreSQL (GCP Cloud SQL / AWS RDS / Supabase)
+- Cloud Redis (GCP Memorystore / AWS ElastiCache / Upstash)
+- Go 1.25+ (production only)
+- Cloudflare domain
+
+---
+
+## Local Development
+
+### 1. Environment Setup
+```bash
+# Backend
+cp server/.env.example server/.env
+nano server/.env
+
+# Frontend
+cp client/.env.local.example client/.env.local
+nano client/.env.local
+```
+
+**server/.env:**
+```ini
+SERVER_IP=localhost
+FRONTEND_URL=http://localhost:3000
+LOG_LEVEL=INFO
+
+# Cloud Database
+SYNC_DATABASE_URL=postgresql://user:pass@cloud-host:5432/workzone
+ASYNC_DATABASE_URL=postgresql+asyncpg://user:pass@cloud-host:5432/workzone
+
+# Cloud Redis
+REDIS_URL=redis://:password@cloud-host:6379/0
+
+# ChromaDB (local)
+CHROMA_HOST=localhost
+CHROMA_PORT=8001
+
+# Google Cloud
+GOOGLE_PROJECT_ID=your-project
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----..."
+GOOGLE_CLIENT_EMAIL=service@project.iam.gserviceaccount.com
+GCS_BUCKET_NAME=your-bucket
+
+# LLM
+GOOGLE_API_KEY=your-key
+GROQ_API_KEY=your-key
+
+# JWT
+JWT_SECRET_KEY=your-64-char-secret
+JWT_ALGORITHM=HS256
+
+DOMAIN_NAME=localhost
+
+# Razorpay
+RAZORPAY_KEY_ID=rzp_test_xxxxx
+RAZORPAY_KEY_SECRET=secret
+RAZORPAY_WEBHOOK_SECRET=webhook-secret
+
+# SMTP
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_NAME=Workzone
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=app-password
+```
+
+**client/.env.local:**
+```ini
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+BACKEND_URL=http://localhost:8000
+NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:3000
+NEXT_PUBLIC_PLATFORM_URL=http://localhost:3000
+NEXT_PUBLIC_DOMAIN_NAME=localhost
+NEXT_PUBLIC_GCS_BUCKET_NAME=your-bucket
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_xxxxx
+```
+
+### 2. Install Dependencies
+```bash
+# Backend
+cd server && uv sync
+
+# Frontend
+cd client && npm install
+```
+
+### 3. Database Migrations
+```bash
+cd server
+uv run alembic -c alembic.ini upgrade head
+uv run alembic -c alembic_tenant.ini upgrade head
+```
+
+### 4. ChromaDB (Docker)
+```bash
+docker run -d \
+    --name chromadb \
+    --restart always \
+    -p 8001:8000 \
+    -v $(pwd)/chroma_data:/chroma/chroma \
+    chromadb/chroma
+```
+
+### 5. Run Services
+```bash
+# Terminal 1 - Backend
+cd server
+uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+
+# Terminal 2 - Celery
+cd server
+celery -A src.core.celery worker --loglevel=info
+
+# Terminal 3 - Frontend
+cd client
+npm run dev
+```
+
+---
+
+## Production Deployment (GCP VM)
+
+### 1. Server Setup
+```bash
+# SSH into VM
+ssh user@vm-ip
+
+# Install dependencies
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt update && sudo apt install -y nodejs git docker.io
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc
+
+# Clone repo
+git clone YOUR_REPO workzone
+cd workzone
+```
+
+### 2. Environment Config
+```bash
+nano server/.env
+```
+Use production values (cloud DB URLs, production keys, domain: `YOUR_DOMAIN.com`)
+
+```bash
+nano client/.env.local
+```
+Use production URLs (`https://YOUR_DOMAIN.com`)
+
+### 3. Database Migrations
+```bash
+cd server
+uv run alembic -c alembic.ini upgrade head
+uv run alembic -c alembic_tenant.ini upgrade head
+```
+
+### 4. Build Frontend
+```bash
+cd client
+npm install --production
+npm run build
+```
+
+### 5. ChromaDB (Docker)
+```bash
+cd ~
+sudo docker run -d \
+    --name chromadb \
+    --restart always \
+    -p 8001:8000 \
+    -v ~/chroma_data:/chroma/chroma \
+    chromadb/chroma
+```
+
+### 6. Systemd Services
+
+Create log directory:
+```bash
+sudo mkdir -p /var/log/workzone
+sudo chown $USER:$USER /var/log/workzone
+```
+
+#### Backend Service
+```bash
+sudo nano /etc/systemd/system/workzone-backend.service
+```
+```ini
+[Unit]
+Description=Workzone Backend
+After=network.target
+
+[Service]
+Type=simple
+User=YOUR_USERNAME
+WorkingDirectory=/home/YOUR_USERNAME/workzone/server
+Environment="PATH=/home/YOUR_USERNAME/workzone/server/.venv/bin:/usr/bin"
+ExecStart=/home/YOUR_USERNAME/workzone/server/.venv/bin/uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4
+Restart=on-failure
+StandardOutput=append:/var/log/workzone/backend.log
+StandardError=append:/var/log/workzone/backend.log
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### Celery Service
+```bash
+sudo nano /etc/systemd/system/workzone-celery.service
+```
+```ini
+[Unit]
+Description=Workzone Celery
+After=network.target workzone-backend.service
+
+[Service]
+Type=simple
+User=YOUR_USERNAME
+WorkingDirectory=/home/YOUR_USERNAME/workzone/server
+Environment="PATH=/home/YOUR_USERNAME/workzone/server/.venv/bin:/usr/bin"
+ExecStart=/home/YOUR_USERNAME/workzone/server/.venv/bin/celery -A src.core.celery worker --loglevel=info --concurrency=4
+Restart=on-failure
+StandardOutput=append:/var/log/workzone/celery.log
+StandardError=append:/var/log/workzone/celery.log
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### Frontend Service
+```bash
+sudo nano /etc/systemd/system/workzone-frontend.service
+```
+```ini
+[Unit]
+Description=Workzone Frontend
+After=network.target
+
+[Service]
+Type=simple
+User=YOUR_USERNAME
+WorkingDirectory=/home/YOUR_USERNAME/workzone/client
+Environment="NODE_ENV=production"
+ExecStart=/usr/bin/npm start
+Restart=on-failure
+StandardOutput=append:/var/log/workzone/frontend.log
+StandardError=append:/var/log/workzone/frontend.log
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### Start Services
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable workzone-backend workzone-celery workzone-frontend
+sudo systemctl start workzone-backend workzone-celery workzone-frontend
+
+# Check status
+sudo systemctl status workzone-backend
+sudo systemctl status workzone-celery
+sudo systemctl status workzone-frontend
+```
+
+### 7. Caddy Setup
+
+#### Install Go & Build Caddy
+```bash
+wget https://go.dev/dl/go1.25.1.linux-amd64.tar.gz
+sudo tar -C /usr/local -xvf go1.25.1.linux-amd64.tar.gz
+rm go1.25.1.linux-amd64.tar.gz
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+source ~/.bashrc
+
+go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+~/go/bin/xcaddy build --with github.com/caddy-dns/cloudflare
+
+sudo mv caddy /usr/bin/caddy
+sudo chown root:root /usr/bin/caddy
+sudo chmod 755 /usr/bin/caddy
+```
+
+#### Caddyfile
+```bash
+sudo mkdir -p /etc/caddy
+sudo nano /etc/caddy/Caddyfile
+```
+```caddyfile
+{
+    email YOUR_EMAIL@example.com
+    admin localhost:2019
+    on_demand_tls {
+        ask http://127.0.0.1:8000/api/platform/caddy-ask/
+    }
+}
+
+*.YOUR_DOMAIN.com, YOUR_DOMAIN.com {
+    tls {
+        dns cloudflare YOUR_CLOUDFLARE_API_TOKEN
+    }
+    
+    handle /api* {
+        reverse_proxy 127.0.0.1:8000
+    }
+    
+    handle {
+        reverse_proxy localhost:3000
+    }
+}
+```
+
+#### Caddy Service
+```bash
+sudo nano /etc/systemd/system/caddy.service
+```
+```ini
+[Unit]
+Description=Caddy
+After=network.target
+
+[Service]
+Type=notify
+User=root
+ExecStart=/usr/bin/caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+ExecReload=/usr/bin/caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+TimeoutStopSec=5s
+LimitNOFILE=1048576
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable caddy
+sudo systemctl start caddy
+sudo systemctl status caddy
+```
+
+### 8. Firewall
+```bash
+sudo apt install ufw -y
+sudo ufw allow ssh
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+```
+
+---
+
+## Updates
+
+### Backend
+```bash
+cd ~/workzone
+git pull
+cd server
+uv sync
+uv run alembic -c alembic.ini upgrade head
+uv run alembic -c alembic_tenant.ini upgrade head
+sudo systemctl restart workzone-backend workzone-celery
+```
+
+### Frontend
+```bash
+cd ~/workzone
+git pull
+cd client
+npm install --production
+npm run build
+sudo systemctl restart workzone-frontend
+```
+
+---
+
+## Useful Commands
+
+### Logs
+```bash
+# Real-time
+sudo journalctl -u workzone-backend -f
+sudo journalctl -u workzone-celery -f
+sudo journalctl -u workzone-frontend -f
+
+# Last 50 lines
+sudo journalctl -u workzone-backend -n 50
+
+# View log files
+tail -f /var/log/workzone/backend.log
+tail -f /var/log/workzone/celery.log
+```
+
+### Restart Services
+```bash
+sudo systemctl restart workzone-backend
+sudo systemctl restart workzone-celery
+sudo systemctl restart workzone-frontend
+sudo systemctl restart caddy
+```
+
+### ChromaDB
+```bash
+# View logs
+sudo docker logs chromadb -f
+
+# Restart
+sudo docker restart chromadb
+
+# Stop/Start
+sudo docker stop chromadb
+sudo docker start chromadb
+```
 
 
+---
 
 ## 2. Tech Stack
 
