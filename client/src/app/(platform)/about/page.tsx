@@ -10,8 +10,6 @@ import {
   Palette,
   Layout,
   Brain,
-  Network,
-  GitBranch,
   TestTube,
   Github,
   Linkedin
@@ -36,8 +34,18 @@ const staggerContainer = {
   }
 };
 
+// Team member interface
+interface TeamMember {
+  name: string;
+  role: string;
+  description: string;
+  github: string | null;
+  linkedin: string | null;
+  note?: string;
+}
+
 // Animated team section component
-function TeamSection({ teamName, members, index }: { teamName: string; members: any[]; index: number }) {
+function TeamSection({ teamName, members, index, singleCard = false }: { teamName: string; members: TeamMember[]; index: number; singleCard?: boolean }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
@@ -48,15 +56,15 @@ function TeamSection({ teamName, members, index }: { teamName: string; members: 
       animate={isInView ? "visible" : "hidden"}
       variants={fadeInUp}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      whileHover={{ scale: 1.01 }}
-      className="relative group bg-card/60 backdrop-blur-md border border-primary/20 rounded-3xl p-10 shadow-xl overflow-hidden transition-colors duration-300 hover:border-primary/40"
+      whileHover={{ scale: 1.005 }}
+      className="relative group bg-card/60 backdrop-blur-md border border-primary/20 rounded-3xl p-8 md:p-10 shadow-xl overflow-hidden transition-colors duration-300 hover:border-primary/40"
     >
       {/* Gradient border on hover */}
       <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
         <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-primary/20 via-purple-500/20 to-pink-500/20" />
       </div>
 
-      <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-primary via-purple-400 to-primary bg-clip-text text-transparent">
+      <h2 className="text-2xl md:text-3xl font-bold mb-8 bg-gradient-to-r from-primary via-purple-400 to-primary bg-clip-text text-transparent">
         {teamName}
       </h2>
 
@@ -64,10 +72,10 @@ function TeamSection({ teamName, members, index }: { teamName: string; members: 
         variants={staggerContainer}
         initial="hidden"
         animate={isInView ? "visible" : "hidden"}
-        className="flex flex-row flex-wrap gap-6"
+        className={`grid gap-6 ${singleCard ? 'grid-cols-1 max-w-2xl mx-auto' : 'grid-cols-1 md:grid-cols-2'}`}
       >
         {members.map((member, memberIndex) => (
-          <MemberCard key={memberIndex} member={member} index={memberIndex} />
+          <MemberCard key={memberIndex} member={member} index={memberIndex} isFullWidth={singleCard} />
         ))}
       </motion.div>
     </motion.div>
@@ -75,7 +83,7 @@ function TeamSection({ teamName, members, index }: { teamName: string; members: 
 }
 
 // Animated member card component
-function MemberCard({ member, index }: { member: any; index: number }) {
+function MemberCard({ member, index, isFullWidth = false }: { member: TeamMember; index: number; isFullWidth?: boolean }) {
   return (
     <motion.div
       variants={fadeInLeft}
@@ -84,57 +92,78 @@ function MemberCard({ member, index }: { member: any; index: number }) {
         scale: 1.02,
         boxShadow: "0 0 30px rgba(168,85,247,0.25)"
       }}
-      className="relative flex flex-row w-full md:w-[48%] items-center gap-6 bg-gradient-to-br from-primary/5 to-purple-500/5 border border-primary/20 rounded-2xl p-6 transition-colors duration-300 hover:border-primary/40 hover:from-primary/10 hover:to-purple-500/8"
+      className={`relative flex flex-col sm:flex-row items-center sm:items-start gap-5 bg-gradient-to-br from-primary/5 to-purple-500/5 border border-primary/20 rounded-2xl p-6 transition-colors duration-300 hover:border-primary/40 hover:from-primary/10 hover:to-purple-500/8 ${isFullWidth ? 'w-full' : ''}`}
     >
       {/* AVATAR */}
-      <div className="relative flex flex-col items-center w-32 z-10">
+      <div className="relative flex flex-col items-center shrink-0 z-10">
         <motion.div
           whileHover={{ scale: 1.08 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary/40 shadow-[0_0_12px_2px_rgba(168,85,247,0.3)] hover:border-primary hover:shadow-[0_0_20px_4px_rgba(168,85,247,0.4)]"
+          className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-primary/40 shadow-[0_0_12px_2px_rgba(168,85,247,0.3)] hover:border-primary hover:shadow-[0_0_20px_4px_rgba(168,85,247,0.4)] bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center"
         >
-          <img
-            src={`https://api.dicebear.com/7.x/bottts/svg?seed=${member.name}`}
-            alt="avatar"
-            className="w-full h-full"
-          />
+          <span className="text-2xl font-bold text-primary">
+            {member.name.split(' ').map(n => n[0]).join('')}
+          </span>
         </motion.div>
 
-        <h3 className="mt-3 text-lg font-semibold text-white group-hover:text-primary transition-colors duration-200">
+        <h3 className="mt-3 text-base md:text-lg font-semibold text-white text-center leading-tight">
           {member.name}
         </h3>
-        <p className="text-xs text-primary/70">
+        <p className="text-xs text-primary/70 text-center mt-1">
           {member.role}
         </p>
       </div>
 
       {/* DESCRIPTION */}
-      <div className="relative flex-1 space-y-2 z-10">
-        <p className="text-white/80">
+      <div className="relative flex-1 space-y-3 z-10 text-center sm:text-left">
+        <p className="text-white/80 text-sm md:text-base leading-relaxed">
           {member.description}
         </p>
 
-        {/* ICON BUTTONS */}
-        <div className="flex gap-3 pt-2">
-          <motion.a
-            href="#"
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className="p-2 rounded-full bg-white/10 border border-white/20 hover:bg-primary/30 hover:border-primary/50 hover:shadow-[0_0_12px_rgba(168,85,247,0.4)] transition-colors duration-200"
-          >
-            <Github size={18} className="text-white" />
-          </motion.a>
+        {/* Note for members without links */}
+        {member.note && (
+          <p className="text-xs text-muted-foreground italic">
+            {member.note}
+          </p>
+        )}
 
-          <motion.a
-            href="#"
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className="p-2 rounded-full bg-white/10 border border-white/20 hover:bg-blue-500/30 hover:border-blue-400/50 hover:shadow-[0_0_12px_rgba(59,130,246,0.4)] transition-colors duration-200"
-          >
-            <Linkedin size={18} className="text-white" />
-          </motion.a>
+        {/* ICON BUTTONS */}
+        <div className="flex gap-3 pt-1 justify-center sm:justify-start">
+          {member.github ? (
+            <motion.a
+              href={member.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              className="p-2 rounded-full bg-white/10 border border-white/20 hover:bg-primary/30 hover:border-primary/50 hover:shadow-[0_0_12px_rgba(168,85,247,0.4)] transition-colors duration-200"
+            >
+              <Github size={18} className="text-white" />
+            </motion.a>
+          ) : (
+            <div className="p-2 rounded-full bg-white/5 border border-white/10 opacity-50 cursor-not-allowed">
+              <Github size={18} className="text-white/50" />
+            </div>
+          )}
+
+          {member.linkedin ? (
+            <motion.a
+              href={member.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              className="p-2 rounded-full bg-white/10 border border-white/20 hover:bg-blue-500/30 hover:border-blue-400/50 hover:shadow-[0_0_12px_rgba(59,130,246,0.4)] transition-colors duration-200"
+            >
+              <Linkedin size={18} className="text-white" />
+            </motion.a>
+          ) : (
+            <div className="p-2 rounded-full bg-white/5 border border-white/10 opacity-50 cursor-not-allowed">
+              <Linkedin size={18} className="text-white/50" />
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
@@ -145,72 +174,104 @@ export default function AboutPage() {
   const headerRef = useRef(null);
   const headerInView = useInView(headerRef, { once: true, margin: "-100px" });
 
-  const groupedTeams = {
-    "Product Management Team": [
-      {
-        name: "Mayank",
-        role: "Team Leader",
-        description:
-          "Leads strategy and architecture, ensuring every module aligns with the vision.",
-        icon: User,
-      },
-      {
-        name: "Achal Deep",
-        role: "Code Manager",
-        description:
-          "Maintains code quality, version control, and team coordination.",
-        icon: GitBranch,
-      },
-    ],
-    "Frontend Team": [
-      {
-        name: "Sandesh",
-        role: "Frontend Developer",
-        description: "Designs intuitive interfaces with Next.js and shadcn/ui.",
-        icon: Palette,
-      },
-      {
-        name: "Abhishek",
-        role: "Frontend Developer",
-        description:
-          "Builds scalable and responsive UI flows for all roles and dashboards.",
-        icon: Layout,
-      },
-    ],
-    "Backend Team": [
-      {
-        name: "Aayansh",
-        role: "Backend Lead",
-        description:
-          "Crafts secure APIs and tenant systems using FastAPI and PostgreSQL.",
-        icon: Server,
-      },
-    ],
-    "GenAI Team": [
-      {
-        name: "Rishabh",
-        role: "AI Developer",
-        description:
-          "Integrates AI workflows using LangChain, GPT, and automation agents.",
-        icon: Brain,
-      },
-      {
-        name: "Shreyas",
-        role: "AI/ML Developer",
-        description: "Trains and evaluates ML models powering HR analytics.",
-        icon: Network,
-      },
-    ],
-    "QA Team": [
-      {
-        name: "Raghav Rao",
-        role: "Tester",
-        description:
-          "Ensures every feature works seamlessly with rigorous testing.",
-        icon: TestTube,
-      },
-    ],
-  };
+  // Team data organized by section
+  const teamSections = [
+    {
+      name: "Product Managers",
+      singleCard: false,
+      members: [
+        {
+          name: "Mayank Tripathi",
+          role: "Product Lead",
+          description:
+            "Led client meetings, prepared presentation slides, and supported overall team communication and coordination throughout the project.",
+          github: null,
+          linkedin: null,
+          // note: "Github & LinkedIn: available in README.md"
+        },
+        {
+          name: "Achal Deep",
+          role: "AI Product Manager",
+          description:
+            "Facilitated requirement-gathering discussions, defined the core problem statement, coordinated team workflows, created milestone reports, and led complete project documentation.",
+          github: "https://github.com/achaldeep",
+          linkedin: "https://www.linkedin.com/in/achaldeep"
+        }
+      ]
+    },
+    {
+      name: "Frontend Developers",
+      singleCard: false,
+      members: [
+        {
+          name: "Sandesh Apparala",
+          role: "Frontend Lead & Experience Architect",
+          description:
+            "Developed the full frontend end-to-end, shaping every screen, animation, and workflow into a polished, smooth, and user-centered experience.",
+          github: "https://github.com/sandeshapparala",
+          linkedin: "https://www.linkedin.com/in/sandeshapparala"
+        },
+        {
+          name: "Abhishek Pandey",
+          role: "Frontend Developer",
+          description:
+            "Handled UI designs, component development, dashboard layouts, and wireframe creation for the project.",
+          github: "https://github.com/Avi-11007",
+          linkedin: "https://www.linkedin.com/in/abhishek-pandey-21944324a"
+        }
+      ]
+    },
+    {
+      name: "Backend Developers",
+      singleCard: true,
+      members: [
+        {
+          name: "Aayansh Yadav",
+          role: "Backend Lead & System Architect",
+          description:
+            "Engineered multi-tenant, subdomain-driven backend, designed the database, built 50+ production APIs, and executed complete cloud deployment.",
+          github: "https://github.com/Yadav-Aayansh",
+          linkedin: "https://www.linkedin.com/in/Yadav-Aayansh"
+        }
+      ]
+    },
+    {
+      name: "GenAI Engineers",
+      singleCard: false,
+      members: [
+        {
+          name: "Shreyas Jani",
+          role: "AI & Automation Engineer",
+          description:
+            "Built intelligent modules for resume ranking, document generation (emails, feedback reports, JDs), and developed APIs for auto-allocated query ticketing and personalized learning path generation.",
+          github: "https://github.com/JaniShreyas",
+          linkedin: "https://www.linkedin.com/in/janishreyas"
+        },
+        {
+          name: "Rishab Panwar",
+          role: "GenAI Developer",
+          description:
+            "Developed functions of STT-TTS powered AI interview assistant and a semantic RAG HR policy assistant; both integrated with Redis sessions and cloud file storage.",
+          github: "https://github.com/JaniShreyas",
+          linkedin: "https://www.linkedin.com/in/janishreyas"
+        }
+      ]
+    },
+    {
+      name: "QA Engineers",
+      singleCard: true,
+      members: [
+        {
+          name: "Raghav Rao Ghanathe",
+          role: "QA Engineer",
+          description:
+            "Tested APIs, validated functionality, ensured smooth delivery and collaborated with the team for quality assurance.",
+          github: "https://github.com/raghav42513",
+          linkedin: "https://www.linkedin.com/in/raghav-rao-ghanathe"
+        }
+      ]
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -275,14 +336,15 @@ export default function AboutPage() {
               </motion.p>
             </motion.div>
 
-            {/* TEAM SECTION */}
-            <div className="space-y-12 mt-16">
-              {Object.entries(groupedTeams).map(([teamName, members], index) => (
+            {/* TEAM SECTIONS */}
+            <div className="space-y-10 mt-16">
+              {teamSections.map((section, index) => (
                 <TeamSection 
-                  key={teamName} 
-                  teamName={teamName} 
-                  members={members} 
-                  index={index} 
+                  key={section.name} 
+                  teamName={section.name} 
+                  members={section.members} 
+                  index={index}
+                  singleCard={section.singleCard}
                 />
               ))}
             </div>
