@@ -14,6 +14,7 @@ interface TeamMember {
   linkedin: string | null;
   gradient: string;
   glowColor: string;
+  lightGlow: string;
 }
 
 const teamMembers: TeamMember[] = [
@@ -26,6 +27,7 @@ const teamMembers: TeamMember[] = [
     linkedin: "https://www.linkedin.com/in/Yadav-Aayansh",
     gradient: "from-cyan-400 via-blue-500 to-violet-600",
     glowColor: "cyan",
+    lightGlow: "shadow-cyan-200/50",
   },
   {
     name: "Sandesh Apparala",
@@ -36,6 +38,7 @@ const teamMembers: TeamMember[] = [
     linkedin: "https://www.linkedin.com/in/sandeshapparala",
     gradient: "from-violet-500 via-purple-500 to-fuchsia-500",
     glowColor: "purple",
+    lightGlow: "shadow-purple-200/50",
   },
   {
     name: "Rishab Panwar",
@@ -46,6 +49,7 @@ const teamMembers: TeamMember[] = [
     linkedin: "https://www.linkedin.com/in/janishreyas",
     gradient: "from-amber-500 via-orange-500 to-red-500",
     glowColor: "orange",
+    lightGlow: "shadow-orange-200/50",
   },
   {
     name: "Shreyas Jani",
@@ -56,6 +60,7 @@ const teamMembers: TeamMember[] = [
     linkedin: "https://www.linkedin.com/in/janishreyas",
     gradient: "from-emerald-500 via-teal-500 to-cyan-500",
     glowColor: "emerald",
+    lightGlow: "shadow-emerald-200/50",
   },
   {
     name: "Achal Deep",
@@ -66,6 +71,7 @@ const teamMembers: TeamMember[] = [
     linkedin: "https://www.linkedin.com/in/achaldeep",
     gradient: "from-pink-500 via-rose-500 to-red-500",
     glowColor: "rose",
+    lightGlow: "shadow-rose-200/50",
   },
   {
     name: "Mayank Tripathi",
@@ -76,6 +82,7 @@ const teamMembers: TeamMember[] = [
     linkedin: "https://linkedin.com/in/mayanktripathi10",
     gradient: "from-blue-500 via-indigo-500 to-violet-500",
     glowColor: "indigo",
+    lightGlow: "shadow-indigo-200/50",
   },
   {
     name: "Abhishek Pandey",
@@ -86,6 +93,7 @@ const teamMembers: TeamMember[] = [
     linkedin: "https://www.linkedin.com/in/abhishek-pandey-21944324a",
     gradient: "from-fuchsia-500 via-pink-500 to-rose-500",
     glowColor: "pink",
+    lightGlow: "shadow-pink-200/50",
   },
   {
     name: "Raghav Rao Ghanathe",
@@ -96,6 +104,7 @@ const teamMembers: TeamMember[] = [
     linkedin: "https://www.linkedin.com/in/raghav-rao-ghanathe",
     gradient: "from-teal-500 via-emerald-500 to-green-500",
     glowColor: "teal",
+    lightGlow: "shadow-teal-200/50",
   },
 ];
 
@@ -123,12 +132,12 @@ function MemberCard({
       }}
       className={`group relative h-full ${isFirst ? "md:col-span-2 lg:col-span-1" : ""}`}
     >
-  
+      {/* Glow effect - VISIBLE in light mode too */}
       <div
-        className={`absolute rounded-[36px] bg-gradient-to-r ${member.gradient} blur-3xl transition-all duration-700 ${
+        className={`absolute rounded-[36px] bg-gradient-to-r ${member.gradient} transition-all duration-700 ${
           isFirst
-            ? "-inset-6 opacity-20 group-hover:opacity-40 group-hover:-inset-8"
-            : "-inset-4 opacity-0 group-hover:opacity-25 group-hover:-inset-5"
+            ? "-inset-3 opacity-[0.25] blur-2xl group-hover:opacity-[0.35] group-hover:-inset-4 dark:-inset-6 dark:opacity-20 dark:blur-3xl dark:group-hover:opacity-40 dark:group-hover:-inset-8"
+            : "-inset-2 opacity-[0.15] blur-xl group-hover:opacity-[0.25] group-hover:-inset-3 dark:-inset-4 dark:opacity-0 dark:blur-3xl dark:group-hover:opacity-25 dark:group-hover:-inset-5"
         }`}
       />
 
@@ -136,48 +145,55 @@ function MemberCard({
       <div
         className={`relative h-full overflow-hidden ${
           isFirst ? "rounded-[32px]" : "rounded-[28px]"
+        } ${
+          isFirst
+            ? `shadow-2xl ${member.lightGlow} dark:shadow-none`
+            : `shadow-xl shadow-gray-200/80 dark:shadow-none`
         }`}
       >
-     
-        <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-2xl" />
+        {/* Solid background for light mode, glass for dark */}
+        <div className="absolute inset-0 bg-white dark:bg-white/[0.03] dark:backdrop-blur-2xl" />
 
-    
+        {/* Gradient border - STRONGER in light mode */}
         <div
-          className={`absolute inset-0 p-[1px] bg-gradient-to-br ${member.gradient} ${
+          className={`absolute inset-0 p-[2px] dark:p-[1px] bg-gradient-to-br ${member.gradient} ${
             isFirst
-              ? "opacity-50 group-hover:opacity-70"
-              : "opacity-30 group-hover:opacity-50"
+              ? "opacity-60 group-hover:opacity-80 dark:opacity-50 dark:group-hover:opacity-70"
+              : "opacity-40 group-hover:opacity-60 dark:opacity-30 dark:group-hover:opacity-50"
           } transition-opacity duration-500 ${isFirst ? "rounded-[32px]" : "rounded-[28px]"}`}
         >
           <div
-            className={`absolute inset-[1px] bg-[#0c0c14]/95 backdrop-blur-2xl ${
-              isFirst ? "rounded-[31px]" : "rounded-[27px]"
+            className={`absolute inset-[2px] dark:inset-[1px] bg-white dark:bg-[#0c0c14]/95 dark:backdrop-blur-2xl ${
+              isFirst ? "rounded-[30px] dark:rounded-[31px]" : "rounded-[26px] dark:rounded-[27px]"
             }`}
           />
         </div>
 
-  
         {isFirst && (
           <div className="absolute inset-0 rounded-[32px] overflow-hidden pointer-events-none">
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-              className="absolute -inset-[100%] bg-[conic-gradient(from_0deg,transparent_0%,transparent_40%,rgba(6,182,212,0.3)_50%,transparent_60%,transparent_100%)]"
+              className="absolute -inset-[100%] bg-[conic-gradient(from_0deg,transparent_0%,transparent_40%,rgba(6,182,212,0.15)_50%,transparent_60%,transparent_100%)] dark:bg-[conic-gradient(from_0deg,transparent_0%,transparent_40%,rgba(6,182,212,0.3)_50%,transparent_60%,transparent_100%)]"
             />
           </div>
         )}
 
-    
+        {/* Top highlight - gradient line */}
         <div
-          className={`absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent ${
-            isFirst ? "via-white/40" : "via-white/25"
+          className={`absolute top-0 inset-x-0 h-[2px] dark:h-[1px] bg-gradient-to-r from-transparent ${
+            isFirst
+              ? `via-cyan-400/50 dark:via-white/40`
+              : `via-gray-300 dark:via-white/25`
           } to-transparent`}
         />
 
-
+        {/* Inner glow - top gradient splash */}
         <div
-          className={`absolute top-0 left-1/2 -translate-x-1/2 bg-gradient-to-b ${member.gradient} blur-3xl ${
-            isFirst ? "w-3/4 h-40 opacity-[0.12]" : "w-2/3 h-32 opacity-[0.08]"
+          className={`absolute top-0 left-1/2 -translate-x-1/2 bg-gradient-to-b ${member.gradient} ${
+            isFirst
+              ? "w-3/4 h-32 opacity-[0.15] blur-3xl dark:h-40 dark:opacity-[0.12]"
+              : "w-2/3 h-24 opacity-[0.10] blur-2xl dark:h-32 dark:opacity-[0.08] dark:blur-3xl"
           }`}
         />
 
@@ -189,13 +205,13 @@ function MemberCard({
         >
           {/* Header: Avatar + Info */}
           <div className="flex items-start gap-5 mb-5">
+            {/* Avatar */}
             <div className="relative shrink-0">
-             
               {isFirst && (
                 <motion.div
                   animate={{ rotate: -360 }}
                   transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                  className="absolute -inset-4 rounded-2xl border border-cyan-500/20 border-dashed"
+                  className="absolute -inset-4 rounded-2xl border border-cyan-400/30 dark:border-cyan-500/20 border-dashed"
                 />
               )}
 
@@ -203,41 +219,40 @@ function MemberCard({
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                className={`absolute rounded-2xl border border-dashed opacity-30 ${
+                className={`absolute rounded-2xl border border-dashed ${
                   isFirst ? "-inset-3" : "-inset-2"
                 } ${
                   member.glowColor === "cyan"
-                    ? "border-cyan-500"
+                    ? "border-cyan-400/40 dark:border-cyan-500/30"
                     : member.glowColor === "purple"
-                    ? "border-purple-500"
+                    ? "border-purple-400/40 dark:border-purple-500/30"
                     : member.glowColor === "orange"
-                    ? "border-orange-500"
+                    ? "border-orange-400/40 dark:border-orange-500/30"
                     : member.glowColor === "emerald"
-                    ? "border-emerald-500"
+                    ? "border-emerald-400/40 dark:border-emerald-500/30"
                     : member.glowColor === "rose"
-                    ? "border-rose-500"
+                    ? "border-rose-400/40 dark:border-rose-500/30"
                     : member.glowColor === "indigo"
-                    ? "border-indigo-500"
+                    ? "border-indigo-400/40 dark:border-indigo-500/30"
                     : member.glowColor === "pink"
-                    ? "border-pink-500"
-                    : "border-teal-500"
+                    ? "border-pink-400/40 dark:border-pink-500/30"
+                    : "border-teal-400/40 dark:border-teal-500/30"
                 }`}
               />
 
+              {/* Avatar container */}
               <div
-                className={`relative bg-gradient-to-br ${member.gradient} p-[2px] shadow-lg ${
+                className={`relative bg-gradient-to-br ${member.gradient} p-[2px] ${
                   isFirst
-                    ? "w-20 h-20 rounded-2xl shadow-cyan-500/20"
-                    : "w-16 h-16 rounded-2xl"
+                    ? `w-20 h-20 rounded-2xl shadow-lg ${member.lightGlow} dark:shadow-cyan-500/20`
+                    : "w-16 h-16 rounded-2xl shadow-md"
                 }`}
               >
                 <div
-                  className={`w-full h-full bg-[#0c0c14] flex items-center justify-center overflow-hidden ${
-                    isFirst ? "rounded-[14px]" : "rounded-[14px]"
-                  }`}
+                  className={`w-full h-full bg-white dark:bg-[#0c0c14] flex items-center justify-center overflow-hidden rounded-[14px]`}
                 >
                   {/* Shimmer effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-100 dark:via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
 
                   <span
                     className={`relative font-bold bg-gradient-to-br ${member.gradient} bg-clip-text text-transparent ${
@@ -252,7 +267,7 @@ function MemberCard({
               <motion.div
                 animate={{
                   scale: [1, isFirst ? 1.15 : 1.2, 1],
-                  opacity: [0.7, 1, 0.7],
+                  opacity: [0.8, 1, 0.8],
                 }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 className={`absolute -top-1 -right-1 rounded-lg bg-gradient-to-br ${member.gradient} flex items-center justify-center shadow-lg ${
@@ -269,16 +284,17 @@ function MemberCard({
 
             {/* Name & Role */}
             <div className="flex-1 min-w-0 pt-1">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <h3
-                  className={`font-semibold text-white tracking-tight truncate ${
+                  className={`font-semibold text-gray-900 dark:text-white tracking-tight ${
                     isFirst ? "text-xl" : "text-lg"
                   }`}
                 >
                   {member.name}
                 </h3>
+
                 {isFirst && (
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300/90 border border-cyan-500/20">
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-500/20 dark:to-blue-500/20 text-cyan-700 dark:text-cyan-300/90 border border-cyan-300 dark:border-cyan-500/20">
                     Core
                   </span>
                 )}
@@ -290,7 +306,7 @@ function MemberCard({
                   }`}
                 />
                 <span
-                  className={`font-medium text-white/50 truncate ${
+                  className={`font-medium text-gray-500 dark:text-white/50 ${
                     isFirst ? "text-sm" : "text-xs"
                   }`}
                 >
@@ -300,18 +316,19 @@ function MemberCard({
             </div>
           </div>
 
+          {/* Description */}
           <p
             className={`leading-relaxed transition-colors duration-300 flex-1 mb-6 ${
               isFirst
-                ? "text-sm text-white/50 group-hover:text-white/70"
-                : "text-sm text-white/40 group-hover:text-white/60"
+                ? "text-sm text-gray-600 dark:text-white/50 group-hover:text-gray-800 dark:group-hover:text-white/70"
+                : "text-sm text-gray-500 dark:text-white/40 group-hover:text-gray-700 dark:group-hover:text-white/60"
             }`}
           >
             {member.description}
           </p>
 
           {/* Action buttons */}
-          <div className="flex gap-2 mt-auto">
+          <div className="flex gap-3 mt-auto">
             {member.github ? (
               <a
                 href={member.github}
@@ -324,15 +341,18 @@ function MemberCard({
                   className={`absolute inset-0 bg-gradient-to-r ${member.gradient} rounded-xl opacity-0 blur-xl group-hover/btn:opacity-30 transition-opacity duration-300`}
                 />
 
-                {/* Glass button */}
+                {/* Solid button for light, glass for dark */}
                 <div
-                  className={`relative flex items-center justify-center gap-2 rounded-xl bg-white/[0.05] backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/[0.08] transition-all duration-300 ${
+                  className={`relative flex items-center justify-center gap-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/[0.05] dark:backdrop-blur-xl border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 dark:hover:bg-white/[0.08] transition-all duration-300 ${
                     isFirst ? "px-5 py-3" : "px-4 py-2.5"
                   }`}
                 >
-                  <Github size={isFirst ? 15 : 14} className="text-white/70" />
+                  <Github
+                    size={isFirst ? 15 : 14}
+                    className="text-gray-700 dark:text-white/70"
+                  />
                   <span
-                    className={`font-medium text-white/70 ${
+                    className={`font-medium text-gray-700 dark:text-white/70 ${
                       isFirst ? "text-sm" : "text-xs"
                     }`}
                   >
@@ -341,19 +361,24 @@ function MemberCard({
 
                   {/* Shine */}
                   <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
-                    <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                    <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/50 dark:via-white/10 to-transparent" />
                   </div>
                 </div>
               </a>
             ) : (
               <div
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl bg-white/[0.02] border border-white/5 cursor-not-allowed ${
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 cursor-not-allowed ${
                   isFirst ? "px-5 py-3" : "px-4 py-2.5"
                 }`}
               >
-                <Github size={isFirst ? 15 : 14} className="text-white/20" />
+                <Github
+                  size={isFirst ? 15 : 14}
+                  className="text-gray-300 dark:text-white/20"
+                />
                 <span
-                  className={`text-white/20 ${isFirst ? "text-sm" : "text-xs"}`}
+                  className={`text-gray-300 dark:text-white/20 ${
+                    isFirst ? "text-sm" : "text-xs"
+                  }`}
                 >
                   GitHub
                 </span>
@@ -372,13 +397,16 @@ function MemberCard({
                 />
 
                 <div
-                  className={`relative flex items-center justify-center gap-2 rounded-xl bg-white/[0.05] backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/[0.08] transition-all duration-300 ${
+                  className={`relative flex items-center justify-center gap-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/[0.05] dark:backdrop-blur-xl border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 dark:hover:bg-white/[0.08] transition-all duration-300 ${
                     isFirst ? "px-5 py-3" : "px-4 py-2.5"
                   }`}
                 >
-                  <Linkedin size={isFirst ? 15 : 14} className="text-white/70" />
+                  <Linkedin
+                    size={isFirst ? 15 : 14}
+                    className="text-gray-700 dark:text-white/70"
+                  />
                   <span
-                    className={`font-medium text-white/70 ${
+                    className={`font-medium text-gray-700 dark:text-white/70 ${
                       isFirst ? "text-sm" : "text-xs"
                     }`}
                   >
@@ -386,19 +414,24 @@ function MemberCard({
                   </span>
 
                   <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
-                    <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                    <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/50 dark:via-white/10 to-transparent" />
                   </div>
                 </div>
               </a>
             ) : (
               <div
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl bg-white/[0.02] border border-white/5 cursor-not-allowed ${
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 cursor-not-allowed ${
                   isFirst ? "px-5 py-3" : "px-4 py-2.5"
                 }`}
               >
-                <Linkedin size={isFirst ? 15 : 14} className="text-white/20" />
+                <Linkedin
+                  size={isFirst ? 15 : 14}
+                  className="text-gray-300 dark:text-white/20"
+                />
                 <span
-                  className={`text-white/20 ${isFirst ? "text-sm" : "text-xs"}`}
+                  className={`text-gray-300 dark:text-white/20 ${
+                    isFirst ? "text-sm" : "text-xs"
+                  }`}
                 >
                   LinkedIn
                 </span>
@@ -407,9 +440,12 @@ function MemberCard({
           </div>
         </div>
 
+        {/* Bottom reflection */}
         <div
           className={`absolute bottom-0 inset-x-0 bg-gradient-to-t ${member.gradient} pointer-events-none ${
-            isFirst ? "h-24 opacity-[0.05]" : "h-20 opacity-[0.03]"
+            isFirst
+              ? "h-20 opacity-[0.06] dark:h-24 dark:opacity-[0.05]"
+              : "h-16 opacity-[0.04] dark:h-20 dark:opacity-[0.03]"
           }`}
         />
       </div>
@@ -465,19 +501,17 @@ export default function AboutPage() {
   const y2 = useTransform(scrollYProgress, [0, 1], ["0%", "-25%"]);
 
   return (
-    <div className="min-h-screen bg-[#08080c] overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-[#08080c] dark:to-[#08080c] overflow-hidden transition-colors duration-300">
       <HeroHeader />
 
       <main className="relative">
         {/* Animated background */}
         <div className="fixed inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[#08080c]" />
-
-          {/* Parallax orbs */}
+          {/* Parallax orbs - more visible in light mode */}
           <motion.div style={{ y: y1 }} className="absolute inset-0">
             <FloatingOrb
               size={700}
-              gradient="from-cyan-600/20 to-blue-600/20"
+              gradient="from-cyan-400/30 to-blue-400/30 dark:from-cyan-600/20 dark:to-blue-600/20"
               blur={140}
               top="-15%"
               left="-15%"
@@ -485,7 +519,7 @@ export default function AboutPage() {
             />
             <FloatingOrb
               size={600}
-              gradient="from-violet-600/20 to-purple-600/20"
+              gradient="from-violet-400/25 to-purple-400/25 dark:from-violet-600/20 dark:to-purple-600/20"
               blur={120}
               top="10%"
               left="55%"
@@ -493,7 +527,7 @@ export default function AboutPage() {
             />
             <FloatingOrb
               size={500}
-              gradient="from-pink-600/15 to-rose-600/15"
+              gradient="from-pink-400/20 to-rose-400/20 dark:from-pink-600/15 dark:to-rose-600/15"
               blur={100}
               top="55%"
               left="5%"
@@ -504,7 +538,7 @@ export default function AboutPage() {
           <motion.div style={{ y: y2 }} className="absolute inset-0">
             <FloatingOrb
               size={450}
-              gradient="from-amber-600/15 to-orange-600/15"
+              gradient="from-amber-400/20 to-orange-400/20 dark:from-amber-600/15 dark:to-orange-600/15"
               blur={90}
               top="35%"
               left="65%"
@@ -512,7 +546,7 @@ export default function AboutPage() {
             />
             <FloatingOrb
               size={400}
-              gradient="from-emerald-600/15 to-teal-600/15"
+              gradient="from-emerald-400/20 to-teal-400/20 dark:from-emerald-600/15 dark:to-teal-600/15"
               blur={80}
               top="75%"
               left="35%"
@@ -520,20 +554,20 @@ export default function AboutPage() {
             />
           </motion.div>
 
-          {/* Grid overlay */}
+          {/* Grid overlay - darker for light mode */}
           <div
-            className="absolute inset-0 opacity-[0.35]"
+            className="absolute inset-0"
             style={{
               backgroundImage: `
-                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px)
+                linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px)
               `,
               backgroundSize: "80px 80px",
             }}
           />
 
           {/* Radial vignette */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#08080c_75%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(255,255,255,0.9)_80%)] dark:bg-[radial-gradient(ellipse_at_center,transparent_0%,#08080c_75%)]" />
         </div>
 
         <div className="relative py-20 md:py-28">
@@ -548,14 +582,14 @@ export default function AboutPage() {
                 className="inline-block mb-10"
               >
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 via-purple-500/30 to-pink-500/30 rounded-full blur-2xl" />
-                  <div className="relative px-6 py-3 rounded-full bg-white/[0.06] backdrop-blur-2xl border border-white/15 shadow-2xl">
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/40 via-purple-400/40 to-pink-400/40 dark:from-cyan-500/30 dark:via-purple-500/30 dark:to-pink-500/30 rounded-full blur-2xl" />
+                  <div className="relative px-6 py-3 rounded-full bg-white dark:bg-white/[0.06] backdrop-blur-2xl border border-gray-200 dark:border-white/15 shadow-lg dark:shadow-2xl">
                     <div className="flex items-center gap-3">
                       <span className="relative flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400" />
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 dark:bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 dark:from-emerald-400 dark:to-cyan-400" />
                       </span>
-                      <span className="text-sm font-medium text-white/90">
+                      <span className="text-sm font-medium text-gray-800 dark:text-white/90">
                         IIT Madras • Software Engineering 2024
                       </span>
                     </div>
@@ -570,16 +604,17 @@ export default function AboutPage() {
                 transition={{ duration: 0.9, delay: 0.15 }}
                 className="relative mb-8"
               >
+                {/* Glow behind title */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="text-6xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 blur-3xl opacity-40">
+                  <div className="text-6xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 blur-3xl opacity-30 dark:opacity-40">
                     The Team Behind WorkZone
                   </div>
                 </div>
 
                 <h1 className="relative text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-                  <span className="text-white">The </span>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
-                   Team Behind WorkZone
+                  <span className="text-gray-900 dark:text-white">The </span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500">
+                    Team Behind WorkZone
                   </span>
                 </h1>
               </motion.div>
@@ -589,11 +624,13 @@ export default function AboutPage() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={headerInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.8, delay: 0.3 }}
-                className="text-lg md:text-xl text-white/40 max-w-2xl mx-auto leading-relaxed"
+                className="text-lg md:text-xl text-gray-600 dark:text-white/40 max-w-2xl mx-auto leading-relaxed"
               >
                 A passionate team building{" "}
-                <span className="text-white/80 font-medium">WorkZone.tech</span>{" "}
-                the future of intelligent HR automation.
+                <span className="text-gray-900 dark:text-white/80 font-semibold">
+                  WorkZone.tech
+                </span>{" "}
+                — the future of intelligent HR automation.
               </motion.p>
 
               {/* Floating dots */}
@@ -604,10 +641,10 @@ export default function AboutPage() {
                 className="flex justify-center gap-4 mt-12"
               >
                 {[
-                  "from-cyan-400 to-blue-400",
-                  "from-purple-400 to-pink-400",
-                  "from-amber-400 to-orange-400",
-                ].map((gradient, i) => (
+                  { gradient: "from-cyan-400 to-blue-400", shadow: "6,182,212" },
+                  { gradient: "from-purple-400 to-pink-400", shadow: "168,85,247" },
+                  { gradient: "from-amber-400 to-orange-400", shadow: "251,146,60" },
+                ].map((dot, i) => (
                   <motion.div
                     key={i}
                     animate={{ y: [0, -10, 0] }}
@@ -617,15 +654,9 @@ export default function AboutPage() {
                       ease: "easeInOut",
                       delay: i * 0.25,
                     }}
-                    className={`w-2.5 h-2.5 rounded-full bg-gradient-to-r ${gradient} shadow-lg`}
+                    className={`w-3 h-3 rounded-full bg-gradient-to-r ${dot.gradient}`}
                     style={{
-                      boxShadow: `0 0 20px 2px rgba(${
-                        i === 0
-                          ? "6,182,212"
-                          : i === 1
-                          ? "168,85,247"
-                          : "251,146,60"
-                      }, 0.4)`,
+                      boxShadow: `0 0 20px 4px rgba(${dot.shadow}, 0.5)`,
                     }}
                   />
                 ))}
@@ -653,11 +684,11 @@ export default function AboutPage() {
               className="mt-20 text-center"
             >
               <div className="relative inline-block">
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-2xl" />
-                <div className="relative px-10 py-6 rounded-2xl bg-white/[0.04] backdrop-blur-2xl border border-white/10">
-                  <p className="text-white/40 text-sm">
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 via-purple-400/20 to-pink-400/20 dark:from-cyan-500/20 dark:via-purple-500/20 dark:to-pink-500/20 rounded-2xl blur-2xl" />
+                <div className="relative px-10 py-6 rounded-2xl bg-white dark:bg-white/[0.04] backdrop-blur-2xl border border-gray-200 dark:border-white/10 shadow-lg dark:shadow-none">
+                  <p className="text-gray-600 dark:text-white/40 text-sm">
                     Crafted with 💜 at{" "}
-                    <span className="text-white/70 font-medium">
+                    <span className="text-gray-900 dark:text-white/70 font-semibold">
                       Indian Institute of Technology, Madras
                     </span>
                   </p>
