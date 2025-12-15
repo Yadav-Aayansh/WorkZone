@@ -129,8 +129,6 @@ const MemberCard = React.memo(function MemberCard({
         delay: index * 0.08,
         ease: [0.21, 0.47, 0.32, 0.98],
       }}
-      // RESPONSIVE FIX: md:col-span-2 ensures Lead card is full width on tablet, 
-      // but lg:col-span-1 ensures it fits into the 2-column grid on desktop.
       className={`group relative h-full transform-gpu isolate ${
         isFirst ? "md:col-span-2 lg:col-span-1" : ""
       }`}
@@ -228,6 +226,25 @@ const MemberCard = React.memo(function MemberCard({
                   </span>
                 </div>
               </div>
+              
+              {/* RESTORED BADGES HERE */}
+              <motion.div
+                animate={{
+                  scale: [1, isFirst ? 1.15 : 1.2, 1],
+                  opacity: [0.8, 1, 0.8],
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className={`absolute -top-1 -right-1 rounded-lg bg-gradient-to-br ${member.gradient} flex items-center justify-center shadow-lg z-10 will-change-transform ${
+                  isFirst ? "w-6 h-6" : "w-5 h-5"
+                }`}
+              >
+                {isFirst ? (
+                  <Crown size={12} className="text-white" />
+                ) : (
+                  <Sparkles size={10} className="text-white" />
+                )}
+              </motion.div>
+
             </div>
             {/* Name & Role */}
             <div className="flex-1 min-w-0 pt-1">
@@ -406,7 +423,7 @@ export default function AboutPage() {
             />
           </motion.div>
 
-           {/* Mobile/Tablet Orbs (Static, no parallax) */}
+           {/* Mobile/Tablet Orbs (Static) */}
            <div className="absolute inset-0 md:hidden">
             <FloatingOrb
               size={300}
@@ -479,12 +496,10 @@ export default function AboutPage() {
 
               <div className="relative mb-8">
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  {/* RESPONSIVE FIX: Adjusted blur text size for md screens */}
                   <div className="text-6xl md:text-7xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 blur-3xl opacity-20 dark:opacity-30">
                     The Team Behind WorkZone
                   </div>
                 </div>
-                {/* RESPONSIVE FIX: Clamped text size for md screens to prevent overflow */}
                 <h1 className="relative text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
                   <span className="text-gray-900 dark:text-white">The </span>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500">
@@ -502,7 +517,6 @@ export default function AboutPage() {
               </p>
             </motion.div>
 
-            {/* RESPONSIVE FIX: Changed to md:grid-cols-2 to force 2 columns on iPad */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               {teamMembers.map((member, index) => (
                 <MemberCard
