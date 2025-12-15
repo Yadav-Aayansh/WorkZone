@@ -1,11 +1,11 @@
 "use client";
-
 import React, { useRef } from "react";
 import { HeroHeader } from "@/components/(platform)/plaform-landing/header";
 import { PlatformFooter } from "@/components/(platform)/plaform-landing/platform-footer";
-import { motion, useInView, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { Github, Linkedin, Sparkles, Crown } from "lucide-react";
 
+// Types
 interface TeamMember {
   name: string;
   role: string;
@@ -17,6 +17,7 @@ interface TeamMember {
   lightGlow: string;
 }
 
+// Static Data
 const teamMembers: TeamMember[] = [
   {
     name: "Aayansh Yadav",
@@ -108,7 +109,8 @@ const teamMembers: TeamMember[] = [
   },
 ];
 
-function MemberCard({
+// Memoized Card
+const MemberCard = React.memo(function MemberCard({
   member,
   index,
   isFirst,
@@ -117,33 +119,33 @@ function MemberCard({
   index: number;
   isFirst: boolean;
 }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
-
   return (
     <motion.div
-      ref={ref}
       initial={{ opacity: 0, y: 50, scale: 0.95 }}
-      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: "-50px" }}
       transition={{
         duration: isFirst ? 0.9 : 0.7,
         delay: index * 0.08,
         ease: [0.21, 0.47, 0.32, 0.98],
       }}
-      className={`group relative h-full ${isFirst ? "md:col-span-2 lg:col-span-1" : ""}`}
+      // RESPONSIVE FIX: md:col-span-2 ensures Lead card is full width on tablet, 
+      // but lg:col-span-1 ensures it fits into the 2-column grid on desktop.
+      className={`group relative h-full transform-gpu isolate ${
+        isFirst ? "md:col-span-2 lg:col-span-1" : ""
+      }`}
     >
-      {/* Glow effect - VISIBLE in light mode too */}
+      {/* Glow effect */}
       <div
-        className={`absolute rounded-[36px] bg-gradient-to-r ${member.gradient} transition-all duration-700 ${
+        className={`absolute rounded-[36px] bg-gradient-to-r ${member.gradient} transition-all duration-700 will-change-transform ${
           isFirst
             ? "-inset-3 opacity-[0.25] blur-2xl group-hover:opacity-[0.35] group-hover:-inset-4 dark:-inset-6 dark:opacity-20 dark:blur-3xl dark:group-hover:opacity-40 dark:group-hover:-inset-8"
             : "-inset-2 opacity-[0.15] blur-xl group-hover:opacity-[0.25] group-hover:-inset-3 dark:-inset-4 dark:opacity-0 dark:blur-3xl dark:group-hover:opacity-25 dark:group-hover:-inset-5"
         }`}
       />
-
       {/* Card */}
       <div
-        className={`relative h-full overflow-hidden ${
+        className={`relative h-full overflow-hidden backface-hidden ${
           isFirst ? "rounded-[32px]" : "rounded-[28px]"
         } ${
           isFirst
@@ -151,10 +153,9 @@ function MemberCard({
             : `shadow-xl shadow-gray-200/80 dark:shadow-none`
         }`}
       >
-        {/* Solid background for light mode, glass for dark */}
         <div className="absolute inset-0 bg-white dark:bg-white/[0.03] dark:backdrop-blur-2xl" />
-
-        {/* Gradient border - STRONGER in light mode */}
+        
+        {/* Gradient border */}
         <div
           className={`absolute inset-0 p-[2px] dark:p-[1px] bg-gradient-to-br ${member.gradient} ${
             isFirst
@@ -174,28 +175,10 @@ function MemberCard({
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-              className="absolute -inset-[100%] bg-[conic-gradient(from_0deg,transparent_0%,transparent_40%,rgba(6,182,212,0.15)_50%,transparent_60%,transparent_100%)] dark:bg-[conic-gradient(from_0deg,transparent_0%,transparent_40%,rgba(6,182,212,0.3)_50%,transparent_60%,transparent_100%)]"
+              className="absolute -inset-[100%] will-change-transform bg-[conic-gradient(from_0deg,transparent_0%,transparent_40%,rgba(6,182,212,0.15)_50%,transparent_60%,transparent_100%)] dark:bg-[conic-gradient(from_0deg,transparent_0%,transparent_40%,rgba(6,182,212,0.3)_50%,transparent_60%,transparent_100%)]"
             />
           </div>
         )}
-
-        {/* Top highlight - gradient line */}
-        <div
-          className={`absolute top-0 inset-x-0 h-[2px] dark:h-[1px] bg-gradient-to-r from-transparent ${
-            isFirst
-              ? `via-cyan-400/50 dark:via-white/40`
-              : `via-gray-300 dark:via-white/25`
-          } to-transparent`}
-        />
-
-        {/* Inner glow - top gradient splash */}
-        <div
-          className={`absolute top-0 left-1/2 -translate-x-1/2 bg-gradient-to-b ${member.gradient} ${
-            isFirst
-              ? "w-3/4 h-32 opacity-[0.15] blur-3xl dark:h-40 dark:opacity-[0.12]"
-              : "w-2/3 h-24 opacity-[0.10] blur-2xl dark:h-32 dark:opacity-[0.08] dark:blur-3xl"
-          }`}
-        />
 
         {/* Content */}
         <div
@@ -203,44 +186,29 @@ function MemberCard({
             isFirst ? "p-8 md:p-10" : "p-6 md:p-8"
           }`}
         >
-          {/* Header: Avatar + Info */}
+          {/* Header */}
           <div className="flex items-start gap-5 mb-5">
-            {/* Avatar */}
             <div className="relative shrink-0">
               {isFirst && (
                 <motion.div
                   animate={{ rotate: -360 }}
                   transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                  className="absolute -inset-4 rounded-2xl border border-cyan-400/30 dark:border-cyan-500/20 border-dashed"
+                  className="absolute -inset-4 rounded-2xl border border-cyan-400/30 dark:border-cyan-500/20 border-dashed will-change-transform"
                 />
               )}
-
-              {/* Rotating ring */}
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                className={`absolute rounded-2xl border border-dashed ${
+                className={`absolute rounded-2xl border border-dashed will-change-transform ${
                   isFirst ? "-inset-3" : "-inset-2"
                 } ${
                   member.glowColor === "cyan"
                     ? "border-cyan-400/40 dark:border-cyan-500/30"
                     : member.glowColor === "purple"
                     ? "border-purple-400/40 dark:border-purple-500/30"
-                    : member.glowColor === "orange"
-                    ? "border-orange-400/40 dark:border-orange-500/30"
-                    : member.glowColor === "emerald"
-                    ? "border-emerald-400/40 dark:border-emerald-500/30"
-                    : member.glowColor === "rose"
-                    ? "border-rose-400/40 dark:border-rose-500/30"
-                    : member.glowColor === "indigo"
-                    ? "border-indigo-400/40 dark:border-indigo-500/30"
-                    : member.glowColor === "pink"
-                    ? "border-pink-400/40 dark:border-pink-500/30"
-                    : "border-teal-400/40 dark:border-teal-500/30"
+                    : "border-gray-400/40 dark:border-gray-500/30"
                 }`}
               />
-
-              {/* Avatar container */}
               <div
                 className={`relative bg-gradient-to-br ${member.gradient} p-[2px] ${
                   isFirst
@@ -251,9 +219,6 @@ function MemberCard({
                 <div
                   className={`w-full h-full bg-white dark:bg-[#0c0c14] flex items-center justify-center overflow-hidden rounded-[14px]`}
                 >
-                  {/* Shimmer effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-100 dark:via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-
                   <span
                     className={`relative font-bold bg-gradient-to-br ${member.gradient} bg-clip-text text-transparent ${
                       isFirst ? "text-xl" : "text-lg"
@@ -263,25 +228,7 @@ function MemberCard({
                   </span>
                 </div>
               </div>
-
-              <motion.div
-                animate={{
-                  scale: [1, isFirst ? 1.15 : 1.2, 1],
-                  opacity: [0.8, 1, 0.8],
-                }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className={`absolute -top-1 -right-1 rounded-lg bg-gradient-to-br ${member.gradient} flex items-center justify-center shadow-lg ${
-                  isFirst ? "w-6 h-6" : "w-5 h-5"
-                }`}
-              >
-                {isFirst ? (
-                  <Crown size={12} className="text-white" />
-                ) : (
-                  <Sparkles size={10} className="text-white" />
-                )}
-              </motion.div>
             </div>
-
             {/* Name & Role */}
             <div className="flex-1 min-w-0 pt-1">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -292,7 +239,6 @@ function MemberCard({
                 >
                   {member.name}
                 </h3>
-
                 {isFirst && (
                   <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-500/20 dark:to-blue-500/20 text-cyan-700 dark:text-cyan-300/90 border border-cyan-300 dark:border-cyan-500/20">
                     Core
@@ -315,7 +261,6 @@ function MemberCard({
               </div>
             </div>
           </div>
-
           {/* Description */}
           <p
             className={`leading-relaxed transition-colors duration-300 flex-1 mb-6 ${
@@ -326,134 +271,74 @@ function MemberCard({
           >
             {member.description}
           </p>
-
-          {/* Action buttons */}
+          {/* Buttons */}
           <div className="flex gap-3 mt-auto">
-            {member.github ? (
-              <a
-                href={member.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group/btn relative flex-1 overflow-hidden"
-              >
-                {/* Button glow */}
-                <div
-                  className={`absolute inset-0 bg-gradient-to-r ${member.gradient} rounded-xl opacity-0 blur-xl group-hover/btn:opacity-30 transition-opacity duration-300`}
-                />
-
-                {/* Solid button for light, glass for dark */}
-                <div
-                  className={`relative flex items-center justify-center gap-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/[0.05] dark:backdrop-blur-xl border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 dark:hover:bg-white/[0.08] transition-all duration-300 ${
-                    isFirst ? "px-5 py-3" : "px-4 py-2.5"
-                  }`}
-                >
-                  <Github
-                    size={isFirst ? 15 : 14}
-                    className="text-gray-700 dark:text-white/70"
-                  />
-                  <span
-                    className={`font-medium text-gray-700 dark:text-white/70 ${
-                      isFirst ? "text-sm" : "text-xs"
-                    }`}
-                  >
-                    GitHub
-                  </span>
-
-                  {/* Shine */}
-                  <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
-                    <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/50 dark:via-white/10 to-transparent" />
-                  </div>
-                </div>
-              </a>
-            ) : (
-              <div
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 cursor-not-allowed ${
-                  isFirst ? "px-5 py-3" : "px-4 py-2.5"
-                }`}
-              >
-                <Github
-                  size={isFirst ? 15 : 14}
-                  className="text-gray-300 dark:text-white/20"
-                />
-                <span
-                  className={`text-gray-300 dark:text-white/20 ${
-                    isFirst ? "text-sm" : "text-xs"
-                  }`}
-                >
-                  GitHub
-                </span>
-              </div>
-            )}
-
-            {member.linkedin ? (
-              <a
-                href={member.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group/btn relative flex-1 overflow-hidden"
-              >
-                <div
-                  className={`absolute inset-0 bg-gradient-to-r ${member.gradient} rounded-xl opacity-0 blur-xl group-hover/btn:opacity-30 transition-opacity duration-300`}
-                />
-
-                <div
-                  className={`relative flex items-center justify-center gap-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/[0.05] dark:backdrop-blur-xl border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 dark:hover:bg-white/[0.08] transition-all duration-300 ${
-                    isFirst ? "px-5 py-3" : "px-4 py-2.5"
-                  }`}
-                >
-                  <Linkedin
-                    size={isFirst ? 15 : 14}
-                    className="text-gray-700 dark:text-white/70"
-                  />
-                  <span
-                    className={`font-medium text-gray-700 dark:text-white/70 ${
-                      isFirst ? "text-sm" : "text-xs"
-                    }`}
-                  >
-                    LinkedIn
-                  </span>
-
-                  <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
-                    <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/50 dark:via-white/10 to-transparent" />
-                  </div>
-                </div>
-              </a>
-            ) : (
-              <div
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 cursor-not-allowed ${
-                  isFirst ? "px-5 py-3" : "px-4 py-2.5"
-                }`}
-              >
-                <Linkedin
-                  size={isFirst ? 15 : 14}
-                  className="text-gray-300 dark:text-white/20"
-                />
-                <span
-                  className={`text-gray-300 dark:text-white/20 ${
-                    isFirst ? "text-sm" : "text-xs"
-                  }`}
-                >
-                  LinkedIn
-                </span>
-              </div>
-            )}
+             <SocialButton link={member.github} type="github" gradient={member.gradient} isFirst={isFirst} />
+             <SocialButton link={member.linkedin} type="linkedin" gradient={member.gradient} isFirst={isFirst} />
           </div>
         </div>
-
-        {/* Bottom reflection */}
-        <div
-          className={`absolute bottom-0 inset-x-0 bg-gradient-to-t ${member.gradient} pointer-events-none ${
-            isFirst
-              ? "h-20 opacity-[0.06] dark:h-24 dark:opacity-[0.05]"
-              : "h-16 opacity-[0.04] dark:h-20 dark:opacity-[0.03]"
-          }`}
-        />
       </div>
     </motion.div>
   );
+});
+
+function SocialButton({ link, type, gradient, isFirst }: { link: string | null; type: 'github' | 'linkedin'; gradient: string; isFirst: boolean }) {
+    const Icon = type === 'github' ? Github : Linkedin;
+    const label = type === 'github' ? 'GitHub' : 'LinkedIn';
+
+    if (!link) {
+        return (
+            <div
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 cursor-not-allowed ${
+                  isFirst ? "px-5 py-3" : "px-4 py-2.5"
+                }`}
+              >
+                <Icon
+                  size={isFirst ? 15 : 14}
+                  className="text-gray-300 dark:text-white/20"
+                />
+                <span
+                  className={`text-gray-300 dark:text-white/20 ${
+                    isFirst ? "text-sm" : "text-xs"
+                  }`}
+                >
+                  {label}
+                </span>
+            </div>
+        )
+    }
+
+    return (
+        <a
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group/btn relative flex-1 overflow-hidden"
+      >
+        <div
+          className={`absolute inset-0 bg-gradient-to-r ${gradient} rounded-xl opacity-0 blur-xl group-hover/btn:opacity-30 transition-opacity duration-300`}
+        />
+        <div
+          className={`relative flex items-center justify-center gap-2 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/[0.05] dark:backdrop-blur-xl border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 dark:hover:bg-white/[0.08] transition-all duration-300 ${
+            isFirst ? "px-5 py-3" : "px-4 py-2.5"
+          }`}
+        >
+          <Icon
+            size={isFirst ? 15 : 14}
+            className="text-gray-700 dark:text-white/70"
+          />
+          <span
+            className={`font-medium text-gray-700 dark:text-white/70 ${
+              isFirst ? "text-sm" : "text-xs"
+            }`}
+          >
+            {label}
+          </span>
+        </div>
+      </a>
+    )
 }
 
-// Floating orb
 function FloatingOrb({
   size,
   gradient,
@@ -472,16 +357,15 @@ function FloatingOrb({
   return (
     <motion.div
       animate={{
-        y: [0, -40, 0],
-        x: [0, 20, 0],
-        scale: [1, 1.15, 1],
+        y: [0, -20, 0],
+        scale: [1, 1.05, 1],
       }}
       transition={{
         duration,
         repeat: Infinity,
         ease: "easeInOut",
       }}
-      className={`absolute rounded-full bg-gradient-to-br ${gradient} pointer-events-none`}
+      className={`absolute rounded-full bg-gradient-to-br ${gradient} pointer-events-none transform-gpu will-change-transform`}
       style={{
         width: size,
         height: size,
@@ -494,21 +378,16 @@ function FloatingOrb({
 }
 
 export default function AboutPage() {
-  const headerRef = useRef(null);
-  const headerInView = useInView(headerRef, { once: true, margin: "-100px" });
   const { scrollYProgress } = useScroll();
-  const y1 = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
-  const y2 = useTransform(scrollYProgress, [0, 1], ["0%", "-25%"]);
+  const y1 = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+  const y2 = useTransform(scrollYProgress, [0, 1], ["0%", "-10%"]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-[#08080c] dark:to-[#08080c] overflow-hidden transition-colors duration-300">
       <HeroHeader />
-
       <main className="relative">
-        {/* Animated background */}
         <div className="fixed inset-0 pointer-events-none">
-          {/* Parallax orbs - more visible in light mode */}
-          <motion.div style={{ y: y1 }} className="absolute inset-0">
+          <motion.div style={{ y: y1 }} className="absolute inset-0 hidden md:block will-change-transform">
             <FloatingOrb
               size={700}
               gradient="from-cyan-400/30 to-blue-400/30 dark:from-cyan-600/20 dark:to-blue-600/20"
@@ -517,15 +396,7 @@ export default function AboutPage() {
               left="-15%"
               duration={12}
             />
-            <FloatingOrb
-              size={600}
-              gradient="from-violet-400/25 to-purple-400/25 dark:from-violet-600/20 dark:to-purple-600/20"
-              blur={120}
-              top="10%"
-              left="55%"
-              duration={15}
-            />
-            <FloatingOrb
+             <FloatingOrb
               size={500}
               gradient="from-pink-400/20 to-rose-400/20 dark:from-pink-600/15 dark:to-rose-600/15"
               blur={100}
@@ -535,28 +406,40 @@ export default function AboutPage() {
             />
           </motion.div>
 
-          <motion.div style={{ y: y2 }} className="absolute inset-0">
+           {/* Mobile/Tablet Orbs (Static, no parallax) */}
+           <div className="absolute inset-0 md:hidden">
             <FloatingOrb
-              size={450}
-              gradient="from-amber-400/20 to-orange-400/20 dark:from-amber-600/15 dark:to-orange-600/15"
-              blur={90}
-              top="35%"
-              left="65%"
-              duration={14}
-            />
-            <FloatingOrb
-              size={400}
-              gradient="from-emerald-400/20 to-teal-400/20 dark:from-emerald-600/15 dark:to-teal-600/15"
+              size={300}
+              gradient="from-cyan-400/20 to-blue-400/20 dark:from-cyan-600/15 dark:to-blue-600/15"
               blur={80}
-              top="75%"
-              left="35%"
-              duration={16}
+              top="-5%"
+              left="-10%"
+              duration={10}
+            />
+             <FloatingOrb
+              size={250}
+              gradient="from-pink-400/15 to-rose-400/15 dark:from-pink-600/10 dark:to-rose-600/10"
+              blur={60}
+              top="60%"
+              left="-5%"
+              duration={15}
+            />
+          </div>
+
+          <motion.div style={{ y: y2 }} className="absolute inset-0 hidden md:block will-change-transform">
+            <FloatingOrb
+              size={600}
+              gradient="from-violet-400/25 to-purple-400/25 dark:from-violet-600/20 dark:to-purple-600/20"
+              blur={120}
+              top="10%"
+              left="55%"
+              duration={15}
             />
           </motion.div>
 
-          {/* Grid overlay - darker for light mode */}
+          {/* Grid overlay */}
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 z-0"
             style={{
               backgroundImage: `
                 linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px),
@@ -565,22 +448,19 @@ export default function AboutPage() {
               backgroundSize: "80px 80px",
             }}
           />
-
-          {/* Radial vignette */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(255,255,255,0.9)_80%)] dark:bg-[radial-gradient(ellipse_at_center,transparent_0%,#08080c_75%)]" />
         </div>
 
-        <div className="relative py-20 md:py-28">
+        <div className="relative py-20 md:py-28 z-10">
           <div className="mx-auto max-w-6xl px-6">
-            {/* Header */}
-            <motion.div ref={headerRef} className="text-center mb-16 md:mb-24">
-              {/* Badge */}
-              <motion.div
-                initial={{ opacity: 0, y: 30, scale: 0.9 }}
-                animate={headerInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-                transition={{ duration: 0.7 }}
-                className="inline-block mb-10"
-              >
+            <motion.div 
+               initial={{ opacity: 0, y: 30 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ duration: 0.8 }}
+               className="text-center mb-16 md:mb-24"
+            >
+              <div className="inline-block mb-10">
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/40 via-purple-400/40 to-pink-400/40 dark:from-cyan-500/30 dark:via-purple-500/30 dark:to-pink-500/30 rounded-full blur-2xl" />
                   <div className="relative px-6 py-3 rounded-full bg-white dark:bg-white/[0.06] backdrop-blur-2xl border border-gray-200 dark:border-white/15 shadow-lg dark:shadow-2xl">
@@ -595,76 +475,35 @@ export default function AboutPage() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
-              {/* Title */}
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                animate={headerInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.9, delay: 0.15 }}
-                className="relative mb-8"
-              >
-                {/* Glow behind title */}
+              <div className="relative mb-8">
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="text-6xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 blur-3xl opacity-30 dark:opacity-40">
+                  {/* RESPONSIVE FIX: Adjusted blur text size for md screens */}
+                  <div className="text-6xl md:text-7xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 blur-3xl opacity-20 dark:opacity-30">
                     The Team Behind WorkZone
                   </div>
                 </div>
-
+                {/* RESPONSIVE FIX: Clamped text size for md screens to prevent overflow */}
                 <h1 className="relative text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
                   <span className="text-gray-900 dark:text-white">The </span>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500">
                     Team Behind WorkZone
                   </span>
                 </h1>
-              </motion.div>
+              </div>
 
-              {/* Subtitle */}
-              <motion.p
-                initial={{ opacity: 0, y: 30 }}
-                animate={headerInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                className="text-lg md:text-xl text-gray-600 dark:text-white/40 max-w-2xl mx-auto leading-relaxed"
-              >
+              <p className="text-lg md:text-xl text-gray-600 dark:text-white/40 max-w-2xl mx-auto leading-relaxed">
                 A passionate team building{" "}
                 <span className="text-gray-900 dark:text-white/80 font-semibold">
                   WorkZone.tech
                 </span>{" "}
                 — the future of intelligent HR automation.
-              </motion.p>
-
-              {/* Floating dots */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={headerInView ? { opacity: 1 } : {}}
-                transition={{ duration: 0.8, delay: 0.5 }}
-                className="flex justify-center gap-4 mt-12"
-              >
-                {[
-                  { gradient: "from-cyan-400 to-blue-400", shadow: "6,182,212" },
-                  { gradient: "from-purple-400 to-pink-400", shadow: "168,85,247" },
-                  { gradient: "from-amber-400 to-orange-400", shadow: "251,146,60" },
-                ].map((dot, i) => (
-                  <motion.div
-                    key={i}
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{
-                      duration: 2.5,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: i * 0.25,
-                    }}
-                    className={`w-3 h-3 rounded-full bg-gradient-to-r ${dot.gradient}`}
-                    style={{
-                      boxShadow: `0 0 20px 4px rgba(${dot.shadow}, 0.5)`,
-                    }}
-                  />
-                ))}
-              </motion.div>
+              </p>
             </motion.div>
 
-            {/* Team grid - 2 per row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+            {/* RESPONSIVE FIX: Changed to md:grid-cols-2 to force 2 columns on iPad */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               {teamMembers.map((member, index) => (
                 <MemberCard
                   key={member.name}
@@ -675,7 +514,6 @@ export default function AboutPage() {
               ))}
             </div>
 
-            {/* Footer */}
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -698,7 +536,6 @@ export default function AboutPage() {
           </div>
         </div>
       </main>
-
       <PlatformFooter />
     </div>
   );
