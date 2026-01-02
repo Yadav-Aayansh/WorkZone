@@ -59,7 +59,6 @@ GCS_BUCKET_NAME=your-bucket
 
 # LLM
 GOOGLE_API_KEY=your-key
-GROQ_API_KEY=your-key
 
 # JWT
 JWT_SECRET_KEY=your-64-char-secret
