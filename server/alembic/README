@@ -1,1 +1,22 @@
-Generic single-database configuration.
+Alembic environment for the PUBLIC schema.
+
+Manages platform-wide tables (clients, orders, settings) declared on PublicBase.
+
+Common commands (run from the repo root):
+
+  # Create a new migration by diffing PublicBase models against the live DB
+  alembic revision --autogenerate -m "describe the change"
+
+  # Apply migrations
+  alembic upgrade head
+
+  # Roll back one revision
+  alembic downgrade -1
+
+  # Show current revision in the DB
+  alembic current
+
+  # Show history
+  alembic history
+
+The version tracking table lives at public.alembic_version.

@@ -1,0 +1,34 @@
+Alembic environment for TENANT schemas.
+
+Manages per-tenant tables (users, employees, jobs, applications, leave_*, etc.)
+declared on TenantBase. Each tenant lives in its own PostgreSQL schema and
+tracks its own alembic_version row.
+
+Single-tenant commands (run from repo root):
+
+  # Generate a new migration by diffing TenantBase models against one tenant
+  alembic -c alembic_tenant.ini -x tenant=<tenant_id> revision \
+      --autogenerate -m "describe the change"
+
+  # Apply migrations to one tenant
+  alembic -c alembic_tenant.ini -x tenant=<tenant_id> upgrade head
+
+  # Roll back
+  alembic -c alembic_tenant.ini -x tenant=<tenant_id> downgrade -1
+
+  # Current revision for one tenant
+  alembic -c alembic_tenant.ini -x tenant=<tenant_id> current
+
+All-tenant commands (apply across every tenant in public.clients):
+
+  python scripts/tenant_migrate.py upgrade head
+  python scripts/tenant_migrate.py downgrade -1
+  python scripts/tenant_migrate.py current
+  python scripts/tenant_migrate.py stamp head
+  python scripts/tenant_migrate.py upgrade head --tenant acme   # one tenant
+
+Notes:
+  - The version table lives at <tenant_id>.alembic_version.
+  - --autogenerate should be run against ONE representative tenant (one whose
+    schema matches the model state you want to diff against), then the
+    generated migration is applied to every tenant.
