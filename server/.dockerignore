@@ -1,0 +1,22 @@
+# Keep the build context small and never bake secrets/venvs into the image.
+.venv/
+venv/
+env/
+.env
+.env.*
+
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+.git/
+.gitignore
+.claude/
+
+*.log
+*.tmp
+tmp/
+.DS_Store

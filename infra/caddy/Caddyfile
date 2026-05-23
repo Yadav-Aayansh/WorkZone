@@ -1,21 +1,40 @@
 {
-    email YOUR_EMAIL@example.com
+    email {$CADDY_EMAIL}
     admin localhost:2019
     on_demand_tls {
-        ask http://127.0.0.1:8000/api/platform/caddy-ask/
+        # Gate on-demand cert issuance for tenant custom domains.
+        ask http://server:8000/api/platform/caddy-ask
     }
 }
 
-*.YOUR_DOMAIN.com, YOUR_DOMAIN.com {
+# Platform apex + tenant subdomains (*.workzone.tech), one wildcard cert
+# obtained via the Cloudflare DNS challenge.
+*.{$DOMAIN_NAME}, {$DOMAIN_NAME} {
     tls {
-        dns cloudflare YOUR_CLOUDFLARE_API_TOKEN
+        dns cloudflare {$CLOUDFLARE_API_TOKEN}
     }
-    
+
     handle /api* {
-        reverse_proxy 127.0.0.1:8000
+        reverse_proxy server:8000
     }
-    
+
     handle {
-        reverse_proxy localhost:3000
+        reverse_proxy client:3000
+    }
+}
+
+# Tenant-mapped custom domains (e.g. hr.company.com). Certs are issued on
+# demand and gated by the caddy-ask endpoint above.
+https:// {
+    tls {
+        on_demand
+    }
+
+    handle /api* {
+        reverse_proxy server:8000
+    }
+
+    handle {
+        reverse_proxy client:3000
     }
 }

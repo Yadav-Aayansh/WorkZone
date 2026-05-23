@@ -1,22 +1,14 @@
 services:
-  # ---------- migrations (one-shot) ----------
-  migrate-platform:
+  # ---------- database migrations (one-shot) ----------
+  # Applies platform (public) migrations, then tenant migrations across every
+  # tenant in public.clients. Runs on every `up`; a no-op once schemas are
+  # current. server/celery wait for this to finish successfully.
+  migrate:
     build:
       context: ./server
-    command: alembic -c alembic.ini upgrade head
+    command: ["sh", "scripts/migrate.sh"]
     env_file:
       - ./infra/server.env
-    restart: "no"
-
-  migrate-tenant:
-    build:
-      context: ./server
-    command: alembic -c alembic_tenant.ini upgrade head
-    env_file:
-      - ./infra/server.env
-    depends_on:
-      migrate-platform:
-        condition: service_completed_successfully
     restart: "no"
 
   # ---------- backend api ----------
@@ -26,13 +18,14 @@ services:
     env_file:
       - ./infra/server.env
     depends_on:
-      migrate-tenant:
+      migrate:
         condition: service_completed_successfully
       chromadb:
-        condition: service_healthy
+        condition: service_started
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      # No dedicated /health route; openapi.json is a cheap, DB-free 200.
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/openapi.json"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -48,10 +41,8 @@ services:
     env_file:
       - ./infra/server.env
     depends_on:
-      migrate-tenant:
+      migrate:
         condition: service_completed_successfully
-      chromadb:
-        condition: service_healthy
     restart: always
 
   # ---------- frontend ----------
@@ -59,15 +50,14 @@ services:
     build:
       context: ./client
       args:
-        # NEXT_PUBLIC_* must be set at BUILD time, not runtime
+        # NEXT_PUBLIC_* must be set at BUILD time, not runtime.
+        # Interpolated from infra/client.env via `--env-file infra/client.env`.
         NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
         NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
         NEXT_PUBLIC_PLATFORM_URL: ${NEXT_PUBLIC_PLATFORM_URL}
         NEXT_PUBLIC_DOMAIN_NAME: ${NEXT_PUBLIC_DOMAIN_NAME}
         NEXT_PUBLIC_GCS_BUCKET_NAME: ${NEXT_PUBLIC_GCS_BUCKET_NAME}
         NEXT_PUBLIC_RAZORPAY_KEY_ID: ${NEXT_PUBLIC_RAZORPAY_KEY_ID}
-    env_file:
-      - ./infra/client.env
     restart: always
     expose:
       - "3000"
@@ -81,12 +71,6 @@ services:
       IS_PERSISTENT: "TRUE"
     volumes:
       - chroma_data:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v2/heartbeat"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 20s
     expose:
       - "8000"
 
@@ -99,10 +83,8 @@ services:
       - "80:80"
       - "443:443"
       - "443:443/udp"
-    environment:
-      CADDY_EMAIL: ${CADDY_EMAIL}
-      DOMAIN_NAME: ${DOMAIN_NAME}
-      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
+    env_file:
+      - ./infra/caddy.env
     volumes:
       - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
