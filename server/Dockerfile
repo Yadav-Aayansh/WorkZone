@@ -42,6 +42,8 @@ RUN groupadd --system --gid 1001 app && \
 WORKDIR /app
 COPY --from=builder --chown=app:app /app /app
 
+RUN mkdir -p /app/logs && chown app:app /app /app/logs
+
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
