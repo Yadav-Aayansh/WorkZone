@@ -37,7 +37,7 @@ services:
   celery:
     build:
       context: ./server
-    command: celery -A src.core.celery worker --loglevel=info --concurrency=4
+    command: celery -A src.core.celery worker --loglevel=info --concurrency=2
     env_file:
       - ./infra/server.env
     depends_on:
