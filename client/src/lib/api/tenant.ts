@@ -5,8 +5,8 @@
 // Backend API URL - used for localhost development
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
-// Platform domain for subdomain detection (e.g., workzone.tech)
-const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN || 'workzone.tech';
+// Platform domain for subdomain detection (e.g., workzone.tech, workzone.noctivagous.me)
+const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_DOMAIN_NAME || 'workzone.tech';
 
 /**
  * Check if the current hostname is a custom domain (not a subdomain of the platform)

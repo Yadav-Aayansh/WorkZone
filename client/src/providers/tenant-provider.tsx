@@ -166,7 +166,7 @@ function getTenantSubdomainFromUrl(): string | null {
   const hostname = window.location.hostname;
   const host = hostname.split(":")[0];
   const platformDomain =
-    process.env.NEXT_PUBLIC_PLATFORM_DOMAIN || "workzone.tech";
+    process.env.NEXT_PUBLIC_DOMAIN_NAME || "workzone.tech";
 
   // localhost or company.localhost
   if (host.includes("localhost")) {
@@ -203,7 +203,7 @@ function isPlatformSubdomain(): boolean {
 
   const hostname = window.location.hostname;
   const platformDomain =
-    process.env.NEXT_PUBLIC_PLATFORM_DOMAIN || "workzone.tech";
+    process.env.NEXT_PUBLIC_DOMAIN_NAME || "workzone.tech";
 
   // Check if hostname ends with platform domain (e.g., sandesh.workzone.tech)
   return hostname.endsWith(`.${platformDomain}`);

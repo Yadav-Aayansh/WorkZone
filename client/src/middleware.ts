@@ -74,26 +74,33 @@ export function middleware(request: NextRequest) {
 function getSubdomain(hostname: string): string | null {
   // Remove port if present
   const host = hostname.split(':')[0];
-  
-  // Split by dots
-  const parts = host.split('.');
-  
+
+  // Platform domain from env (e.g. workzone.tech OR workzone.noctivagous.me).
+  // We compare by suffix so any domain depth works without code changes.
+  const platformDomain =
+    process.env.NEXT_PUBLIC_DOMAIN_NAME || 'workzone.tech';
+
   // For localhost testing: localhost or company.localhost
   if (host.includes('localhost')) {
-    if (parts.length >= 2) {
-      return parts[0]; // Return 'company' from 'company.localhost'
-    }
-    return null; // Just 'localhost'
+    const parts = host.split('.');
+    return parts.length >= 2 ? parts[0] : null; // 'company' from 'company.localhost'
   }
-  
-  // For production: workzone.tech or company.workzone.tech
-  // Need at least 3 parts for subdomain: [subdomain, domain, tld]
-  if (parts.length >= 3) {
-    return parts[0]; // Return 'company' from 'company.workzone.tech'
+
+  // Platform apex (workzone.tech / workzone.noctivagous.me) -> not a tenant
+  if (host === platformDomain) {
+    return null;
   }
-  
-  // Just domain.tld (no subdomain)
-  return null;
+
+  // Tenant subdomain under the platform domain: <tenant>.<platformDomain>
+  if (host.endsWith(`.${platformDomain}`)) {
+    // Strip the platform suffix, then take the first label.
+    return host.slice(0, -(platformDomain.length + 1)).split('.')[0];
+  }
+
+  // Tenant-mapped custom domain (e.g. hr.company.com) -> treat as tenant route.
+  // The backend resolves the actual tenant from the Host header.
+  const parts = host.split('.');
+  return parts.length >= 2 ? parts[0] : null;
 }
 
 /**

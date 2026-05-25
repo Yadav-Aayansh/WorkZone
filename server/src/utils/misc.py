@@ -1,13 +1,20 @@
-import tldextract, re, dns.resolver
+import re, dns.resolver
 from src.core.config import Config
 
-custom_extract = tldextract.TLDExtract(cache_dir=False, suffix_list_urls=["localhost"])
-
 def get_tenant_id_or_domain(host: str):
-    ext = custom_extract(host)
-    domain = f"{ext.domain}.{ext.suffix}" if ext.suffix else ext.domain
-    if domain == Config.DOMAIN_NAME:
-        return ext.subdomain
+    host = (host or "").split(":")[0].lower()
+    domain = Config.DOMAIN_NAME.lower()
+
+    # Platform apex (workzone.tech / workzone.noctivagous.me) -> no tenant.
+    if host == domain:
+        return ""
+
+    # Tenant subdomain: <tenant_id>.<DOMAIN_NAME>
+    suffix = f".{domain}"
+    if host.endswith(suffix):
+        return host[: -len(suffix)]
+
+    # Anything else is a tenant-mapped custom domain.
     return host
 
 def is_valid_domain(domain: str) -> bool:
