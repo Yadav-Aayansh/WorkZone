@@ -12,7 +12,8 @@ class EmailService:
         self.smtp_port = Config.SMTP_PORT
         self.smtp_user = Config.SMTP_USER
         self.smtp_password = Config.SMTP_PASSWORD
-        self.from_email = f"{Config.SMTP_NAME} <{Config.SMTP_USER}>"
+        self.from_address = Config.FROM_EMAIL
+        self.from_email = f"{Config.SMTP_NAME} <{self.from_address}>" 
 
     def send_email(self, to: EmailStr | List[EmailStr], subject: str, html: str):
         message = MIMEMultipart("alternative")
@@ -30,7 +31,7 @@ class EmailService:
             with smtplib.SMTP(self.smtp_host, self.smtp_port) as smtp:
                 smtp.starttls()
                 smtp.login(self.smtp_user, self.smtp_password)
-                smtp.send_message(message, from_addr=self.smtp_user, to_addrs=recipients)
+                smtp.send_message(message, from_addr=self.from_address, to_addrs=recipients)
             logger.info(f"Email sent to {recipients}: {subject}")
             return True
         except Exception as e:
