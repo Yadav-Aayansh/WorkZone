@@ -12,7 +12,7 @@ class EmailService:
         self.smtp_port = Config.SMTP_PORT
         self.smtp_user = Config.SMTP_USER
         self.smtp_password = Config.SMTP_PASSWORD
-        self.from_address = Config.FROM_EMAIL
+        self.from_address = Config.SMTP_FROM_EMAIL
         self.from_email = f"{Config.SMTP_NAME} <{self.from_address}>" 
 
     def send_email(self, to: EmailStr | List[EmailStr], subject: str, html: str):
