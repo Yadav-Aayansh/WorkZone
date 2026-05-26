@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     SMTP_NAME: str
     SMTP_USER: str
     SMTP_PASSWORD: str
+    SMTP_FROM_EMAIL: str
 
     # Class Variable
     model_config = SettingsConfigDict(
